@@ -70,7 +70,7 @@ void dtweedie2_init_cache(void)
 #pragma omp critical (Name_92509c30f7c8ce2ff56520888da767c88a1ae7d4)
 		if (!cache) {
 			dtweedie_cache_tp **ccache = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp *);
-			verbose = 0; //GMRFLib_DEBUG_IF_TRUE();
+			verbose = 0;			       // GMRFLib_DEBUG_IF_TRUE();
 			cache = ccache;
 		}
 	}
@@ -237,10 +237,10 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 
 	// this function vectorize, and is a replacement for
 	// for (int i = 0; i < n; i++) {
-	//     ldens[i] = -pow(mu[i], p2) / (phi * p2);
-	//     ldens[i] += -y / (phi * p1 * pow(mu[i], p1)) - ly + log(sum_w) + w_max;
+	// ldens[i] = -pow(mu[i], p2) / (phi * p2);
+	// ldens[i] += -y / (phi * p1 * pow(mu[i], p1)) - ly + log(sum_w) + w_max;
 	inla_llike_tweedie2_1(n, p1, p2, phi, y, ly, sum_w, w_max, mu, ldens);
-	
+
 #if defined(MEASURE_TIME)
 	tref[2] += GMRFLib_timer();
 	trefc++;

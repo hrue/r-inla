@@ -2285,7 +2285,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 					}
 					GMRFLib_free_density(cpodens);
 				}
-
 				// the log-likelihood calculations in these two functions are the same. what is costly, is the call
 				// to the loglFunc, which computes the exact same values, twice. So these two calls should be
 				// merged, as if we chose dic=TRUE we could do waic=TRUE (ie po=TRUE) at the same time. and the
@@ -2293,13 +2292,14 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 				// as a first fix, we'll save these logl-values and pass them on, and make sure the numerical
 				// integration (ie, sum,) will vectorize.
-				
+
 				double *ll_save = NULL;
 				double *dmin_max = NULL;
-				
+
 				if (dic) {
 					deviance_theta[i][dens_count] =
-						GMRFLib_ai_dic_integrate(thread_id, i, lpred[i][dens_count], d[i], loglFunc, loglFunc_arg, lpred_mean, &ll_save, &dmin_max);
+					    GMRFLib_ai_dic_integrate(thread_id, i, lpred[i][dens_count], d[i], loglFunc, loglFunc_arg, lpred_mean,
+								     &ll_save, &dmin_max);
 				}
 				if (po) {
 					GMRFLib_ai_po_integrate(thread_id, &po_theta[i][dens_count], &po2_theta[i][dens_count],
@@ -6893,7 +6893,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 	if (po_density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		int np = GMRFLib_INT_GHQ_POINTS;
 		static double xp[GMRFLib_INT_GHQ_POINTS];
-		static double wp[GMRFLib_INT_GHQ_POINTS]; 
+		static double wp[GMRFLib_INT_GHQ_POINTS];
 		static int first = 1;
 
 		if (first) {
@@ -6912,7 +6912,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 		GMRFLib_dfill(np, 1.0, mask);
 
 		if (ll_save) {
-			Memcpy(ll, ll_save, np*sizeof(double));
+			Memcpy(ll, ll_save, np * sizeof(double));
 		} else {
 			double x[GMRFLib_INT_GHQ_POINTS];
 			double mean = po_density->user_mean;
@@ -6923,7 +6923,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 		}
 
 		// why isn't there a normalization of ll, like ll := ll - max(ll) ?
-		
+
 		double dmin = 0.0, dmax = 0.0;
 		if (dmin_max) {
 			dmin = dmin_max[0];
@@ -6932,7 +6932,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 			dmin = GMRFLib_min_value(ll, np, NULL);
 			dmax = GMRFLib_max_value(ll, np, NULL);
 		}
-		
+
 		double limit = -0.5 * SQR(xp[0]);	       // prevent extreme values
 		if (dmin - dmax < limit) {
 			for (int i = 0; i < np; i++) {
@@ -7068,7 +7068,7 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 		double stdev = density->user_stdev;
 
 
-		static double xp[GMRFLib_INT_GHQ_POINTS] = {0.0}, wp[GMRFLib_INT_GHQ_POINTS] = {0.0}; 
+		static double xp[GMRFLib_INT_GHQ_POINTS] = { 0.0 }, wp[GMRFLib_INT_GHQ_POINTS] = { 0.0 };
 		static int first = 1;
 		if (first) {
 #pragma omp critical (Name_ef0e0d83547a121b474aaeba75b4aeeb90f93789)

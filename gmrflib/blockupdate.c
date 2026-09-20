@@ -233,20 +233,20 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 
 			const int n = 5, nn = 2, wlength = 8;
 			static const double wf[24] = {
-				1.0 / 12.0, 
-				- 2.0 / 3.0, 
+				1.0 / 12.0,
+				-2.0 / 3.0,
 				0,
-				2.0 / 3.0, 
-				-1.0 / 12.0, 
+				2.0 / 3.0,
+				-1.0 / 12.0,
 				0,
 				0,
 				0,
 
-				- 1.0 / 12.0, 
-				4.0 / 3.0, 
+				-1.0 / 12.0,
+				4.0 / 3.0,
 				-2.5,
-				4.0 / 3.0, 
-				- 1.0 / 12.0, 
+				4.0 / 3.0,
+				-1.0 / 12.0,
 				0,
 				0,
 				0,
@@ -276,15 +276,15 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			double *wff_ref = wff + nn;
 #if 1
 			if (!dd) {
-				ddf = f_ref[0] * wff_ref [0];
-				for(int i = 1; i <= nn ; i++) {
+				ddf = f_ref[0] * wff_ref[0];
+				for (int i = 1; i <= nn; i++) {
 					df += wf_ref[i] * (f_ref[i] - f_ref[-i]);
 					ddf += wff_ref[i] * (f_ref[i] + f_ref[-i]);
 				}
 			} else {
 				double *wfff_ref = wfff + nn;
-				ddf = f_ref[0] * wff_ref [0];
-				for(int i = 1; i <= nn ; i++) {
+				ddf = f_ref[0] * wff_ref[0];
+				for (int i = 1; i <= nn; i++) {
 					double dif = f_ref[i] - f_ref[-i];
 					df += wf_ref[i] * dif;
 					ddf += wff_ref[i] * (f_ref[i] + f_ref[-i]);
@@ -359,15 +359,15 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 
 			// we do not need to initialized df and dddf, as wf_ref[0]=0 and wfff_ref[0]=0
 #if 1
-			ddf = f_ref[0] * wff_ref [0];
+			ddf = f_ref[0] * wff_ref[0];
 			if (!dd) {
-				for(int i = 1; i <= nn ; i++) {
+				for (int i = 1; i <= nn; i++) {
 					df += wf_ref[i] * (f_ref[i] - f_ref[-i]);
 					ddf += wff_ref[i] * (f_ref[i] + f_ref[-i]);
 				}
 			} else {
 				double *wfff_ref = wfff + nn;
-				for(int i = 1; i <= nn ; i++) {
+				for (int i = 1; i <= nn; i++) {
 					double dif = f_ref[i] - f_ref[-i];
 					df += wf_ref[i] * dif;
 					ddf += wff_ref[i] * (f_ref[i] + f_ref[-i]);
@@ -378,7 +378,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			df = GMRFLib_prod_diff(wf_ref[1], f_ref[1] - f_ref[-1], -wf_ref[2], f_ref[2] - f_ref[-2]);
 			df = fma(wf_ref[3], f_ref[3] - f_ref[-3], df);
 			ddf = GMRFLib_prod_diff(wff_ref[0], f_ref[0], -wff_ref[1], f_ref[1] + f_ref[-1]) +
-				GMRFLib_prod_diff(wff_ref[2], f_ref[2] + f_ref[-2], -wff_ref[3], f_ref[3] + f_ref[-3]);
+			    GMRFLib_prod_diff(wff_ref[2], f_ref[2] + f_ref[-2], -wff_ref[3], f_ref[3] + f_ref[-3]);
 			if (dd) {
 				double *wfff_ref = wfff + nn;
 				dddf = GMRFLib_prod_diff(wfff_ref[1], f_ref[1] - f_ref[-1], -wfff_ref[2], f_ref[2] - f_ref[-2]);

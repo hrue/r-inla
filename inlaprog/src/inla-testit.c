@@ -5542,7 +5542,7 @@ int testit(int argc, char **argv)
 		double *x = Calloc(n + 1, double);
 		double *y = Calloc(n + 1, double);
 
-		double tref[2]= { 0.0 };
+		double tref[2] = { 0.0 };
 		for (int i = 0; i < m; i++) {
 			double a = GMRFLib_uniform();
 			for (int j = 0; j < n; j++) {
@@ -6422,7 +6422,7 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 
-		double tref[2] = { 0, 0};
+		double tref[2] = { 0, 0 };
 		for (int j = 0; j < m; j++) {
 			double x0 = GMRFLib_uniform();
 			double x = x0, xx = x0;
@@ -6457,7 +6457,7 @@ int testit(int argc, char **argv)
 		for (nn = n; nn % 4 != 0; nn++);
 		P(nn);
 
-		double tref[2] = { 0, 0};
+		double tref[2] = { 0, 0 };
 		for (int j = 0; j < m; j++) {
 			double x0 = GMRFLib_uniform();
 			double x = x0, xx = x0;
@@ -6491,7 +6491,7 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 
-		double tref[2] = { 0, 0};
+		double tref[2] = { 0, 0 };
 		for (int j = 0; j < m; j++) {
 			double x0 = GMRFLib_uniform();
 			double x = x0, xx = x0;
@@ -6543,8 +6543,8 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 
-		double tref[2] = { 0, 0};
-		double z[2] = { 0, 0};
+		double tref[2] = { 0, 0 };
+		double z[2] = { 0, 0 };
 		for (int j = 0; j < m; j++) {
 			tref[0] += -GMRFLib_timer();
 			z[0] = 0;
@@ -6586,7 +6586,7 @@ int testit(int argc, char **argv)
 		int n = atoi(args[0]);
 		GMRFLib_idx_tp *h = NULL;
 		for (int i = 0; i < n; i++) {
-			GMRFLib_idx_add(&h, i/3L);
+			GMRFLib_idx_add(&h, i / 3L);
 		}
 		GMRFLib_idx_printf(stdout, h, "ORIGINAL");
 		GMRFLib_idx_remove_duplicates(h);

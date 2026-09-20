@@ -1237,13 +1237,13 @@ int GMRFLib_idxval_find(int *id, double *val, GMRFLib_idxval_tp *h)
 	return -1;
 }
 
-void GMRFLib_idx_remove_duplicates(GMRFLib_idx_tp *h) 
+void GMRFLib_idx_remove_duplicates(GMRFLib_idx_tp *h)
 {
 	if (!h)
 		return;
 
 	int j = 0;
-	for(int i = 1; i < h->n; i++) {
+	for (int i = 1; i < h->n; i++) {
 		if (h->idx[i] > h->idx[j]) {
 			h->idx[++j] = h->idx[i];
 		}
@@ -1251,7 +1251,7 @@ void GMRFLib_idx_remove_duplicates(GMRFLib_idx_tp *h)
 	h->n = j + 1;
 }
 
-	
+
 
 GMRFLib_idx_tp *GMRFLib_idx_duplicate(GMRFLib_idx_tp *h)
 {
@@ -1371,7 +1371,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
