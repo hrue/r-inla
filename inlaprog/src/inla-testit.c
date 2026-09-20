@@ -6581,6 +6581,20 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 210:
+	{
+		int n = atoi(args[0]);
+		GMRFLib_idx_tp *h = NULL;
+		for (int i = 0; i < n; i++) {
+			GMRFLib_idx_add(&h, i/3L);
+		}
+		GMRFLib_idx_printf(stdout, h, "ORIGINAL");
+		GMRFLib_idx_remove_duplicates(h);
+		GMRFLib_idx_printf(stdout, h, "AFTER DUPLICATES HAS BEEN REMOVED");
+		GMRFLib_idx_free(h);
+	}
+		break;
+
 	default:
 	{
 		printf("\nNo such test: %d\n", test_no);

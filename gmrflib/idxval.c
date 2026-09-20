@@ -1248,7 +1248,7 @@ void GMRFLib_idx_remove_duplicates(GMRFLib_idx_tp *h)
 			h->idx[++j] = h->idx[i];
 		}
 	}
-	h->n = j;
+	h->n = j + 1;
 }
 
 	
