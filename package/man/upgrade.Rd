@@ -5,12 +5,14 @@
 \alias{inla.upgrade}
 \title{Upgrade the INLA-package}
 \usage{
-inla.update(channel = c("stable", "testing"), ...)
+inla.update(...)
 
 inla.upgrade(...)
 }
 \arguments{
-\item{...}{Arguments not used}
+\item{...}{\code{testing=TRUE} installs the newest release of any kind,
+prereleases included, instead of the one marked "Latest" on GitHub.
+The default installs the stable release.}
 }
 \value{
 \code{inla.upgrade} returns nothing
