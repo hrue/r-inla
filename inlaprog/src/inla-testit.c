@@ -6935,8 +6935,9 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 
-		double tref[2] = { 0.0 };
+		double tref[3] = { 0.0 };
 		double *x = Malloc(n, double);
+		double *x1 = Malloc(n, double);
 		double *x2 = Malloc(n, double);
 		double *x3 = Malloc(n, double);
 		int *ix = Malloc(n, int);
@@ -6958,22 +6959,28 @@ int testit(int argc, char **argv)
 			tref[0] += -GMRFLib_timer();
 #pragma omp simd
 			for(int i = 0; i < n; i++) {
-				x2[perm[i]] = x[i];
+				x1[perm[i]] = x[i];
 			}
 			tref[0] += GMRFLib_timer();
 
 			tref[1] += -GMRFLib_timer();
 #pragma omp simd
 			for(int i = 0; i < n; i++) {
-				x3[i] = x[iperm[i]];
+				x2[i] = x[iperm[i]];
 			}
 			tref[1] += GMRFLib_timer();
-			assert(x2[0] == x3[0]);
+
+			tref[2] += -GMRFLib_timer();
+			GMRFLib_pack(n, x, iperm, x3);
+			tref[2] += GMRFLib_timer();
+			assert(x2[0] == x1[0]);
+			assert(x3[0] == x1[0]);
 		}
 
-		printf("perm %.3f iperm %.3f\n",
-		       tref[0] / (tref[0] + tref[1]), 
-		       tref[1] / (tref[0] + tref[1]));
+		printf("perm %.3f iperm %.3f _pack %.3f\n",
+		       tref[0] / (tref[0] + tref[1] + tref[2]), 
+		       tref[1] / (tref[0] + tref[1] + tref[2]), 
+		       tref[2] / (tref[0] + tref[1] + tref[2]));
 	}
 		break;
 
