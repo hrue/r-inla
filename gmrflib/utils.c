@@ -2202,13 +2202,10 @@ int GMRFLib_is_sorted_iinc(int n, int *a)
 #       include "intrinsics/simde/is-sorted-int-avx512.h"
 #elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 #       include "intrinsics/simde/is-sorted-int-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-#       include "intrinsics/simde/is-sorted-int-sse2.h"
 #else
 	SOURCE_INCLUDE(<);
 #endif
 }
-
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -2221,46 +2218,73 @@ int GMRFLib_is_sorted_dinc(int n, double *a)
 #       include "intrinsics/simde/is-sorted-double-avx512.h"
 #elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
 #       include "intrinsics/simde/is-sorted-double-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-#       include "intrinsics/simde/is-sorted-double-sse2.h"
 #else
 	SOURCE_INCLUDE(<);
 #endif
 }
-
 #pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_idec(int n, int *a)
 {
 	// decreasing int's
 	SOURCE_INCLUDE(>);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_ddec(int n, double *a)
 {
 	// decreasing double's
 	SOURCE_INCLUDE(>);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_iinc_plain(int n, int *a)
 {
 	SOURCE_INCLUDE(<);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_dinc_plain(int n, double *a)
 {
 	SOURCE_INCLUDE(<);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_idec_plain(int n, int *a)
 {
 	SOURCE_INCLUDE(>);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 {
 	SOURCE_INCLUDE(>);
 }
+#pragma GCC diagnostic pop
 
 #undef SOURCE_INCLUDE
 

@@ -7101,6 +7101,51 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 215:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double tref[4] = { 0.0 };
+		double *x = Malloc(n, double);
+		int *ix = Malloc(n, int);
+		for(int i = 0; i < n; i++) {
+			x[i] = i;
+			ix[i] = i;
+		}
+
+		for (int j = 0; j < m; j++) {
+			tref[0] -= GMRFLib_timer();
+			volatile int r0 = GMRFLib_is_sorted_iinc(n, ix);
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+			volatile int r1 = GMRFLib_is_sorted_iinc_plain(n, ix);
+			tref[1] += GMRFLib_timer();
+
+			tref[2] -= GMRFLib_timer();
+			volatile int r2 = GMRFLib_is_sorted_dinc(n, x);
+			tref[2] += GMRFLib_timer();
+
+			tref[3] -= GMRFLib_timer();
+			volatile int r3 = GMRFLib_is_sorted_dinc_plain(n, x);
+			tref[3] += GMRFLib_timer();
+
+			assert(r1 == r0);
+			assert(r2 == r0);
+			assert(r3 == r0);
+		}
+		printf("int_simd %.3f int_plain %.3f d_simd %.3f d_plain %.3f\n",
+		       tref[0] / (tref[0] + tref[1] + tref[2] + tref[3]),
+		       tref[1] / (tref[0] + tref[1] + tref[2] + tref[3]),
+		       tref[2] / (tref[0] + tref[1] + tref[2] + tref[3]),
+		       tref[3] / (tref[0] + tref[1] + tref[2] + tref[3]));
+	}
+		break;
+
 	default:
 	{
 		printf("\nNo such test: %d\n", test_no);

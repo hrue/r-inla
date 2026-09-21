@@ -111,11 +111,7 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_isum(int n, int *x)
 {
-#if defined(INLA_WITH_SIMDE)
-#       include "intrinsics/simde/isum-sse2.h"
-#else
 	SUM_CORE(int, n);
-#endif
 }
 
 #pragma GCC diagnostic pop
