@@ -6927,6 +6927,56 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 211:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double tref[2] = { 0.0 };
+		double *x = Malloc(n, double);
+		double *x2 = Malloc(n, double);
+		double *x3 = Malloc(n, double);
+		int *ix = Malloc(n, int);
+		for(int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+			x2[i] = GMRFLib_uniform();
+			x3[i] = x2[i];
+			ix[i] = i;
+		}
+		GMRFLib_qsort2((void *) x, (size_t) n, sizeof(double), (void *)ix, sizeof(int), GMRFLib_dcmp);
+
+		int *perm = ix;
+		int *iperm = Malloc(n, int);
+		for(int i = 0; i < n; i++) {
+			iperm[perm[i]] = i;
+		}
+		
+		for (int j = 0; j < m; j++) {
+			tref[0] += -GMRFLib_timer();
+#pragma omp simd
+			for(int i = 0; i < n; i++) {
+				x2[perm[i]] = x[i];
+			}
+			tref[0] += GMRFLib_timer();
+
+			tref[1] += -GMRFLib_timer();
+#pragma omp simd
+			for(int i = 0; i < n; i++) {
+				x3[i] = x[iperm[i]];
+			}
+			tref[1] += GMRFLib_timer();
+			assert(x2[0] == x3[0]);
+		}
+
+		printf("perm %.3f iperm %.3f\n",
+		       tref[0] / (tref[0] + tref[1]), 
+		       tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
 	default:
 	{
 		printf("\nNo such test: %d\n", test_no);
