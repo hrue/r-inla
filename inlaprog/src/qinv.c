@@ -32,6 +32,7 @@ int main(int argc, char **argv)
 	fprintf(stderr, "Factorise Q... ");
 	fflush(stderr);
 	GMRFLib_problem_tp *problem = NULL;
+
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, NULL, GMRFLib_NEW_PROBLEM);
 	fprintf(stderr, "%gs\n", GMRFLib_timer() - tref);
 
@@ -42,6 +43,7 @@ int main(int argc, char **argv)
 	fprintf(stderr, "%gs\n", GMRFLib_timer() - tref);
 
 	int i, j, jj;
+
 	for (i = 0; i < graph->n; i++) {
 		printf("%d %d %.8g\n", i, i, *GMRFLib_Qinv_get(problem, i, i));
 		for (jj = 0; jj < graph->lnnbs[i]; jj++) {

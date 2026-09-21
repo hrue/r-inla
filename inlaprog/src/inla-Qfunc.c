@@ -47,6 +47,7 @@ double Qfunc_bym2(int thread_id, int i, int j, double *UNUSED(values), void *arg
 	int n = a->n;
 	double prec = map_precision_forward(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
 	double phi = map_probability_forward(a->logit_phi[thread_id][0], MAP_FORWARD, NULL);
+
 	if (IMAX(i, j) < n) {
 		return prec / (1.0 - phi);
 	}
@@ -66,6 +67,7 @@ double Qfunc_rw2diid(int thread_id, int i, int j, double *UNUSED(values), void *
 	int n = a->n;
 	double prec = map_precision_forward(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
 	double phi = map_probability_forward(a->logit_phi[thread_id][0], MAP_FORWARD, NULL);
+
 	if (IMAX(i, j) < n) {
 		return prec / (1.0 - phi);
 	}
@@ -290,6 +292,7 @@ double Qfunc_z(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 		 * doit like this, as most of the elements in B are zero
 		 */
 		double q = a->Qfunc_B->Qfunc(thread_id, i, j, NULL, a->Qfunc_B->Qfunc_arg);
+
 		if (q) {
 			value += q * map_precision_forward(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
 		}
@@ -353,6 +356,7 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 	if (rebuild) {
 		int *ilist = NULL, *jlist = NULL, n, len, k = 0, n_out, jj;
 		double *Qijlist = NULL, *x_out = NULL;
+
 #pragma omp critical (Name_297cd7aba8c5dafefcb1c93779913d23a945ce9e)
 		{
 			rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
@@ -370,6 +374,7 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 					GMRFLib_free_tabulate_Qfunc(a->Q[id]);
 				}
 				double *a_tmp = Calloc(a->ntheta, double);
+
 				for (jj = 0; jj < a->ntheta; jj++) {
 					a_tmp[jj] = a->theta[jj][thread_id][0];
 					if (debug) {
@@ -429,6 +434,7 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 		return (a->Q[id]->Qfunc(thread_id, i, j, values, a->Q[id]->Qfunc_arg));
 	}
 }
+
 #pragma GCC diagnostic pop
 
 double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
@@ -442,6 +448,7 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 			a->data->theta_all_n = inla_theta_all_get_n();
 			// must be non-NULL ptr even if theta_all_n=0
 			char **tags = Calloc(IMAX(1, a->data->theta_all_n), char *);
+
 			inla_theta_all_get_tags(tags);
 			a->data->theta_all_names = tags;
 		}
@@ -457,6 +464,7 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 
 	if (rebuild) {
 		int n, len, k = 0;
+
 		rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 		if (!rebuild) {
 			for (int ii = 0; ii < a->ntheta && !rebuild; ii++) {
@@ -469,12 +477,14 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 				GMRFLib_free_tabulate_Qfunc(a->Q[id]);
 			}
 			double *a_tmp = Malloc(a->ntheta + a->data->theta_all_n, double);
+
 			for (int jj = 0; jj < a->ntheta; jj++) {
 				a_tmp[jj] = a->theta[jj][thread_id][0];
 			}
 			inla_theta_all_get_values(thread_id, a_tmp + a->ntheta);
 
 			double *x_out = a->model_func(INLA_CGENERIC_Q, a_tmp, a->data);
+
 			if (a->debug) {
 				inla_cgeneric_debug(stdout, a->secname, INLA_CGENERIC_Q, x_out);
 			}
@@ -529,6 +539,7 @@ double Qfunc_dmatern(int thread_id, int node, int nnode, double *UNUSED(values),
 		{
 			// yes, log_prec is ...[0], so we start at 1
 			double range, nu;
+
 			if (debug) {
 				printf("Qfunc_dmatern: Rebuild Q-hash for id %d\n", id);
 			}
@@ -566,6 +577,7 @@ double Qfunc_dmatern(int thread_id, int node, int nnode, double *UNUSED(values),
 double mfunc_ar1(int thread_id, int UNUSED(i), void *arg)
 {
 	inla_ar1_arg_tp *a = (inla_ar1_arg_tp *) arg;
+
 	return (a->mean[thread_id][0]);
 }
 
@@ -704,6 +716,7 @@ double Qfunc_clinear(int UNUSED(thread_id), int i, int j, double *UNUSED(values)
 	}
 
 	inla_clinear_tp *a = (inla_clinear_tp *) arg;
+
 	assert(i == j);
 	return (a->precision);
 }
@@ -715,6 +728,7 @@ double Qfunc_sigm(int UNUSED(thread_id), int i, int j, double *UNUSED(values), v
 	}
 
 	inla_sigm_tp *a = (inla_sigm_tp *) arg;
+
 	assert(i == j);
 	return (a->precision);
 }
@@ -726,6 +740,7 @@ double Qfunc_log1exp(int UNUSED(thread_id), int i, int j, double *UNUSED(values)
 	}
 
 	inla_log1exp_tp *a = (inla_log1exp_tp *) arg;
+
 	assert(i == j);
 	return (a->precision);
 }
@@ -737,6 +752,7 @@ double Qfunc_logdist(int UNUSED(thread_id), int i, int j, double *UNUSED(values)
 	}
 
 	inla_log1exp_tp *a = (inla_log1exp_tp *) arg;
+
 	assert(i == j);
 	return (a->precision);
 }
@@ -907,12 +923,14 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 	if (hold == NULL) {
 		a->hold[id] = Calloc(1, inla_wishart_hold_tp);
 		a->hold[id]->vec = Calloc(n_theta, double);
+
 		a->hold[id]->vec[0] = GMRFLib_uniform();
 		a->hold[id]->Q = gsl_matrix_calloc(a->dim, a->dim);
 		hold = a->hold[id];
 	}
 
 	vec = Calloc(n_theta, double);
+
 	k = 0;
 	for (i = 0; i < dim; i++) {
 		vec[k] = map_precision_forward(a->log_prec[i][thread_id][0], MAP_FORWARD, NULL);
@@ -934,6 +952,7 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 		for (i = 0; i < dim; i++) {
 			for (j = i + 1; j < dim; j++) {
 				double value = vec[k] / sqrt(vec[i] * vec[j]);
+
 				gsl_matrix_set(hold->Q, i, j, value);
 				gsl_matrix_set(hold->Q, j, i, value);
 				k++;
@@ -955,12 +974,14 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 
 	return gsl_matrix_get(hold->Q, node / a->n, nnode / a->n);
 }
+
 #pragma GCC diagnostic pop
 
 int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix *Q, gsl_matrix *L)
 {
 	int i, j, k = 0, n_theta = INLA_WISHARTK_NTHETA(dim);
 	const int debug = 0;
+
 	gsl_matrix_set_zero(L);
 	for (i = 0; i < dim; i++) {
 		gsl_matrix_set(L, i, i, exp(theta[k++]));
@@ -1003,6 +1024,7 @@ double Qfunc_iid_wishartk(int thread_id, int node, int nnode, double *UNUSED(val
 	if (hold == NULL) {
 		a->hold[id] = Calloc(1, inla_wishartk_hold_tp);
 		a->hold[id]->vec = Calloc(n_theta, double);
+
 		a->hold[id]->vec[0] = GMRFLib_uniform();
 		a->hold[id]->L = gsl_matrix_calloc(a->dim, a->dim);
 		a->hold[id]->Q = gsl_matrix_calloc(a->dim, a->dim);
@@ -1174,6 +1196,7 @@ double Qfunc_ar1c(int thread_id, int i, int j, double *UNUSED(values), void *arg
 	} else {
 		// the beta-block
 		int iii = ii - a->n, jjj = jj - a->n;
+
 		val = GMRFLib_matrix_get(iii, jjj, a->Qbeta) + prec * GMRFLib_matrix_get(iii, jjj, a->ZZ);
 	}
 
@@ -1194,6 +1217,7 @@ double Qfunc_ou(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 
 	if (i != j) {
 		int ii = IMAX(i, j);
+
 		delta = a->locations[ii] - a->locations[ii - 1];
 		w = 1.0 / ONE_mexp(-2.0 * phi * delta);
 		v = exp(-phi * delta);
@@ -1300,6 +1324,7 @@ double Qfunc_besagproper(int thread_id, int i, int j, double *UNUSED(values), vo
 	prec = map_precision_forward(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
 	if (i == j) {
 		double diag = map_exp_forward(a->log_diag[thread_id][0], MAP_FORWARD, NULL);
+
 		return prec * (diag + a->graph->nnbs[i]);
 	} else {
 		return -prec;
@@ -1408,6 +1433,7 @@ double Qfunc_copy_part00(int thread_id, int i, int j, double *UNUSED(values), vo
 
 	if (i == j) {
 		double beta = a->map_beta(a->beta[thread_id][0], MAP_FORWARD, a->map_beta_arg);
+
 		return a->Qfunc(thread_id, i, j, NULL, a->Qfunc_arg) + a->precision * SQR(beta);
 	} else {
 		return a->Qfunc(thread_id, i, j, NULL, a->Qfunc_arg);
@@ -1446,9 +1472,11 @@ double Qfunc_scopy_part00(int thread_id, int i, int j, double *UNUSED(values), v
 	inla_scopy_arg_tp *a = (inla_scopy_arg_tp *) arg;
 
 	int cache_idx = 0;
+
 	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	int build = 0;
+
 	for (int k = 0; k < a->nbeta; k++) {
 		if (a->betas[k][thread_id][0] != a->cache00[cache_idx]->betas[k]) {
 			build = 1;
@@ -1466,8 +1494,10 @@ double Qfunc_scopy_part00(int thread_id, int i, int j, double *UNUSED(values), v
 
 			if (a->nbeta > 2) {
 				double *theta = Calloc(a->nbeta, double);
+
 				for (int k = 0; k < a->nbeta; k++) {
 					double *b = a->cache00[cache_idx]->betas_tmp;
+
 					for (int jj = 0; jj < a->nbeta; jj++) {
 						theta[k] += a->W->A[k + jj * a->nbeta] * b[jj];
 					}
@@ -1484,9 +1514,11 @@ double Qfunc_scopy_part00(int thread_id, int i, int j, double *UNUSED(values), v
 		if (a->nbeta == 2) {
 			double *ab = a->cache00[cache_idx]->betas;
 			double beta = ab[0] + ab[1] * (a->cov_beta[i] - a->loc_mid) / a->loc_len;
+
 			return a->Qfunc(thread_id, i, j, NULL, a->Qfunc_arg) + a->precision * SQR(beta);
 		} else {
 			double beta = GMRFLib_spline_eval(a->cov_beta[i], a->cache00[cache_idx]->splinefun);
+
 			return a->Qfunc(thread_id, i, j, NULL, a->Qfunc_arg) + a->precision * SQR(beta);
 		}
 	} else {
@@ -1503,9 +1535,11 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 	inla_scopy_arg_tp *a = (inla_scopy_arg_tp *) arg;
 
 	int cache_idx = 0;
+
 	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	int build = 0;
+
 	for (int k = 0; k < a->nbeta; k++) {
 		if (a->betas[k][thread_id][0] != a->cache01[cache_idx]->betas[k]) {
 			build = 1;
@@ -1523,8 +1557,10 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 
 			if (a->nbeta > 2) {
 				double *theta = Calloc(a->nbeta, double);
+
 				for (int k = 0; k < a->nbeta; k++) {
 					double *b = a->cache01[cache_idx]->betas_tmp;
+
 					for (int jj = 0; jj < a->nbeta; jj++) {
 						theta[k] += a->W->A[k + jj * a->nbeta] * b[jj];
 					}
@@ -1540,8 +1576,10 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 	assert(i == j);
 
 	double beta_i;
+
 	if (a->nbeta == 2) {
 		double *ab = a->cache01[cache_idx]->betas;
+
 		beta_i = ab[0] + ab[1] * (a->cov_beta[i] - a->loc_mid) / a->loc_len;
 	} else {
 		beta_i = GMRFLib_spline_eval(a->cov_beta[i], a->cache01[cache_idx]->splinefun);
@@ -1555,5 +1593,6 @@ double Qfunc_scopy_part11(int UNUSED(thread_id), int UNUSED(i), int j, double *U
 		return NAN;
 	}
 	inla_scopy_arg_tp *a = (inla_scopy_arg_tp *) arg;
+
 	return a->precision;
 }

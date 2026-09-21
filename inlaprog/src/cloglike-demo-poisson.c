@@ -14,8 +14,10 @@ double poisson_cdf(int y, double lambda)
 {
 	// simple standalone code. of course it is better to compute it using the incomplete Gamma-distribution/external library.
 	double res = 0.0;
+
 	if (y >= 0) {
 		double p = exp(-lambda);
+
 		res = p;
 		for (int yy = 1; yy <= y; yy++) {
 			p *= lambda / yy;
@@ -34,6 +36,7 @@ double *inla_cloglike_poisson(inla_cloglike_cmd_tp cmd, double *theta,
 	case INLA_CLOGLIKE_INITIAL:
 	{
 		ret = Malloc(1, double);
+
 		ret[0] = 0;
 	}
 		break;
@@ -95,8 +98,10 @@ double *inla_cloglike_poisson_cache(inla_cloglike_cmd_tp cmd, double *theta,
 #pragma omp critical (Name_e2814d0ff0cb393dee01d0eb049e6e976f56cce8)
 		if (!(data->cache)) {
 			Cache_tp *c = Malloc(1, Cache_tp);
+
 			c->ymax = 1024;			       /* or something */
 			c->lfactorial = Malloc(c->ymax + 1, double);
+
 			c->lfactorial[0] = 0.0;
 			for (int k = 1; k <= c->ymax; k++) {
 				c->lfactorial[k] = c->lfactorial[k - 1] + log(k);
@@ -109,11 +114,13 @@ double *inla_cloglike_poisson_cache(inla_cloglike_cmd_tp cmd, double *theta,
 	Cache_tp *cache = *((Cache_tp **) (&data->cache));
 
 	double *ret = NULL;
+
 	switch (cmd) {
 	case INLA_CLOGLIKE_INITIAL:
 	{
 		// no hyperparameters
 		ret = Malloc(1, double);
+
 		ret[0] = 0;
 	}
 		break;
@@ -129,6 +136,7 @@ double *inla_cloglike_poisson_cache(inla_cloglike_cmd_tp cmd, double *theta,
 	{
 		// if y[0] is to large, we have to rebuild the cache...
 		int iy = (int) y[0];
+
 		assert(iy <= cache->ymax);
 		double lfac = cache->lfactorial[iy];
 

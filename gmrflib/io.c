@@ -270,10 +270,12 @@ int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp *io)
 #pragma omp critical (Name_3b7615ac7634fdd9cdf10e63dde5835b04b9da62)
 		if (!lline) {
 			char **tmp = Calloc(GMRFLib_CACHE_LEN(), char *);
+
 			lline = tmp;
 		}
 	}
 	int idx = 0;
+
 	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (io == NULL) {				       /* special: reset strtok */

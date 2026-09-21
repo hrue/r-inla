@@ -57,6 +57,7 @@ GMRFLib_reorder_tp GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 int GMRFLib_verify_graph_read_from_disc = GMRFLib_FALSE;
 
 gsl_rng *GMRFLib_rng_ptr = NULL;			       /* this holds the RNG and its state and is avail globally */
+
 #pragma omp threadprivate(GMRFLib_rng_ptr)
 
 GMRFLib_uniform_tp *GMRFLib_uniform = GMRFLib_rng_uniform;
@@ -88,7 +89,6 @@ GMRFLib_density_tp ***GMRFLib_ai_INLA_userfunc3_density = NULL;
 int GMRFLib_ai_INLA_userfunc3_n = 0;
 int *GMRFLib_ai_INLA_userfunc3_len = NULL;
 char **GMRFLib_ai_INLA_userfunc3_tag = NULL;
-
 
 int GMRFLib_bitmap_max_dimension = -1;
 int GMRFLib_bitmap_swap = 0;

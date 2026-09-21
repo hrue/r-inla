@@ -173,7 +173,6 @@ Simple example:
 
 */
 
-
 /*
 Important defines for MapKit:
   MAPKIT_EXITONERROR : if defined, will exit upon failure.

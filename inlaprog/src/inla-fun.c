@@ -28,6 +28,7 @@ double inla_logcdf_normal(double x)
 		} else {
 			// x < -7.0
 			double xx = -x, cg1;
+
 			cg1 =
 			    -(pow(xx, 0.6e1) + log(0.2e1) * pow(xx, 0.4e1) + log(0.3141592653589793e1) * pow(xx, 0.4e1) +
 			      0.2e1 * log(xx) * pow(xx, 0.4e1)
@@ -38,6 +39,7 @@ double inla_logcdf_normal(double x)
 	abort();
 	return 0;
 }
+
 #pragma GCC diagnostic pop
 
 double inla_cdf_normal(double x)
@@ -77,6 +79,7 @@ double inla_logitcdf_normal(double x)
 
 	if (ABS(x) < 7.0) {
 		double y = inla_cdf_normal(x);
+
 		return (log(y / (1.0 - y)));
 	} else {
 		// > asympt(log(Phi(x)/(1-Phi(x))), x, 16); 
@@ -86,6 +89,7 @@ double inla_logitcdf_normal(double x)
 		// 2 2
 		// 
 		double val = (SQR(x) / 2.0 + log(x) + M_LN_SQRT_2PI);
+
 		return (x > 0.0 ? val : -val);
 	}
 #undef M_LN_SQRT_2PI

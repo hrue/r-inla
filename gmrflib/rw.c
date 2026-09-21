@@ -221,10 +221,12 @@ double GMRFLib_crw(int thread_id, int node, int nnode, double *UNUSED(values), v
 					double *delta = NULL, *work = NULL;
 
 					delta = Calloc(n - 1, double);
+
 					for (i = 0; i < n - 1; i++) {
 						delta[i] = crwdef->position[i + 1] - crwdef->position[i];
 					}
 					work = Calloc(5 * (n + 4), double);
+
 					SETUP_LOCAL_WORK_PTRS;
 					for (i = 0; i < n - 1; i++) {
 						idelta[i] = 1.0 / delta[i];
@@ -820,6 +822,7 @@ int GMRFLib_crw_scale(int thread_id, void *def)
 	GMRFLib_crwdef_tp *odef = (GMRFLib_crwdef_tp *) def;
 
 	double *prec_scale_guess = Calloc(1, double);
+
 	*prec_scale_guess = 1.0;
 
 	crwdef->n = odef->n;
@@ -834,6 +837,7 @@ int GMRFLib_crw_scale(int thread_id, void *def)
 	crwdef->prec_scale = prec_scale_guess;
 
 	GMRFLib_graph_tp *graph = NULL;
+
 	GMRFLib_make_crw_graph(&graph, crwdef);
 	assert(graph->n > 0);
 
@@ -845,12 +849,14 @@ int GMRFLib_crw_scale(int thread_id, void *def)
 	if (!(crwdef->position)) {
 		free_position = 1;
 		crwdef->position = Calloc(graph->n, double);
+
 		for (i = 0; i < graph->n; i++) {
 			crwdef->position[i] = i;
 		}
 	}
 
 	double *len = Calloc(graph->n, double);
+
 	for (i = 0; i < graph->n; i++) {
 		if (i == 0) {
 			// yes, to make it eq to the discrete case
@@ -864,15 +870,18 @@ int GMRFLib_crw_scale(int thread_id, void *def)
 	}
 
 	GMRFLib_constr_tp *constr = NULL;
+
 	GMRFLib_make_empty_constr(&constr);
 	constr->nc = crwdef->order;
 	constr->a_matrix = Calloc(constr->nc * graph->n, double);
 	constr->e_vector = Calloc(constr->nc, double);
+
 	for (i = 0; i < graph->n; i++) {
 		constr->a_matrix[i * constr->nc + 0] = len[i];
 	}
 
 	double len_acum = 0.0;
+
 	for (i = 0; i < graph->n; i++) {
 		len_acum += len[i];
 	}
@@ -896,6 +905,7 @@ int GMRFLib_crw_scale(int thread_id, void *def)
 	assert(graph->n > 0);
 	double *c = Calloc(graph->n, double);
 	double eps = GSL_SQRT_DBL_EPSILON;
+
 	GMRFLib_dfill(graph->n, eps, c);
 	GMRFLib_problem_tp *problem = NULL;
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
@@ -931,11 +941,13 @@ int GMRFLib_crw_scale(int thread_id, void *def)
 	GMRFLib_Qinv(problem);
 
 	double sum = 0.0;
+
 	for (i = 0; i < graph->n; i++) {
 		sum += log(*(GMRFLib_Qinv_get(problem, i, i))) * len[i];
 	}
 
 	odef->prec_scale = Calloc(1, double);
+
 	odef->prec_scale[0] = exp(sum / ((crwdef->position[graph->n - 1] - crwdef->position[0]) *
 					 // the n/(n-1) term is to make it eq to the discrete case
 					 (graph->n / (graph->n - 1.0)))) * *prec_scale_guess;
@@ -958,6 +970,7 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 	GMRFLib_rwdef_tp *rwdef = Calloc(1, GMRFLib_rwdef_tp);
 	GMRFLib_rwdef_tp *odef = (GMRFLib_rwdef_tp *) def;
 	double *prec_scale_guess = Calloc(1, double);
+
 	*prec_scale_guess = 1.0;
 
 	rwdef->n = odef->n;
@@ -969,9 +982,11 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 	rwdef->prec_scale = prec_scale_guess;
 
 	GMRFLib_graph_tp *graph = NULL;
+
 	GMRFLib_make_rw_graph(&graph, rwdef);
 	int i;
 	GMRFLib_constr_tp *constr = NULL;
+
 	GMRFLib_make_empty_constr(&constr);
 
 	if (!rwdef->cyclic) {
@@ -983,6 +998,7 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 		} else if (rwdef->order == 1) {
 			constr->nc = 1;
 			constr->a_matrix = Calloc(constr->nc * graph->n, double);
+
 			for (i = 0; i < graph->n; i++) {
 				constr->a_matrix[i * constr->nc + 0] = 1.0;
 			}
@@ -990,6 +1006,7 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 		} else if (rwdef->order == 2) {
 			constr->nc = 2;
 			constr->a_matrix = Calloc(constr->nc * graph->n, double);
+
 			for (i = 0; i < graph->n; i++) {
 				constr->a_matrix[i * constr->nc + 0] = 1.0;
 				constr->a_matrix[i * constr->nc + 1] = (i - graph->n / 2.0);
@@ -1007,6 +1024,7 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 		} else if (rwdef->order == 1 || rwdef->order == 2) {
 			constr->nc = 1;
 			constr->a_matrix = Calloc(constr->nc * graph->n, double);
+
 			for (i = 0; i < graph->n; i++) {
 				constr->a_matrix[i * constr->nc + 0] = 1.0;
 			}
@@ -1018,6 +1036,7 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 
 	if (constr->nc) {
 		constr->e_vector = Calloc(constr->nc, double);
+
 		GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 	} else {
 		GMRFLib_free_constr(constr);
@@ -1027,6 +1046,7 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 	assert(graph->n > 0);
 	double *c = Calloc(graph->n, double);
 	double eps = GSL_SQRT_DBL_EPSILON;
+
 	GMRFLib_dfill(graph->n, eps, c);
 	GMRFLib_problem_tp *problem = NULL;
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
@@ -1063,11 +1083,13 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 	GMRFLib_Qinv(problem);
 
 	double sum = 0.0;
+
 	for (i = 0; i < graph->n; i++) {
 		sum += log(*(GMRFLib_Qinv_get(problem, i, i)));
 	}
 
 	odef->prec_scale = Calloc(1, double);
+
 	odef->prec_scale[0] = exp(sum / graph->n) * *prec_scale_guess;
 
 	Free(c);
@@ -1094,6 +1116,7 @@ int GMRFLib_rw2d_scale(int thread_id, void *def)
 	rw2ddef->prec_scale = NULL;
 
 	GMRFLib_graph_tp *graph = NULL;
+
 	GMRFLib_make_rw2d_graph(&graph, rw2ddef);
 
 	int i, j, k;
@@ -1105,6 +1128,7 @@ int GMRFLib_rw2d_scale(int thread_id, void *def)
 		GMRFLib_make_empty_constr(&constr);
 		constr->nc = (rw2ddef->cyclic ? 1 : 3);
 		constr->a_matrix = Calloc(constr->nc * graph->n, double);
+
 		if (constr->nc == 1) {
 			for (i = 0; i < graph->n; i++) {
 				constr->a_matrix[i * constr->nc + 0] = 1.0;
@@ -1121,10 +1145,12 @@ int GMRFLib_rw2d_scale(int thread_id, void *def)
 		}
 
 		constr->e_vector = Calloc(constr->nc, double);
+
 		GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
 		double eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
 		c = Calloc(graph->n, double);
+
 		for (i = 0; i < graph->n; i++) {
 			c[i] = eps;
 		}
@@ -1171,11 +1197,13 @@ int GMRFLib_rw2d_scale(int thread_id, void *def)
 	GMRFLib_Qinv(problem);
 
 	double sum = 0.0;
+
 	for (i = 0; i < graph->n; i++) {
 		sum += log(*(GMRFLib_Qinv_get(problem, i, i)));
 	}
 
 	odef->prec_scale = Calloc(1, double);
+
 	odef->prec_scale[0] = exp(sum / graph->n);
 
 	Free(c);

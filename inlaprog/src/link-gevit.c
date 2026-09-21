@@ -100,11 +100,13 @@ double link_gev_core(int thread_id, double arg, map_arg_tp typ, void *param, int
 #pragma omp critical (Name_05a52e84fdd11002deeb92bd0344f40bc9bac1a6)
 		if (!cache) {
 			cache_tp **tmp = Calloc(GMRFLib_CACHE_LEN(), cache_tp *);
+
 			cache = tmp;
 		}
 	}
 
 	int id = 0;
+
 	GMRFLib_CACHE_SET_IDX(id);
 
 	xi = DSIGN(xi) * DMAX(XI_MIN, ABS(xi));
@@ -223,13 +225,16 @@ void link_gev_test(double xi, double intercept)
 	param->bgev_intercept[0] = Calloc(1, double);
 
 	double intercept_intern = map_probability(intercept, MAP_BACKWARD, NULL);
+
 	param->bgev_intercept[0][0] = intercept_intern;
 
 	param->bgev_tail_interval = Calloc(2, double);
+
 	param->bgev_tail_interval[0] = -0.5;
 	param->bgev_tail_interval[1] = 0.5;
 
 	double xi_intern = map_interval(xi, MAP_BACKWARD, (void *) param->bgev_tail_interval);
+
 	param->bgev_tail[0][0] = xi_intern;
 
 	printf("xi %.12g\n", xi);

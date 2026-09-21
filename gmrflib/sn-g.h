@@ -26,6 +26,7 @@ double *GMRFLib_sn_g_get_coof(double skew, double *cx);
 double *GMRFLib_sn_ginv_get_coof(double skew, double *cx);
 double GMRFLib_sn_g_eval(double x, double *cx);
 double GMRFLib_sn_g_eval_deriv(double x, double *cx);
+
 //
 
 __END_DECLS

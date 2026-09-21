@@ -135,6 +135,7 @@ static hypercube make_hypercube(unsigned dim, const double *center, const double
 	h.vol = compute_vol(&h);
 	return h;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -152,6 +153,7 @@ static hypercube make_hypercube_range(unsigned dim, const double *xmin, const do
 	h.vol = compute_vol(&h);
 	return h;
 }
+
 #pragma GCC diagnostic pop
 
 static void destroy_hypercube(hypercube *h)
@@ -308,6 +310,7 @@ static double evalR_Rfs(integrand f, void *fdata, unsigned dim, double *p, const
 	}
 	return sum;
 }
+
 #pragma GCC diagnostic pop
 
 static double evalRR0_0fs(integrand f, void *fdata, unsigned dim, double *p, const double *c, const double *r)
@@ -479,6 +482,7 @@ static unsigned rule75genzmalik_evalError(rule *r_, integrand f, void *fdata, co
 
 	return dimDiffMax;
 }
+
 #pragma GCC diagnostic pop
 
 static rule *make_rule75genzmalik(unsigned dim)
@@ -537,6 +541,7 @@ static unsigned rule15gauss_evalError(rule *UNUSED(r), integrand f, void *fdata,
 	 * Fullerton, Bell Labs, Nov. 1981. 
 	 */
 	const unsigned n = 8;
+
 	const double xgk[8] = {				       /* abscissae of the 15-point kronrod rule */
 		0.991455371120812639206854697526329,
 		0.949107912342758524526189684047851,
@@ -634,6 +639,7 @@ static unsigned rule15gauss_evalError(rule *UNUSED(r), integrand f, void *fdata,
 
 	return 0;					       /* no choice but to divide 0th dimension */
 }
+
 #pragma GCC diagnostic pop
 
 static rule *make_rule15gauss(unsigned dim)

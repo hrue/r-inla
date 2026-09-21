@@ -30,6 +30,7 @@ int GMRFLib_idx_create_x(GMRFLib_idx_tp **hold, int len)
 	len = IMAX(1, len);
 	*hold = Calloc(1, GMRFLib_idx_tp);
 	(*hold)->idx = Calloc(len, int);
+
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 
@@ -46,6 +47,7 @@ int GMRFLib_str_create_x(GMRFLib_str_tp **hold, int len)
 	len = IMAX(1, len);
 	*hold = Calloc(1, GMRFLib_str_tp);
 	(*hold)->str = Calloc(len, char *);
+
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 
@@ -64,6 +66,7 @@ int GMRFLib_idx2_create_x(GMRFLib_idx2_tp **hold, int len)
 	(*hold)->idx = Calloc(2, int *);
 	(*hold)->idx[0] = Calloc(len, int);
 	(*hold)->idx[1] = Calloc(len, int);
+
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 
@@ -74,6 +77,7 @@ int GMRFLib_val_create(GMRFLib_val_tp **hold)
 {
 	*hold = Calloc(1, GMRFLib_val_tp);
 	(*hold)->val = Calloc(IDX_ALLOC_INITIAL, double);
+
 	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
 	(*hold)->n = 0;
 
@@ -89,6 +93,7 @@ int GMRFLib_ptr_create_x(GMRFLib_ptr_tp **hold, int len)
 {
 	*hold = Calloc(1, GMRFLib_ptr_tp);
 	(*hold)->ptr = Calloc(len, void *);
+
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 
@@ -106,6 +111,7 @@ int GMRFLib_idxval_create_x(GMRFLib_idxval_tp **hold, int len)
 	*hold = Calloc(1, GMRFLib_idxval_tp);
 	(*hold)->idx = Calloc(len, int);
 	(*hold)->val = Calloc(len, double);
+
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 	(*hold)->iaddto = 0;
@@ -117,6 +123,7 @@ GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n)
 {
 	if (n > 0) {
 		GMRFLib_idx_tp **a = Calloc(n, GMRFLib_idx_tp *);
+
 		for (int i = 0; i < n; i++) {
 			GMRFLib_idx_create(&(a[i]));
 		}
@@ -130,6 +137,7 @@ GMRFLib_idx_tp **GMRFLib_idx_ncreate_x(int n, int len)
 {
 	if (n > 0) {
 		GMRFLib_idx_tp **a = Calloc(n, GMRFLib_idx_tp *);
+
 		for (int i = 0; i < n; i++) {
 			GMRFLib_idx_create_x(&(a[i]), len);
 		}
@@ -143,6 +151,7 @@ GMRFLib_str_tp **GMRFLib_str_ncreate(int n)
 {
 	if (n > 0) {
 		GMRFLib_str_tp **a = Calloc(n, GMRFLib_str_tp *);
+
 		for (int i = 0; i < n; i++) {
 			GMRFLib_str_create(&(a[i]));
 		}
@@ -156,6 +165,7 @@ GMRFLib_str_tp **GMRFLib_str_ncreate_x(int n, int len)
 {
 	if (n > 0) {
 		GMRFLib_str_tp **a = Calloc(n, GMRFLib_str_tp *);
+
 		for (int i = 0; i < n; i++) {
 			GMRFLib_str_create_x(&(a[i]), len);
 		}
@@ -169,6 +179,7 @@ GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n)
 {
 	if (n > 0) {
 		GMRFLib_idx2_tp **a = Calloc(n, GMRFLib_idx2_tp *);
+
 		for (int i = 0; i < n; i++) {
 			GMRFLib_idx2_create(&(a[i]));
 		}
@@ -182,6 +193,7 @@ GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len)
 {
 	if (n > 0) {
 		GMRFLib_idx2_tp **a = Calloc(n, GMRFLib_idx2_tp *);
+
 		for (int i = 0; i < n; i++) {
 			GMRFLib_idx2_create_x(&(a[i]), len);
 		}
@@ -195,6 +207,7 @@ GMRFLib_val_tp **GMRFLib_val_ncreate(int n)
 {
 	if (n > 0) {
 		GMRFLib_val_tp **a = Calloc(n, GMRFLib_val_tp *);
+
 		for (int i = 0; i < n; i++) {
 			GMRFLib_val_create(&(a[i]));
 		}
@@ -208,6 +221,7 @@ GMRFLib_ptr_tp **GMRFLib_ptr_ncreate(int n)
 {
 	if (n > 0) {
 		GMRFLib_ptr_tp **a = Calloc(n, GMRFLib_ptr_tp *);
+
 		for (int i = 0; i < n; i++) {
 			GMRFLib_ptr_create(&(a[i]));
 		}
@@ -221,6 +235,7 @@ GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n)
 {
 	if (n > 0) {
 		GMRFLib_idxval_tp **a = Calloc(n, GMRFLib_idxval_tp *);
+
 		for (int i = 0; i < n; i++) {
 			GMRFLib_idxval_create(&(a[i]));
 		}
@@ -234,6 +249,7 @@ GMRFLib_idxval_tp **GMRFLib_idxval_ncreate_x(int n, int len, int num_threads)
 {
 	if (n > 0) {
 		GMRFLib_idxval_tp **a = Calloc(n, GMRFLib_idxval_tp *);
+
 		if (num_threads > 0) {
 #pragma omp parallel for num_threads(num_threads)
 			for (int i = 0; i < n; i++) {
@@ -309,6 +325,7 @@ int GMRFLib_idxval_printf(FILE *fp, GMRFLib_idxval_tp *hold, const char *msg)
 {
 	if (hold) {
 		int show_details = 1;
+
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
 		if (show_details) {
 			for (int i = 0; i < hold->n; i++) {
@@ -473,6 +490,7 @@ int GMRFLib_idx_prune(GMRFLib_idx_tp *hold)
 	if (hold) {
 		if (hold->n_alloc - hold->n > IDX_ALLOC_INITIAL) {
 			hold->idx = Realloc(hold->idx, IMAX(1, hold->n), int);
+
 			hold->n_alloc = IMAX(1, hold->n);
 		}
 	}
@@ -484,6 +502,7 @@ int GMRFLib_str_prune(GMRFLib_str_tp *hold)
 	if (hold) {
 		if (hold->n_alloc - hold->n > IDX_ALLOC_INITIAL) {
 			hold->str = Realloc(hold->str, IMAX(1, hold->n), char *);
+
 			hold->n_alloc = IMAX(1, hold->n);
 		}
 	}
@@ -496,6 +515,7 @@ int GMRFLib_idx2_prune(GMRFLib_idx2_tp *hold)
 		if (hold->n_alloc - hold->n > IDX_ALLOC_INITIAL) {
 			hold->idx[0] = Realloc(hold->idx[0], IMAX(1, hold->n), int);
 			hold->idx[1] = Realloc(hold->idx[1], IMAX(1, hold->n), int);
+
 			hold->n_alloc = IMAX(1, hold->n);
 		}
 	}
@@ -507,6 +527,7 @@ int GMRFLib_val_prune(GMRFLib_val_tp *hold)
 	if (hold) {
 		if (hold->n_alloc - hold->n > IDX_ALLOC_INITIAL) {
 			hold->val = Realloc(hold->val, IMAX(1, hold->n), double);
+
 			hold->n_alloc = IMAX(1, hold->n);
 		}
 	}
@@ -518,6 +539,7 @@ int GMRFLib_ptr_prune(GMRFLib_ptr_tp *hold)
 	if (hold) {
 		if (hold->n_alloc - hold->n > IDX_ALLOC_INITIAL) {
 			hold->ptr = Realloc(hold->ptr, IMAX(1, hold->n), void *);
+
 			hold->n_alloc = IMAX(1, hold->n);
 		}
 	}
@@ -531,6 +553,7 @@ int GMRFLib_idxval_prune(GMRFLib_idxval_tp *hold)
 			int n = IMAX(1, hold->n);
 			hold->idx = Realloc(hold->idx, n, int);
 			hold->val = Realloc(hold->val, n, double);
+
 			hold->n_alloc = n;
 		}
 	}
@@ -555,8 +578,10 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 {
 	// x is a test vector
 	const int limit_merge = 8L, limit_sequential = 8L;
+
 #if 0
 	static int limit_merge = 0, limit_sequential = 0;
+
 	if (!limit_merge)
 		limit_merge = atoi(getenv("LIMIT_MERGE"));
 	if (!limit_sequential)
@@ -564,6 +589,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 #endif
 
 	int debug = 0;
+
 	if (GMRFLib_testit_mode && GMRFLib_testit_debug) {
 		debug = 1;
 	}
@@ -580,12 +606,14 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	// unique
 	if (h->n > 1) {
 		int all_unique = 1;
+
 		for (int j = 1; all_unique && j < h->n; j++) {
 			all_unique = (h->idx[j] > h->idx[j - 1]);
 		}
 
 		if (!all_unique) {
 			int k = 0;
+
 			for (int j = 1; j < h->n; j++) {
 				if (h->idx[j] != h->idx[k]) {
 					k++;
@@ -608,12 +636,14 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		// check special cases: check if ddot or dsum can be used directly
 
 		int is_sequential = 1;
+
 		for (int i = 1; i < h->n && is_sequential; i++) {
 			is_sequential = (h->idx[i] == h->idx[i - 1] + 1);
 		}
 
 		if (is_sequential) {
 			int all_one = (h->val[0] == 1.0);
+
 			for (int i = 1; i < h->n && all_one; i++) {
 				all_one = (h->val[i] == 1.0);
 			}
@@ -646,6 +676,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		} else {
 #if defined(INLA_WITH_ARMPL)
 			armpl_status_t info = armpl_spvec_create_d(&(h->spvec), 0, h->idx[h->n - 1], h->n, h->idx, h->val, 0);
+
 			assert(info == ARMPL_STATUS_SUCCESS);
 			h->preference = IDXVAL_SERIAL_ARMPL;
 #else
@@ -658,6 +689,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	// an upper bound for the number of groups for memory allocation
 	int ng = 1;
 	int i = 1;
+
 	while (i < h->n) {
 		while (i < h->n && h->idx[i] == h->idx[i - 1] + 1)
 			i++;
@@ -692,6 +724,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	// keep only sequential groups with length >= limit_sequential
 	int ggg = 1;
+
 	for (int g = 1; g < ng; g++) {
 		if (g_len[g] >= limit_sequential) {
 			g_istart[ggg] = g_istart[g];
@@ -723,8 +756,10 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	int irr_len = 1;
 	int seq_len = 1;
+
 	for (int g = 1; g < ng + 1; g++) {
 		int istart = g_istart[g - 1] + g_len[g - 1];
+
 		irr_len += g_istart[g] - istart + 1;
 		seq_len += g_len[g];
 	}
@@ -738,9 +773,11 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	// build the irregular group
 	int k = 0;
+
 	for (int g = 1; g < ng + 1; g++) {
 		int istart = g_istart[g - 1] + g_len[g - 1];
 		int len = g_istart[g] - istart;
+
 		if (len) {
 			assert(k + len <= len_i);
 			assert(k + len <= len_d);
@@ -768,6 +805,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	for (i = 1; i < ng; i++) {
 		int istart = g_istart[i];
 		int len = g_len[i];
+
 		if (len) {
 			Memcpy(seq_idx + k, h->idx + istart, len * sizeof(int));
 			Memcpy(seq_val + k, h->val + istart, len * sizeof(double));
@@ -780,8 +818,10 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		}
 
 		int pad = (i < ng - 1 ? IMIN(limit_merge, h->idx[g_istart[i + 1]] - h->idx[istart + len - 1] - 1) : 0);
+
 		k += len;
 		int offset = seq_idx[k - 1] + 1;
+
 		for (int j = 0; j < pad; j++) {
 			seq_idx[k + j] = offset + j;
 		}
@@ -792,6 +832,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	// setup pointers to each sequential group
 	for (int g = 1; g < ng; g++) {
 		int istart = g_istart[g];
+
 		g_idx[g] = seq_idx + istart;
 		g_val[g] = seq_val + istart;
 		g_len[g] *= -1;
@@ -809,6 +850,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	for (int g = 0; g < ng; g++) {
 		int all_one = 1;
 		double *val = g_val[g];
+
 		for (i = 0; all_one && i < IABS(g_len[g]); i++) {
 			all_one = (val[i] == 1.0);
 		}
@@ -828,6 +870,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	}
 	// remove groups with zero length
 	int g = 0;
+
 	while (1) {
 		if (IABS(g_len[g]) == 0) {
 			ng--;
@@ -859,6 +902,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		while (1) {
 			int g1_end = seq_idx[g_istart[g] + IABS(g_len[g])];
 			int g2_start = seq_idx[g_istart[g + 1]];
+
 			if (g2_start - g1_end <= limit_merge && (g_1[g] == 0 && g_1[g + 1] == 0)) {
 				g_len[g] = g_istart[g + 1] + IABS(g_len[g + 1]) - g_istart[g];
 				for (int gg = g + 2; gg < ng; gg++) {
@@ -901,6 +945,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	h->g_val = g_val;
 	h->g_n_mem = 2;
 	h->g_mem = Calloc(h->g_n_mem, void *);
+
 	h->g_mem[0] = (void *) new_idx;
 	h->g_mem[1] = (void *) new_val;
 	h->dot_product_func = NULL;
@@ -916,10 +961,12 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	int simple = (ng == 1 && g_len[0] < 0 ? 1 : 0);	       /* this is the simple one, where its either a sum or dot (no sparse dot) */
 	double (*ddot_group)(GMRFLib_idxval_tp *, double *);
+
 	ddot_group = (simple ? GMRFLib_sparse_ddot_group_simple_ : GMRFLib_sparse_ddot_group_);
 
 #if defined(INLA_WITH_ARMPL)
 	armpl_status_t info = armpl_spvec_create_d(&(h->spvec), 0, h->idx[h->n - 1], h->n, h->idx, h->val, 0);
+
 	assert(info == ARMPL_STATUS_SUCCESS);
 	if (!simple && (g_len[0] > 0 && g_1[0] == 0)) {
 		info = armpl_spvec_create_d(&(h->spvec_g), 0, h->g_idx[0][h->g_len[0] - 1], h->g_len[0], h->g_idx[0], h->g_val[0], 0);
@@ -980,6 +1027,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	if (debug) {
 		double s = 1.0 / (DBL_EPSILON + treff[0] + treff[1]);
+
 		printf("n= %1d chose kmin=%1d [serial= %.3f group= %.3f]\n", h->n, kmin, treff[0] * s, treff[1] * s);
 	}
 
@@ -1015,6 +1063,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 #if defined(INLA_WITH_ARMPL)
 			if (h->spvec_g) {
 				armpl_status_t POSSIBLY_UNUSED(info) = armpl_spvec_destroy(h->spvec_g);
+
 				h->spvec_g = NULL;
 			}
 #endif
@@ -1023,6 +1072,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	if (GMRFLib_dot_product_optim_report || GMRFLib_testit_mode) {
 		int idx = 0;
+
 		GMRFLib_CACHE_SET_IDX(idx);
 		for (k = 0; k < 2; k++) {
 			GMRFLib_dot_product_optim_report[idx][k] += treff[k];
@@ -1033,6 +1083,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_idxval_prepare(GMRFLib_idxval_tp **hold, int n, int nt)
@@ -1043,8 +1094,10 @@ int GMRFLib_idxval_prepare(GMRFLib_idxval_tp **hold, int n, int nt)
 int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp **hold, int n, int nt, int prepare, int accumulate)
 {
 	int nmax = 1;
+
 	for (int i = 0; i < n; i++) {
 		GMRFLib_idxval_tp *h = hold[i];
+
 		if (h->n) {
 			nmax = IMAX(nmax, h->idx[h->n - 1] + 1);
 		}
@@ -1065,6 +1118,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp **hold, int n, int nt, int prepare,
 
 			int len = IMAX(2 * nmax, ISQR(256));
 			double *xx = Calloc(len, double);
+
 			for (int i = 0; i < len; i++) {
 				xx[i] = GMRFLib_uniform();
 			}
@@ -1154,10 +1208,12 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp *hold)
 #if defined(INLA_WITH_ARMPL)
 		if (hold->spvec) {
 			armpl_status_t info = armpl_spvec_destroy(hold->spvec);
+
 			assert(info == ARMPL_STATUS_SUCCESS);
 		}
 		if (hold->spvec_g) {
 			armpl_status_t info = armpl_spvec_destroy(hold->spvec_g);
+
 			assert(info == ARMPL_STATUS_SUCCESS);
 		}
 #endif
@@ -1189,6 +1245,7 @@ int GMRFLib_idx_nadd(GMRFLib_idx_tp **hold, int n, int *idx)
 	if ((*hold)->n + n > (*hold)->n_alloc) {
 		(*hold)->n_alloc += IMAX(n, IDX_ALLOC_INCREASE((*hold)->n));
 		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
+
 		assert((*hold)->idx);
 	}
 	Memcpy((*hold)->idx + (*hold)->n, idx, n * sizeof(int));
@@ -1243,6 +1300,7 @@ void GMRFLib_idx_remove_duplicates(GMRFLib_idx_tp *h)
 		return;
 
 	int j = 0;
+
 	for (int i = 1; i < h->n; i++) {
 		if (h->idx[i] > h->idx[j]) {
 			h->idx[++j] = h->idx[i];
@@ -1251,13 +1309,12 @@ void GMRFLib_idx_remove_duplicates(GMRFLib_idx_tp *h)
 	h->n = j + 1;
 }
 
-
-
 GMRFLib_idx_tp *GMRFLib_idx_duplicate(GMRFLib_idx_tp *h)
 {
 	if (!h)
 		return NULL;
 	GMRFLib_idx_tp *nnew = NULL;
+
 	GMRFLib_idx_create_x(&nnew, IMAX(1, h->n));
 	if (h->n > 0) {
 		GMRFLib_idx_nadd(&nnew, h->n, h->idx);
@@ -1271,6 +1328,7 @@ GMRFLib_idx2_tp *GMRFLib_idx2_duplicate(GMRFLib_idx2_tp *h)
 	if (!h)
 		return NULL;
 	GMRFLib_idx2_tp *nnew = NULL;
+
 	GMRFLib_idx2_create_x(&nnew, IMAX(1, h->n));
 	if (h->n > 0) {
 		Memcpy(nnew->idx[0], h->idx[0], h->n * sizeof(int));
@@ -1291,6 +1349,7 @@ int GMRFLib_idx_overlap(GMRFLib_idx_tp *idx1, GMRFLib_idx_tp *idx2)
 	}
 
 	const int debug = 1;
+
 	if (debug) {
 		FIXME("idx_overlap: check if sorted as debug = 1");
 		assert(GMRFLib_is_sorted_iinc(idx1->n, idx1->idx));
@@ -1302,6 +1361,7 @@ int GMRFLib_idx_overlap(GMRFLib_idx_tp *idx1, GMRFLib_idx_tp *idx2)
 	}
 
 	int i1 = 0, i2 = 0;
+
 	while (1) {
 		if (idx1->idx[i1] < idx2->idx[i2]) {
 			i1++;
@@ -1323,6 +1383,7 @@ GMRFLib_idxval_tp *GMRFLib_idxval_duplicate(GMRFLib_idxval_tp *h)
 	if (!h)
 		return NULL;
 	GMRFLib_idxval_tp *nnew = NULL;
+
 	GMRFLib_idxval_create_x(&nnew, IMAX(1, h->n));
 	if (h->n > 0) {
 		Memcpy(nnew->idx, h->idx, h->n * sizeof(int));
@@ -1340,6 +1401,7 @@ int GMRFLib_idxval_overlap(GMRFLib_idxval_tp *idx1, GMRFLib_idxval_tp *idx2)
 	}
 
 	GMRFLib_idx_tp v, vv;
+
 	v.n = idx1->n;
 	v.idx = idx1->idx;
 	vv.n = idx2->n;
@@ -1363,15 +1425,14 @@ int GMRFLib_str_add(GMRFLib_str_tp **hold, char *s)
 	return GMRFLib_SUCCESS;
 }
 
-
-
 int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int *idx_match)
 {
 	if (hold == NULL) {
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
@@ -1517,16 +1578,19 @@ GMRFLib_ptr_tp *GMRFLib_idx_split(GMRFLib_idx_tp *sel, int size)
 	div_t d = div(sel->n, size);
 	int NN = d.quot + (d.rem > 0 ? 1 : 0);
 	GMRFLib_ptr_tp *ptr = NULL;
+
 	GMRFLib_ptr_create_x(&ptr, NN);
 
 	for (int i = 0; i < d.quot; i++) {
 		GMRFLib_idx_tp *idx = NULL;
+
 		GMRFLib_idx_create_x(&idx, size);
 		GMRFLib_idx_nadd(&idx, size, sel->idx + i * size);
 		GMRFLib_ptr_add(&ptr, (void *) idx);
 	}
 	if (d.rem > 0) {
 		GMRFLib_idx_tp *idx = NULL;
+
 		GMRFLib_idx_create_x(&idx, d.rem);
 		GMRFLib_idx_nadd(&idx, d.rem, sel->idx + d.quot * size);
 		GMRFLib_ptr_add(&ptr, (void *) idx);
@@ -1543,6 +1607,7 @@ double GMRFLib_idxval_dot_OLD(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 
 	int nu = u->n;
 	int nv = v->n;
+
 	if (!nu || !nv || (u->idx[nu - 1] < v->idx[0]) || (v->idx[nv - 1] < u->idx[0])) {
 		return 0.0;
 	}
@@ -1550,6 +1615,7 @@ double GMRFLib_idxval_dot_OLD(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 	int iu = 0;
 	int iv = 0;
 	double res = 0.0;
+
 	while (iu < nu && iv < nv) {
 		if (u->idx[iu] == v->idx[iv]) {
 			res += u->val[iu++] * v->val[iv++];
@@ -1572,6 +1638,7 @@ double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 
 	int nu = u->n;
 	int nv = v->n;
+
 	if (!nu || !nv || (u->idx[nu - 1] < v->idx[0]) || (v->idx[nv - 1] < u->idx[0])) {
 		return 0.0;
 	}
@@ -1585,12 +1652,14 @@ double GMRFLib_idxval_dot(GMRFLib_idxval_tp *u, GMRFLib_idxval_tp *v)
 		int v_idx = v->idx[iv];
 		int is_equal = (u_idx == v_idx);
 		int u_is_less = (u_idx < v_idx);
+
 		res += (is_equal ? (u->val[iu] * v->val[iv]) : 0.0);
 		iu += (u_is_less | is_equal);
 		iv += ((!u_is_less) | is_equal);
 	}
 	return res;
 }
+
 #pragma GCC diagnostic pop
 
 void GMRFLib_idx_bitmap_free(GMRFLib_idx_bitmap_tp *bm)
@@ -1624,6 +1693,7 @@ GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get_core(int n, int *RESTRICT idx)
 		return NULL;
 
 	GMRFLib_idx_bitmap_tp *bm = Calloc(1, GMRFLib_idx_bitmap_tp);
+
 	bm->n = n;
 	bm->low = idx[0];
 	bm->high = idx[n - 1];
@@ -1633,14 +1703,17 @@ GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get_core(int n, int *RESTRICT idx)
 	// len divided by 64, plus 1 if there is a reminder
 	int size = (bm->len >> 6) + (bm->len & 63 ? 1 : 0);
 	bm->bitmap = Calloc(size, size_t);
+
 	// printf("bitmap: using %f Mb\n", size * sizeof(size_t) / SQR(1024.0));
 	for (int i = 0; i < bm->n; i++) {
 		int ix = idx[i] - bm->low;
+
 		// ix >> 6 is division by 64, ix & 63 is modulo 64.
 		bm->bitmap[ix >> 6] |= ((size_t) 1 << (ix & 63));
 	}
 	return (bm);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -1650,6 +1723,7 @@ __attribute__((optimize("O3")))
 int GMRFLib_idx_nmatch_core(const int n, const int *RESTRICT idx, const GMRFLib_idx_bitmap_tp *RESTRICT bm)
 {
 	int low = bm->low;
+
 	if (idx[0] > bm->high || idx[n - 1] < low) {
 		return 0;
 	}
@@ -1660,11 +1734,13 @@ int GMRFLib_idx_nmatch_core(const int n, const int *RESTRICT idx, const GMRFLib_
 	int match0 = 0;
 	int match1 = 0;
 	int i = 0;
+
 	for (; i < n - 1; i += 2) {
 		size_t ix0 = (size_t) (idx[i] - low);
 		size_t ix1 = (size_t) (idx[i + 1] - low);
 		int bit0 = (ix0 < ulen) ? (int) ((bitmap[ix0 >> 6] >> (ix0 & 63)) & 1) : 0;
 		int bit1 = (ix1 < ulen) ? (int) ((bitmap[ix1 >> 6] >> (ix1 & 63)) & 1) : 0;
+
 		match0 += bit0;
 		match1 += bit1;
 	}
@@ -1672,6 +1748,7 @@ int GMRFLib_idx_nmatch_core(const int n, const int *RESTRICT idx, const GMRFLib_
 	// Handle leftover element if 'n' is odd
 	if (i < n) {
 		size_t ix = (size_t) (idx[i] - low);
+
 		if (ix < ulen) {
 			match0 += (int) ((bitmap[ix >> 6] >> (ix & 63)) & 1);
 		}
@@ -1679,8 +1756,8 @@ int GMRFLib_idx_nmatch_core(const int n, const int *RESTRICT idx, const GMRFLib_
 
 	return (match0 + match1);
 }
-#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic pop
 
 int GMRFLib_idx_nmatch(const GMRFLib_idx_tp *v, const GMRFLib_idx_bitmap_tp *RESTRICT bm)
 {
@@ -1701,6 +1778,7 @@ int GMRFLib_idx_ge_match_core(const int n, const int *RESTRICT idx, const GMRFLi
 	// return 1 if there is >= NMATCHES of IDX in BM
 
 	int low = bm->low;
+
 	if (idx[0] > bm->high || idx[n - 1] < low) {
 		return 0;
 	}
@@ -1715,6 +1793,7 @@ int GMRFLib_idx_ge_match_core(const int n, const int *RESTRICT idx, const GMRFLi
 		size_t ix1 = (size_t) (idx[i + 1] - low);
 		int bit0 = (ix0 < ulen) ? (int) ((bitmap[ix0 >> 6] >> (ix0 & 63)) & 1) : 0;
 		int bit1 = (ix1 < ulen) ? (int) ((bitmap[ix1 >> 6] >> (ix1 & 63)) & 1) : 0;
+
 		total_matches += bit0 + bit1;
 		if (total_matches >= nmatches) {
 			return 1;
@@ -1723,11 +1802,13 @@ int GMRFLib_idx_ge_match_core(const int n, const int *RESTRICT idx, const GMRFLi
 
 	if (i < n && total_matches < nmatches) {
 		size_t ix0 = (size_t) (idx[i] - low);
+
 		total_matches += (ix0 < ulen) ? (int) ((bitmap[ix0 >> 6] >> (ix0 & 63)) & 1) : 0;
 	}
 
 	return (total_matches >= nmatches);
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_idx_ge_match(const GMRFLib_idx_tp *RESTRICT v, const GMRFLib_idx_bitmap_tp *RESTRICT bm, const int nmatches)

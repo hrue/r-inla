@@ -73,7 +73,6 @@ typedef struct {
 	size_t *bitmap;
 } GMRFLib_idx_bitmap_tp;
 
-
 typedef struct {
 	int n;
 	int n_alloc;
@@ -115,8 +114,6 @@ typedef struct {
 	int n_alloc;
 	GMRFLib_idxsubmat_cell_tp **data;
 } GMRFLib_idxsubmat_vector_tp;
-
-
 
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n);
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len);

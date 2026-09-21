@@ -28,6 +28,7 @@ __BEGIN_DECLS
 // defined in high-prec-timer.cpp
 double GMRFLib_timer_chrono(void);
 double GMRFLib_timer_chrono_mono(void);
+
 //#define GMRFLib_timer() omp_get_wtime()
 //#define GMRFLib_timer() GMRFLib_timer_chrono()
 #       define GMRFLib_timer() GMRFLib_timer_chrono_mono()
@@ -62,7 +63,6 @@ typedef struct {
 #              define GMRFLib_ENTER_FUNCTION ;
 #              define GMRFLib_LEAVE_FUNCTION ;
 #       endif
-
 
 double GMRFLib_timer_windows(void);
 

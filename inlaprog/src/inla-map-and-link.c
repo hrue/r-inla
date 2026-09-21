@@ -155,6 +155,7 @@ double map_exp_scale(double arg, map_arg_tp typ, void *param)
 	 * the exp-map-function with scaling
 	 */
 	double scale = *((double *) param);
+
 	switch (typ) {
 	case MAP_FORWARD:
 		/*
@@ -288,6 +289,7 @@ double map_invrobit(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+
 double inla_get_sn_param(inla_sn_arg_tp *output, double **param)
 {
 	// param = *(skew_intern, intercept_intern)
@@ -375,6 +377,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 		}
 
 		work = Calloc(3 * len, double);
+
 		x = work;
 		y = work + len;
 		yy = work + 2 * len;
@@ -383,6 +386,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 			x[i] = xx;
 			if (alpha != 0.0) {
 				double z = (xx - xi) / omega;
+
 				y[i] = 2.0 / omega * MATHLIB_FUN(dnorm) (z, 0.0, 1.0, 0) * MATHLIB_FUN(pnorm) (alpha * z, 0.0, 1.0, 1, 0);
 			} else {
 				y[i] = MATHLIB_FUN(dnorm) (xx, 0.0, 1.0, 0);
@@ -519,6 +523,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 #undef diMAP
 	return 0.0;
 }
+
 #pragma GCC diagnostic pop
 
 double map_invprobit(double arg, map_arg_tp typ, void *UNUSED(param))
@@ -637,6 +642,7 @@ void link_log_invcloglog2(double x, double *r1, double *r2)
 {
 	// return the result of link_log_invcloglog(x) in r1, link_log_1m_invcloglog(x) in r2
 	double v = -exp(x);
+
 	*r2 = v;
 	*r1 = log1p(-exp(v));
 }
@@ -690,6 +696,7 @@ void link_log_invccloglog2(double x, double *r1, double *r2)
 {
 	// return the result of link_log_invccloglog(x) in r1, link_log_1m_invccloglog(x) in r2
 	double v = -exp(-x);
+
 	*r1 = v;
 	*r2 = log1p(-exp(v));
 }
@@ -994,6 +1001,7 @@ double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(param))
 	 * the map-function for the range
 	 */
 	double scale = INLA_WEIBULL_ALPHA_SCALE;
+
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
 
@@ -1003,6 +1011,7 @@ double map_alpha_gompertz(double arg, map_arg_tp typ, void *UNUSED(param))
 	 * the map-function for the range
 	 */
 	double scale = INLA_GOMPERTZ_ALPHA_SCALE;
+
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
 
@@ -1012,6 +1021,7 @@ double map_prec_qkumar(double arg, map_arg_tp typ, void *UNUSED(param))
 	 * the map-function for the precision
 	 */
 	double scale = INLA_QKUMAR_PREC_SCALE;
+
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
 
@@ -1028,6 +1038,7 @@ double map_invlogit(double x, map_arg_tp typ, void *UNUSED(param))
 	case MAP_DFORWARD:
 	{
 		double xx = exp(x);
+
 		return xx / SQR(1.0 + xx);
 	}
 	case MAP_INCREASING:
@@ -1367,12 +1378,14 @@ double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, d
 	if (a != table[id]->a) {
 		int len, llen;
 		double *work = NULL, *x_ = NULL, *y = NULL, p_local;
+
 		if (debug) {
 			fprintf(stderr, "link_loga: build new table for a=%g [%1d]\n", a, id);
 		}
 		// count to find the length
 		for (xx = -range, len = 0; xx <= 2 * range; xx += (ABS(xx) < 3.0 ? dx / 5.0 : dx), len++);
 		work = x_ = Calloc(2 * len, double);
+
 		y = work + len;
 
 		for (xx = -range, i = 0, llen = 0; xx <= 2 * range; xx += (ABS(xx) < 3.0 ? dx / 5.0 : dx), i++, llen++) {
@@ -1482,12 +1495,14 @@ double link_logoffset(int thread_id, double x, map_arg_tp typ, void *param, doub
 
 	if (!cov) {
 		char *msg = NULL;
+
 		GMRFLib_sprintf(&msg, "You need to pass the covariates to the link.model[logoffset] in the inla()-argument 'link.covariates'");
 		inla_error_general(msg);
 		exit(1);
 	}
 	if (cov[0] < 0.0) {
 		char *msg = NULL;
+
 		GMRFLib_sprintf(&msg, "The covariates to link.model[logoffset] must be all >= 0.0. Yours is [%g].", cov[0]);
 		inla_error_general(msg);
 		exit(1);
@@ -1582,12 +1597,14 @@ double link_special2(int thread_id, double x, map_arg_tp typ, void *param, doubl
 
 	if (!cov) {
 		char *msg = NULL;
+
 		GMRFLib_sprintf(&msg, "You need to pass the covariate to the link.model[special2] in the inla()-argument 'link.covariates'");
 		inla_error_general(msg);
 		exit(1);
 	}
 	if (cov[0] <= 0.0 || cov[0] >= 1.0) {
 		char *msg = NULL;
+
 		GMRFLib_sprintf(&msg, "The covariate to link.model[special2] must be between 0 and 1. Your is [%g].", cov[0]);
 		inla_error_general(msg);
 		exit(1);
@@ -1749,6 +1766,7 @@ double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double 
 {
 	Link_param_tp *lparam = (Link_param_tp *) param;
 	double s = (lparam->scale ? lparam->scale[lparam->idx] : 1.0);
+
 	// double phi_param = map_exp(lparam->log_prec[thread_id][0], MAP_FORWARD, NULL);
 	double phi_param = exp(lparam->log_prec[thread_id][0]);
 	double shape = phi_param * s;
@@ -1818,20 +1836,24 @@ double link_qexppower(int thread_id, double x, map_arg_tp typ, void *param, doub
 	} lcache_t;
 
 	static lcache_t **llcache = NULL;
+
 	if (!llcache) {
 #pragma omp critical (Name_2396789afcc20ddee4600d09ab8d0fe4a104e9f3)
 		if (!llcache) {
 			lcache_t **tmp = Calloc(GMRFLib_CACHE_LEN(), lcache_t *);
+
 			llcache = tmp;
 		}
 	}
 
 	int cidx = 0;
+
 	GMRFLib_CACHE_SET_IDX(cidx);
 	if (!llcache[cidx]) {
 #pragma omp critical (Name_c393bf22256042fb97a79700a66d05c333658625)
 		if (!llcache[cidx]) {
 			lcache_t *ptr = Calloc(1, lcache_t);
+
 			ptr->qval1 = NAN;
 			ptr->qval2 = NAN;
 			llcache[cidx] = ptr;
@@ -1891,6 +1913,7 @@ double link_qexppower(int thread_id, double x, map_arg_tp typ, void *param, doub
 	double sign = DSIGN(p - 0.5);
 	double sigma = exp(-0.5 * lprec);
 	double alpha = sigma * lc->lg_expr;
+
 	lc->qval1 = sign * alpha * lc->qval2;
 
 	switch (typ) {
@@ -2100,6 +2123,7 @@ double link_circular(int UNUSED(thread_id), double x, map_arg_tp typ, void *UNUS
 	case MAP_DFORWARD:
 	{
 		double ex = exp(-x);
+
 		return 2.0 * M_PI * ex / SQR(1.0 + ex);
 	}
 		break;
@@ -2123,6 +2147,7 @@ double inla_boxcox_core(double y, double lambda)
 	if (ABS(lambda) < eps) {
 		double ly = log(y);
 		double a = ly * lambda;
+
 		val = ly *
 		    (1.0 + (a / 2.0) *
 		     (1.0 + (a / 3.0) *
@@ -2133,6 +2158,7 @@ double inla_boxcox_core(double y, double lambda)
 	}
 	return val;
 }
+
 double inla_boxcox(double y, double mean, double lambda)
 {
 	return inla_boxcox_core(y, lambda) - (mean > 0.0 ? inla_boxcox_core(mean, lambda) : 0.0);

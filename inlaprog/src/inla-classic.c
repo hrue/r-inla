@@ -77,10 +77,12 @@ int inla_INLA(inla_tp *mb)
 	}
 
 	mb->d = Realloc(mb->d, N, double);
+
 	Memset(&(mb->d[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(double));
 	mb->loglikelihood = Realloc(mb->loglikelihood, N, GMRFLib_logl_tp *);
 	Memset(&(mb->loglikelihood[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(GMRFLib_logl_tp *));
 	mb->loglikelihood_arg = Realloc(mb->loglikelihood_arg, N, void *);
+
 	Memset(&(mb->loglikelihood_arg[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(void *));
 
 	if (0) {
@@ -93,6 +95,7 @@ int inla_INLA(inla_tp *mb)
 	 */
 
 	c = Calloc(N, double);
+
 	count = mb->predictor_n + mb->predictor_m;
 	for (i = 0; i < mb->nf; i++) {
 		for (k = 0; k < mb->f_nrep[i]; k++) {
@@ -121,6 +124,7 @@ int inla_INLA(inla_tp *mb)
 	 */
 	compute = Calloc(N, char);
 	b = Calloc(N, double);
+
 	bfunc = Calloc(N, GMRFLib_bfunc_tp *);
 	count = 0;
 	if (mb->expert_cpo_manual) {
@@ -197,9 +201,11 @@ int inla_INLA(inla_tp *mb)
 	local_count = 0;
 	if (mb->ai_par->vb_enable) {
 		vb_nodes = Calloc(N, char);
+
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
 			GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
+
 			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean)) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
@@ -207,6 +213,7 @@ int inla_INLA(inla_tp *mb)
 				}
 			} else if (vb->idx[0] == -1L) {
 				int len, jj;
+
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
 				for (j = 0; j < mb->ai_par->vb_f_enable_limit_mean; j++) {
@@ -237,9 +244,11 @@ int inla_INLA(inla_tp *mb)
 	local_count = 0;
 	if (mb->ai_par->vb_enable) {
 		vb_nodes = Calloc(N, char);
+
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
 			GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
+
 			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_variance)) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
@@ -247,6 +256,7 @@ int inla_INLA(inla_tp *mb)
 				}
 			} else if (vb->idx[0] == -1L) {
 				int len, jj;
+
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_variance);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
 				for (j = 0; j < mb->ai_par->vb_f_enable_limit_variance; j++) {
@@ -276,6 +286,7 @@ int inla_INLA(inla_tp *mb)
 
 	// define the adaptive strategy
 	GMRFLib_ai_strategy_tp *adapt = NULL;
+
 	if (mb->ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
 		adapt = Calloc(N, GMRFLib_ai_strategy_tp);
 		for (i = 0; i < N; i++) {
@@ -303,6 +314,7 @@ int inla_INLA(inla_tp *mb)
 	if (G.reorder < 0) {
 		size_t nnz = 0;
 		int use_g = 0;
+
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g, &(mb->gn));
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 			GMRFLib_reorder = GMRFLib_REORDER_STILES;
@@ -337,6 +349,7 @@ int inla_INLA(inla_tp *mb)
 	 */
 
 	int mm = mb->predictor_n + mb->predictor_m;
+
 	Free(G_norm_const_compute);
 	Free(G_norm_const);
 	for (i = 0; i < G_norm_const_len; i++) {
@@ -347,15 +360,18 @@ int inla_INLA(inla_tp *mb)
 	G_norm_const_compute = Calloc(mm, char);
 	G_norm_const = Calloc(mm, double);
 	G_norm_const_v = Calloc(mm, void *);
+
 	for (i = 0; i < mm; i++) {
 		G_norm_const[i] = NAN;
 		G_norm_const_compute[i] = 1;
 	}
 
 	x = Calloc(N, double);
+
 	if (mb->mode_use_mode && mb->x_file) {
 		if (N != mb->nx_file) {
 			char *msg = NULL;
+
 			GMRFLib_sprintf(&msg, "N = %1d but nx_file = %1d. Stop.", N, mb->nx_file);
 			inla_error_general(msg);
 		}
@@ -416,9 +432,11 @@ int inla_INLA(inla_tp *mb)
 			mb->transform_funcs[i]->arg = mb->predictor_invlinkfunc_arg[i];
 
 			double *cov = NULL;
+
 			if (mb->predictor_invlinkfunc_covariates && mb->predictor_invlinkfunc_covariates[i]) {
 				int ncov = mb->predictor_invlinkfunc_covariates[i]->ncol;
 				cov = Calloc(ncov, double);
+
 				GMRFLib_matrix_get_row(cov, i, mb->predictor_invlinkfunc_covariates[i]);
 			}
 			mb->transform_funcs[i]->cov = cov;     /* yes, we store a copy here */
@@ -463,6 +481,7 @@ int inla_INLA(inla_tp *mb)
 	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
 		if (mb->density[i] && ISNONZERO(OFFSET3(i))) {
 			GMRFLib_density_tp *d = mb->density[i];
+
 			if (d->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 				GMRFLib_density_new_user_mean(d, d->user_mean + OFFSET3(i));
 			} else {
@@ -537,6 +556,7 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	GMRFLib_openmp->strategy = mb->strategy;
 
 	b = Calloc(N, double);
+
 	bfunc = Calloc(N, GMRFLib_bfunc_tp *);
 	for (count = 0, i = 0; i < mb->nf; i++) {
 		if (mb->f_bfunc2[i]) {
@@ -552,11 +572,14 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	// VB correct 
 	char *vb_nodes = NULL;
 	int local_count = 0;
+
 	if (mb->ai_par->vb_enable) {
 		vb_nodes = Calloc(N, char);
+
 		count = 0;
 		for (i = 0; i < mb->nf; i++) {
 			GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
+
 			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean)) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
@@ -564,8 +587,10 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 				}
 			} else if (vb->idx[0] == -1L) {
 				int len, jj;
+
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				int k = IMAX(1, len / 2);      /* integer division */
+
 				for (j = 0; j < mb->ai_par->vb_f_enable_limit_mean; j++) {
 					jj = (j * len + k) % mb->f_Ntotal[i];
 					vb_nodes[count + jj] = (char) 1;
@@ -593,6 +618,7 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	assert(mb->f_Alocal == NULL);
 
 	double tref = GMRFLib_timer();
+
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_GCPO_BUILD, NULL, NULL);
 	GMRFLib_preopt_init(&preopt,
 			    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights,
@@ -625,6 +651,7 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
 	c = Calloc(N, double);
+
 	if (mb->expert_diagonal_emergencey) {
 		for (i = 0; i < N; i++)
 			c[i] += mb->expert_diagonal_emergencey;
@@ -633,6 +660,7 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	if (G.reorder < 0) {
 		size_t nnz = 0;
 		int use_g = 0;
+
 		GMRFLib_optimize_reorder(preopt->latent_graph, &nnz, &use_g, &(mb->gn));
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 			GMRFLib_reorder = GMRFLib_REORDER_STILES;
@@ -663,11 +691,13 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	mb->dic = NULL;
 	mb->misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
 	x = Calloc(N, double);
+
 	if (mb->mode_use_mode && mb->x_file) {
 		Memcpy(x, mb->x_file + preopt->mnpred, N * sizeof(double));
 	}
 
 	int nparam_eff = mb->ai_par->compute_nparam_eff;
+
 	mb->ai_par->compute_nparam_eff = 0;
 	compute = Calloc(N, char);
 
@@ -681,6 +711,7 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	G_norm_const_compute = Calloc(preopt->Npred, char);
 	G_norm_const = Calloc(preopt->Npred, double);
 	G_norm_const_v = Calloc(preopt->Npred, void *);
+
 	for (i = 0; i < preopt->Npred; i++) {
 		G_norm_const[i] = NAN;
 		G_norm_const_compute[i] = 1;
@@ -703,6 +734,7 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	if (rpreopt->int_design) {
 		mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_USER_EXPERT;
 		GMRFLib_design_tp *design = NULL;
+
 		GMRFLib_design_read(&design, rpreopt->int_design, 0);
 
 		for (i = 0; i < design->nexperiments; i++) {
@@ -814,10 +846,12 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	}
 
 	mb->d = Realloc(mb->d, N, double);
+
 	Memset(&(mb->d[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(double));
 	mb->loglikelihood = Realloc(mb->loglikelihood, N, GMRFLib_logl_tp *);
 	Memset(&(mb->loglikelihood[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(GMRFLib_logl_tp *));
 	mb->loglikelihood_arg = Realloc(mb->loglikelihood_arg, N, void *);
+
 	Memset(&(mb->loglikelihood_arg[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(void *));
 
 	if (0) {
@@ -830,6 +864,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	 */
 
 	c = Calloc(N, double);
+
 	count = mb->predictor_n + mb->predictor_m;
 	for (i = 0; i < mb->nf; i++) {
 		for (k = 0; k < mb->f_nrep[i]; k++) {
@@ -858,6 +893,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	 */
 	compute = Calloc(N, char);
 	b = Calloc(N, double);
+
 	bfunc = Calloc(N, GMRFLib_bfunc_tp *);
 	count = 0;
 	if (mb->expert_cpo_manual) {
@@ -930,12 +966,15 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 
 	// VB correct 
 	char *vb_nodes = NULL;
+
 	local_count = 0;
 	if (mb->ai_par->vb_enable) {
 		vb_nodes = Calloc(N, char);
+
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
 			GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
+
 			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean)) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
@@ -943,6 +982,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 				}
 			} else if (vb->idx[0] == -1L) {
 				int len, jj;
+
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
 				for (j = 0; j < mb->ai_par->vb_f_enable_limit_mean; j++) {
@@ -971,6 +1011,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 
 	// define the adaptive strategy
 	GMRFLib_ai_strategy_tp *adapt = NULL;
+
 	if (mb->ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
 		adapt = Calloc(N, GMRFLib_ai_strategy_tp);
 		for (i = 0; i < N; i++) {
@@ -998,6 +1039,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	if (G.reorder < 0) {
 		size_t nnz = 0;
 		int use_g = 0;
+
 		GMRFLib_optimize_reorder(mb->hgmrfm->graph, &nnz, &use_g, &(mb->gn));
 		if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 			GMRFLib_reorder = GMRFLib_REORDER_STILES;
@@ -1032,6 +1074,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	 */
 
 	int mm = mb->predictor_n + mb->predictor_m;
+
 	Free(G_norm_const_compute);
 	Free(G_norm_const);
 	for (i = 0; i < G_norm_const_len; i++) {
@@ -1042,15 +1085,18 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	G_norm_const_compute = Calloc(mm, char);
 	G_norm_const = Calloc(mm, double);
 	G_norm_const_v = Calloc(mm, void *);
+
 	for (i = 0; i < mm; i++) {
 		G_norm_const[i] = NAN;
 		G_norm_const_compute[i] = 1;
 	}
 
 	x = Calloc(N, double);
+
 	if (mb->mode_use_mode && mb->x_file) {
 		if (N != mb->nx_file) {
 			char *msg = NULL;
+
 			GMRFLib_sprintf(&msg, "N = %1d but nx_file = %1d. Stop.", N, mb->nx_file);
 			inla_error_general(msg);
 		}
@@ -1111,9 +1157,11 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 			mb->transform_funcs[i]->arg = mb->predictor_invlinkfunc_arg[i];
 
 			double *cov = NULL;
+
 			if (mb->predictor_invlinkfunc_covariates && mb->predictor_invlinkfunc_covariates[i]) {
 				int ncov = mb->predictor_invlinkfunc_covariates[i]->ncol;
 				cov = Calloc(ncov, double);
+
 				GMRFLib_matrix_get_row(cov, i, mb->predictor_invlinkfunc_covariates[i]);
 			}
 			mb->transform_funcs[i]->cov = cov;     /* yes, we store a copy here */
@@ -1129,6 +1177,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 		// make sure the dimensions are right
 		if (mb->ntheta != mb->ai_par->int_design->nfactors) {
 			char *msg = NULL;
+
 			GMRFLib_sprintf(&msg, "ntheta = %1d but int.design says %1d\n", mb->ntheta, mb->ai_par->int_design->nfactors);
 			inla_error_general(msg);
 		}
@@ -1167,6 +1216,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
 		if (mb->density[i] && ISNONZERO(OFFSET3(i))) {
 			GMRFLib_density_tp *d = mb->density[i];
+
 			if (d->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 				GMRFLib_density_new_user_mean(d, d->user_mean + OFFSET3(i));
 			} else {

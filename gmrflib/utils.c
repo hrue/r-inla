@@ -33,6 +33,7 @@ char *Strdup(const char *s)
 {
 #if defined(INLA_WITH_MIMALLOC)
 	char *mi_strdup(const char *s);
+
 	return (s ? mi_strdup(s) : (char *) NULL);
 #else
 	return (s ? strdup(s) : (char *) NULL);
@@ -45,6 +46,7 @@ unsigned char *Strdup_sha(unsigned char *sha)
 		return NULL;
 	}
 	unsigned char *nnew = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
+
 	Memcpy(nnew, sha, GMRFLib_SHA_DIGEST_LEN);
 	nnew[GMRFLib_SHA_DIGEST_LEN] = '\0';
 
@@ -62,6 +64,7 @@ unsigned char *GMRFLib_prettify_sha(unsigned char *sha)
 	// THIS FUNCTION OVERWRITE SHA
 	// we do a non-invertible compression to make it more pretty for output (do not need to be precise)
 	int len = 'z' - 'a' + 1;
+
 	for (int i = 0; i < GMRFLib_SHA_DIGEST_LEN; i++) {
 		sha[i] = ((int) sha[i] % len) + 'a';
 		if (sha[i] == '\0') {
@@ -73,8 +76,8 @@ unsigned char *GMRFLib_prettify_sha(unsigned char *sha)
 
 	return sha;
 }
-#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic pop
 
 /*
  * Measures the current (and peak) resident and virtual memories
@@ -97,6 +100,7 @@ void GMRFLib_getMemory(int POSSIBLY_UNUSED(*currRealMem), int POSSIBLY_UNUSED(*p
 
 	// linux file contains this-process info
 	FILE *file = fopen("/proc/self/status", "r");
+
 	if (file) {
 		// read the entire file
 		while (fscanf(file, " %1023s", buffer) == 1) {
@@ -128,6 +132,7 @@ void GMRFLib_printMem_core(FILE POSSIBLY_UNUSED(*fp), const char POSSIBLY_UNUSED
 #if defined(__linux__)
 	int crm = 0, prm = 0, cvm = 0, pvm = 0;
 	FILE *ffp = (fp ? fp : stdout);
+
 	GMRFLib_getMemory(&crm, &prm, &cvm, &pvm);
 	fprintf(ffp, "%s:%d: {cur,peak}-Mem used: Real[%.1f, %.1f]Mb, Virt[%.1f, %.1f]Mb\n",
 		fnm, lineno, crm / 1024.0, prm / 1024.0, cvm / 1024.0, pvm / 1024.0);
@@ -140,9 +145,11 @@ char *GMRFLib_vec2char(double *x, int len)
 	char *str = Calloc(estimated_size, char);
 
 	size_t offset = 0;
+
 	for (int i = 0; i < len; i++) {
 		int written = snprintf(str + offset, estimated_size - offset,
 				       (i < len - 1 ? "%.8g," : "%.8g"), x[i]);
+
 		if (written < 0) {
 			return NULL;
 		}
@@ -157,6 +164,7 @@ char *GMRFLib_vec2char(double *x, int len)
 	}
 
 	size_t j = 0;
+
 	for (size_t i = 0; i < strlen(str); i++) {
 		if (str[i] != ' ')
 			str[j++] = str[i];
@@ -217,6 +225,7 @@ char *GMRFLib_rindex(const char *p, int ch)
 	 * as Windows does not have it... 
 	 */
 	char *save = NULL, *pp = (char *) p;
+
 	for (save = NULL;; ++pp) {
 		if (!*pp) {
 			return (save);
@@ -244,6 +253,7 @@ int GMRFLib_which(double val, double *array, int len)
 int GMRFLib_iwhich_sorted(int key, int *RESTRICT ix, unsigned int len)
 {
 	int *p = GMRFLib_bsearch(key, (int) len, ix);
+
 	return (p ? (p - ix) : -1);
 }
 
@@ -341,6 +351,7 @@ int GMRFLib_icmp(const void *a, const void *b)
 {
 	const int *ia = (const int *) a;
 	const int *ib = (const int *) b;
+
 	return (*ia > *ib ? 1 : (*ia < *ib ? -1 : 0));
 }
 
@@ -353,6 +364,7 @@ int GMRFLib_dcmp(const void *a, const void *b)
 {
 	const double *da = (const double *) a;
 	const double *db = (const double *) b;
+
 	return (*da > *db ? 1 : (*da < *db ? -1 : 0));
 }
 
@@ -364,6 +376,7 @@ int GMRFLib_dcmp_r(const void *a, const void *b)
 int GMRFLib_dcmp_abs(const void *a, const void *b)
 {
 	const double *da = NULL, *db = NULL;
+
 	da = (const double *) a;
 	db = (const double *) b;
 
@@ -390,7 +403,6 @@ int GMRFLib_dcmp_abs_r(const void *a, const void *b)
 	return (-GMRFLib_dcmp_abs(a, b));
 }
 
-
 double GMRFLib_log_apbex(double a, double b)
 {
 	// evaluate log(a + exp(b))
@@ -402,11 +414,13 @@ int GMRFLib_normalize(int n, double *x)
 	// scale x so the sum is 1
 
 	double sum;
+
 	sum = GMRFLib_dsum(n, x);
 	GMRFLib_dscale(n, 1.0 / sum, x);
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_unique_relative(int *n, double *x, double eps)
 {
 	/*
@@ -421,6 +435,7 @@ int GMRFLib_unique_relative(int *n, double *x, double eps)
 	}
 
 	int i = 0, j = 0, jj = 0;
+
 	while (jj < *n) {
 		while (jj + 1 < *n && gsl_fcmp(x[jj + 1], x[j], eps) == 0) {
 			jj++;
@@ -479,6 +494,7 @@ int GMRFLib_unique_additive(int *n, double *x, double eps)
 	}
 
 	int ties = 0;
+
 	for (int k = 0; k < *n - 1; k++) {
 		if (ABS(x[k] - x[k + 1]) <= eps) {
 			ties = 1;
@@ -490,6 +506,7 @@ int GMRFLib_unique_additive(int *n, double *x, double eps)
 	}
 
 	int i = 0, j = 0, jj = 0;
+
 	while (jj < *n) {
 		while (jj + 1 < *n && ABS(x[jj + 1] - x[j]) <= eps) {
 			jj++;
@@ -514,6 +531,7 @@ int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 	}
 
 	int ties = 0;
+
 	for (int k = 0; k < *n - 1; k++) {
 		if (ABS(x[k] - x[k + 1]) <= eps) {
 			ties = 1;
@@ -525,6 +543,7 @@ int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 	}
 
 	int i = 0, j = 0, jj = 0;
+
 	while (jj < *n) {
 		while (jj + 1 < *n && ABS(x[jj + 1] - x[j]) <= eps) {
 			jj++;
@@ -564,6 +583,7 @@ __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_matrix_count_eq(gsl_matrix *A, double value)
 {
 	int num = 0;
+
 	for (size_t i = 0; i < A->size1; i++) {
 		for (size_t j = 0; j < A->size2; j++) {
 			num += (ISNAN(value) ? ISNAN(gsl_matrix_get(A, i, j)) : (gsl_matrix_get(A, i, j) == value));
@@ -571,6 +591,7 @@ int GMRFLib_gsl_matrix_count_eq(gsl_matrix *A, double value)
 	}
 	return num;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_printf_gsl_matrix(FILE *fp, gsl_matrix *matrix, const char *format)
@@ -593,6 +614,7 @@ int GMRFLib_printf_gsl_matrix2(FILE *fp, gsl_matrix *matrix, const char *format,
 	for (i = 0; i < matrix->size1; i++) {
 		for (j = 0; j < matrix->size2; j++) {
 			double a = gsl_matrix_get(matrix, i, j);
+
 			if (ABS(a) > cutoff) {
 				fprintf(fp, (format ? format : " %g"), gsl_matrix_get(matrix, i, j));
 			} else {
@@ -744,6 +766,7 @@ int GMRFLib_is_int(char *str, int *value)
 	}
 
 	int x, err;
+
 	err = (sscanf(str, "%d", &x) == 1 ? 1 : 0);
 	if (value) {
 		*value = x;
@@ -800,6 +823,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 	}
 
 	ixx = Malloc(nx, int);
+
 	Memcpy(ixx, ix, nx * sizeof(int));
 	QSORT_FUN((void *) ixx, (size_t) nx, sizeof(int), GMRFLib_icmp);
 
@@ -828,6 +852,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -841,12 +866,14 @@ int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec)
 		*out = NULL;
 	} else {
 		*out = Malloc(vec->size, double);
+
 		for (size_t i = 0; i < vec->size; i++) {
 			(*out)[i] = gsl_vector_get(vec, i);
 		}
 	}
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat)
@@ -855,8 +882,10 @@ int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat)
 		*out = NULL;
 	} else {
 		*out = Malloc(mat->size1 * mat->size2, double);
+
 		for (size_t j = 0; j < mat->size2; j++) {
 			size_t off = j * mat->size1;
+
 			for (size_t i = 0; i < mat->size1; i++) {
 				(*out)[i + off] = gsl_matrix_get(mat, i, j);
 			}
@@ -887,6 +916,7 @@ int GMRFLib_adjust_vector(double *x, int n)
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_scale_vector(double *x, int n)
@@ -899,6 +929,7 @@ int GMRFLib_scale_vector(double *x, int n)
 	}
 
 	double scale = GMRFLib_max_value(x, n, NULL);
+
 	if (ISNONZERO(scale)) {
 		scale = 1.0 / scale;
 		GMRFLib_dscale(n, scale, x);
@@ -931,6 +962,7 @@ int GMRFLib_is_zero(double *x, int n)
 	if (n > m) {
 		for (int offset = nstart; offset < n; offset += offset) {
 			int len = IMIN(offset, n - offset);
+
 			if (len <= 0 || memcmp(x, x + offset, len * sizeof(double))) {
 				return 0;
 			}
@@ -939,6 +971,7 @@ int GMRFLib_is_zero(double *x, int n)
 
 	return 1;
 }
+
 #pragma GCC diagnostic pop
 
 double GMRFLib_max_value(double *x, int n, int *idx)
@@ -965,6 +998,7 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 	if (idx) {
 		int imax;
 		double max_val;
+
 		if (x[0] > x[n - 1]) {
 			imax = 0;
 			max_val = x[0];
@@ -982,6 +1016,7 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 		return max_val;
 	} else {
 		double max_val = DMAX(x[0], x[n - 1]);
+
 		for (int i = 1; i < n - 1; i++) {
 			if (unlikely(x[i] > max_val)) {
 				max_val = x[i];
@@ -1016,6 +1051,7 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 	if (idx) {
 		int imin;
 		double min_val;
+
 		if (x[0] < x[n - 1]) {
 			imin = 0;
 			min_val = x[0];
@@ -1033,6 +1069,7 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 		return min_val;
 	} else {
 		double min_val = DMIN(x[0], x[n - 1]);
+
 		for (int i = 1; i < n - 1; i++) {
 			if (unlikely(x[i] < min_val)) {
 				min_val = x[i];
@@ -1070,6 +1107,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 	if (idx) {
 		int imax;
 		int max_val;
+
 		if (x[0] > x[n - 1]) {
 			imax = 0;
 			max_val = x[0];
@@ -1087,6 +1125,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 		return max_val;
 	} else {
 		int max_val = IMAX(x[0], x[n - 1]);
+
 		for (int i = 1; i < n - 1; i++) {
 			if (unlikely(x[i] > max_val)) {
 				max_val = x[i];
@@ -1095,6 +1134,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 		return max_val;
 	}
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -1125,6 +1165,7 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 	if (idx) {
 		int imin;
 		int min_val;
+
 		if (x[0] < x[n - 1]) {
 			imin = 0;
 			min_val = x[0];
@@ -1142,6 +1183,7 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 		return min_val;
 	} else {
 		int min_val = IMIN(x[0], x[n - 1]);
+
 		for (int i = 1; i < n - 1; i++) {
 			if (unlikely(x[i] < min_val)) {
 				min_val = x[i];
@@ -1150,6 +1192,7 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 		return min_val;
 	}
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_iamax_value(int *x, int n, int *idx)
@@ -1185,6 +1228,7 @@ double GMRFLib_logit(double p)
 		return (log(p) - log1p(-p));
 	} else {
 		double pp = 1.0 - p;
+
 		return (-log(pp) + log1p(-pp));
 	}
 }
@@ -1199,6 +1243,7 @@ double GMRFLib_inv_logit(double x)
 const char *GMRFLib_function_name_strip(const char *name)
 {
 	char *s = (char *) name;
+
 	if (!strncmp("GMRFLib_", s, 8)) {
 		s += 8;
 	}
@@ -1215,6 +1260,7 @@ int GMRFLib_debug_functions(const char *name)
 	}
 
 	static int not_defined = 0;
+
 	if (not_defined) {
 		return 0;
 	}
@@ -1229,10 +1275,12 @@ int GMRFLib_debug_functions(const char *name)
 			clen = GMRFLib_CACHE_LEN();
 			first = Calloc(clen, int);
 			map_stri **tmp = Calloc(clen, map_stri *);
+
 			ddefs = tmp;
 		}
 	}
 	int idx = 0;
+
 	GMRFLib_CACHE_SET_IDX(idx);
 	assert(idx < clen);
 
@@ -1269,14 +1317,17 @@ int GMRFLib_debug_functions(const char *name)
 					int val = 0;
 					char *s2 = strchr(s, ':');
 					char *ss = NULL;
+
 					if (!s2) {
 						ss = s;
 						val = 1;
 					} else {
 						int len = s2 - s + 1;
 						int len1 = len + 1;	/* to avoid compiler warning */
+
 						assert(len >= 0);
 						ss = Calloc(len + 1, char);
+
 						ss[len1 - 1] = '\0';
 						strncpy(ss, s, len - 1);
 						val = atoi(s2 + 1);
@@ -1291,6 +1342,7 @@ int GMRFLib_debug_functions(const char *name)
 					}
 
 					char *nm = NULL;
+
 					if (strlen(ss)) {
 						GMRFLib_sprintf(&nm, "%s", ss);
 						map_stri_set(tmp, nm, val);
@@ -1316,6 +1368,7 @@ int GMRFLib_debug_functions(const char *name)
 		return 0;
 	} else {
 		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : name));
+
 		return (p ? *p : 0);
 	}
 }
@@ -1327,6 +1380,7 @@ int GMRFLib_trace_functions(const char *name)
 	}
 
 	static int not_defined = 0;
+
 	if (not_defined) {
 		return 0;
 	}
@@ -1341,10 +1395,12 @@ int GMRFLib_trace_functions(const char *name)
 			clen = GMRFLib_CACHE_LEN();
 			first = Calloc(clen, int);
 			map_stri **tmp = Calloc(clen, map_stri *);
+
 			ddefs = tmp;
 		}
 	}
 	int idx = 0;
+
 	GMRFLib_CACHE_SET_IDX(idx);
 	assert(idx < clen);
 
@@ -1381,13 +1437,16 @@ int GMRFLib_trace_functions(const char *name)
 					int val = 0;
 					char *s2 = strchr(s, ':');
 					char *ss = NULL;
+
 					if (!s2) {
 						ss = s;
 						val = 1;
 					} else {
 						int len = s2 - s + 1;
+
 						assert(len >= 0);
 						ss = Calloc(len + 1, char);
+
 						ss[len] = '\0';
 						strncpy(ss, s, len - 1);
 						val = atoi(s2 + 1);
@@ -1402,6 +1461,7 @@ int GMRFLib_trace_functions(const char *name)
 					}
 
 					char *nm = NULL;
+
 					if (strlen(ss)) {
 						GMRFLib_sprintf(&nm, "%s", ss);
 						map_stri_set(tmp, nm, val);
@@ -1427,6 +1487,7 @@ int GMRFLib_trace_functions(const char *name)
 		return 0;
 	} else {
 		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : name));
+
 		return (p ? *p : 0);
 	}
 }
@@ -1438,6 +1499,7 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 	}
 
 	static int not_defined = 0;
+
 	if (not_defined) {
 		return 0;
 	}
@@ -1452,10 +1514,12 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 			clen = GMRFLib_CACHE_LEN();
 			first = Calloc(clen, int);
 			map_stri **tmp = Calloc(clen, map_stri *);
+
 			ddefs = tmp;
 		}
 	}
 	int idx = 0;
+
 	GMRFLib_CACHE_SET_IDX(idx);
 	assert(idx < clen);
 
@@ -1492,13 +1556,16 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 					int val = 0;
 					char *s2 = strchr(s, ':');
 					char *ss = NULL;
+
 					if (!s2) {
 						ss = s;
 						val = 1;
 					} else {
 						int len = s2 - s + 1;
+
 						assert(len >= 0);
 						ss = Calloc(len + 1, char);
+
 						ss[len] = '\0';
 						strncpy(ss, s, len - 1);
 						val = atoi(s2 + 1);
@@ -1513,6 +1580,7 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 					}
 
 					char *nm = NULL;
+
 					if (strlen(ss)) {
 						GMRFLib_sprintf(&nm, "%s", ss);
 						map_stri_set(tmp, nm, val);
@@ -1538,6 +1606,7 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 		return 0;
 	} else {
 		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : name));
+
 		return (p ? *p : 0);
 	}
 }
@@ -1573,6 +1642,7 @@ int GMRFLib_vmatrix_set(GMRFLib_vmatrix_tp *vmatrix, int i, int j, double *vec)
 double *GMRFLib_vmatrix_get(GMRFLib_vmatrix_tp *vmatrix, int i, int j)
 {
 	void *p = NULL;
+
 	map_ivp_get(&(vmatrix->vmat[i]), j, &p);
 	return ((double *) p);
 }
@@ -1613,6 +1683,7 @@ void my_downheap2_id(int *RESTRICT data1, double *RESTRICT data2, const int N, i
 
 	while (k <= N / 2) {
 		int j = 2 * k;
+
 		if (j < N && data1[j] < data1[j + 1]) {
 			j++;
 		}
@@ -1651,10 +1722,12 @@ void gsl_sort2_id(int *RESTRICT data1, double *RESTRICT data2, const int n)
 
 	while (N > 0) {
 		int tmp1 = data1[0];
+
 		data1[0] = data1[N];
 		data1[N] = tmp1;
 
 		double tmp2 = data2[0];
+
 		data2[0] = data2[N];
 		data2[N] = tmp2;
 
@@ -1673,6 +1746,7 @@ void my_downheap2_ii(int *RESTRICT data1, int *RESTRICT data2, const int N, int 
 
 	while (k <= N / 2) {
 		int j = 2 * k;
+
 		if (j < N && data1[j] < data1[j + 1]) {
 			j++;
 		}
@@ -1711,10 +1785,12 @@ void gsl_sort2_ii(int *RESTRICT data1, int *RESTRICT data2, const int n)
 
 	while (N > 0) {
 		int tmp1 = data1[0];
+
 		data1[0] = data1[N];
 		data1[N] = tmp1;
 
 		int tmp2 = data2[0];
+
 		data2[0] = data2[N];
 		data2[N] = tmp2;
 
@@ -1733,6 +1809,7 @@ void my_insertionSort_id(int *RESTRICT iarr, double *RESTRICT darr, int n)
 			int key = iarr[i];
 			double dkey = darr[i];
 			int j = i - 1;
+
 			while (j >= 0 && iarr[j] > key) {
 				iarr[j + 1] = iarr[j];
 				darr[j + 1] = darr[j];
@@ -1745,6 +1822,7 @@ void my_insertionSort_id(int *RESTRICT iarr, double *RESTRICT darr, int n)
 		for (int i = 1; i < n; i++) {
 			int key = iarr[i];
 			int j = i - 1;
+
 			while (j >= 0 && iarr[j] > key) {
 				iarr[j + 1] = iarr[j];
 				j--;
@@ -1761,6 +1839,7 @@ void my_insertionSort_ii(int *RESTRICT iarr, int *RESTRICT darr, int n)
 			int key = iarr[i];
 			int dkey = darr[i];
 			int j = i - 1;
+
 			while (j >= 0 && iarr[j] > key) {
 				iarr[j + 1] = iarr[j];
 				darr[j + 1] = darr[j];
@@ -1773,6 +1852,7 @@ void my_insertionSort_ii(int *RESTRICT iarr, int *RESTRICT darr, int n)
 		for (int i = 1; i < n; i++) {
 			int key = iarr[i];
 			int j = i - 1;
+
 			while (j >= 0 && iarr[j] > key) {
 				iarr[j + 1] = iarr[j];
 				j--;
@@ -1789,6 +1869,7 @@ void my_insertionSort_dd(double *RESTRICT iarr, double *RESTRICT darr, int n)
 			double key = iarr[i];
 			double dkey = darr[i];
 			int j = i - 1;
+
 			while (j >= 0 && iarr[j] > key) {
 				iarr[j + 1] = iarr[j];
 				darr[j + 1] = darr[j];
@@ -1801,6 +1882,7 @@ void my_insertionSort_dd(double *RESTRICT iarr, double *RESTRICT darr, int n)
 		for (int i = 1; i < n; i++) {
 			double key = iarr[i];
 			int j = i - 1;
+
 			while (j >= 0 && iarr[j] > key) {
 				iarr[j + 1] = iarr[j];
 				j--;
@@ -1815,6 +1897,7 @@ void my_insertionSort_i(int *RESTRICT iarr, int n)
 	for (int i = 1; i < n; i++) {
 		int key = iarr[i];
 		int j = i - 1;
+
 		while (j >= 0 && iarr[j] > key) {
 			iarr[j + 1] = iarr[j];
 			j--;
@@ -1828,6 +1911,7 @@ void my_insertionSort_d(double *RESTRICT iarr, int n)
 	for (int i = 1; i < n; i++) {
 		double key = iarr[i];
 		int j = i - 1;
+
 		while (j >= 0 && iarr[j] > key) {
 			iarr[j + 1] = iarr[j];
 			j--;
@@ -1852,9 +1936,11 @@ void my_sort2_ii(int *RESTRICT ix, int *RESTRICT x, int n)
 	if (1) {
 		// this one is now a better option (feb'2024). no need to initialize with 0's
 		int *ixy = Calloc(n * 2, int);
+
 #pragma omp simd
 		for (int i = 0; i < n; i++) {
 			int j = 2 * i;
+
 			ixy[j] = ix[i];
 			ixy[j + 1] = x[i];
 		}
@@ -1862,6 +1948,7 @@ void my_sort2_ii(int *RESTRICT ix, int *RESTRICT x, int n)
 #pragma omp simd
 		for (int i = 0; i < n; i++) {
 			int j = 2 * i;
+
 			ix[i] = ixy[j];
 			x[i] = ixy[j + 1];
 		}
@@ -1875,6 +1962,7 @@ void my_sort2_ii(int *RESTRICT ix, int *RESTRICT x, int n)
 		}
 	}
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -1888,6 +1976,7 @@ void my_sort2_id_work(int *RESTRICT ix, double *RESTRICT x, int n, double *work)
 		int j = 2 * i;
 		int *ip = (int *) (work + j);
 		double *dp = (work + j + 1);
+
 		*ip = ix[i];
 		*dp = x[i];
 	}
@@ -1898,10 +1987,12 @@ void my_sort2_id_work(int *RESTRICT ix, double *RESTRICT x, int n, double *work)
 		int j = 2 * i;
 		int *ip = (int *) (work + j);
 		double *dp = (work + j + 1);
+
 		ix[i] = *ip;
 		x[i] = *dp;
 	}
 }
+
 #pragma GCC diagnostic pop
 
 void my_sort2_id(int *RESTRICT ix, double *RESTRICT x, int n)
@@ -2117,6 +2208,7 @@ int GMRFLib_is_sorted_iinc(int n, int *a)
 	SOURCE_INCLUDE(<);
 #endif
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -2135,6 +2227,7 @@ int GMRFLib_is_sorted_dinc(int n, double *a)
 	SOURCE_INCLUDE(<);
 #endif
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_is_sorted_idec(int n, int *a)
@@ -2173,9 +2266,9 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n, (int *) a);
+		return GMRFLib_is_sorted_iinc(n,(int *) a);
 	} else if (cmp == (void *) GMRFLib_dcmp && size == sizeof(double)) {
 		// increasing doubles
 		return GMRFLib_is_sorted_dinc(n, (double *) a);
@@ -2196,8 +2289,10 @@ void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, cons
 {
 #if 0
 	static double tref = 0.0;
+
 #       pragma omp threadprivate(tref)
 	static size_t trefc = 0;
+
 #       pragma omp threadprivate(trefc)
 	tref -= GMRFLib_timer();
 #endif
@@ -2215,8 +2310,8 @@ void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, cons
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if (!y) {
-		return (GMRFLib_qsort(x, nmemb, size_x, compar));
+	if(!y) {
+		return(GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {
@@ -2254,12 +2349,12 @@ void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y
 	Free(xy);
 }
 
-
 // easier interface to sort ints and doubles, increasingly
 void GMRFLib_sort_i(int *ix, int n)
 {
 	return QSORT_FUN((void *) ix, (size_t) n, sizeof(int), GMRFLib_icmp);
 }
+
 void GMRFLib_sort_d(double *x, int n)
 {
 	if (n <= 32L) {
@@ -2268,7 +2363,6 @@ void GMRFLib_sort_d(double *x, int n)
 		QSORT_FUN((void *) x, (size_t) n, sizeof(double), GMRFLib_dcmp);
 	}
 }
-
 
 // 
 double GMRFLib_cdfnorm_inv(double p)
@@ -2319,7 +2413,6 @@ double GMRFLib_erfc_inv(double x)
 	return (M_SQRT1_2 * GMRFLib_cdfnorm_inv(1.0 - x * 0.5));
 }
 
-
 void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
 {
 	if (l123) {
@@ -2334,6 +2427,7 @@ void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
 		if (first) {
 #if defined(__linux__)
 			long tmp;
+
 			tmp = sysconf(_SC_LEVEL1_DCACHE_SIZE);
 			L123.l1_data = (size_t) (tmp >= 0 ? tmp : 0);
 			tmp = sysconf(_SC_LEVEL1_ICACHE_SIZE);
@@ -2344,14 +2438,17 @@ void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
 			L123.l3 = (size_t) (tmp >= 0 ? tmp : 0);
 #elif defined(__APPLE__)
 			size_t len = sizeof(size_t);
+
 			sysctlbyname("hw.l1dcachesize", &(L123.l1_data), &len, NULL, 0);
 			sysctlbyname("hw.l1icachesize", &(L123.l1_inst), &len, NULL, 0);
 			sysctlbyname("hw.l2cachesize", &(L123.l2), &len, NULL, 0);
 			sysctlbyname("hw.l3cachesize", &(L123.l3), &len, NULL, 0);
 #elif defined(_MSC_VER) || defined(__MINGW32__) || defined (__MSVCRT__)
 			DWORD len = 0;
+
 			GetLogicalProcessorInformation(NULL, &len);
 			SYSTEM_LOGICAL_PROCESSOR_INFORMATION *info = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *) malloc(len);
+
 			if (!info) {
 				goto label_end;
 			}
@@ -2362,6 +2459,7 @@ void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
 			for (DWORD i = 0; i < len / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION); i++) {
 				if (info[i].Relationship == RelationCache) {
 					CACHE_DESCRIPTOR cache = info[i].Cache;
+
 					if (cache.Level == 1 && cache.Type == CacheData) {
 						L123.l1_data = (size_t) cache.Size;
 					} else if (cache.Level == 1 && cache.Type == CacheInstruction) {
@@ -2408,8 +2506,8 @@ void GMRFLib_zero_small(int n, double eps, double *x)
 	}
 #endif
 }
-#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic pop
 
 int GMRFLib_idx_match(int nx, int *x, int ny, int *y)
 {
@@ -2421,6 +2519,7 @@ int GMRFLib_idx_match(int nx, int *x, int ny, int *y)
 	if (1) {
 		int i = 0;
 		int j = 0;
+
 		while (i < nx && j < ny) {
 			if (x[i] == y[j]) {
 				return 1;
@@ -2434,6 +2533,7 @@ int GMRFLib_idx_match(int nx, int *x, int ny, int *y)
 	} else {
 		// let 'a' be the shorter one
 		int na, nb, *a, *b;
+
 		if (nx <= ny) {
 			a = x;
 			b = y;
@@ -2448,6 +2548,7 @@ int GMRFLib_idx_match(int nx, int *x, int ny, int *y)
 
 		for (int i = 0; i < na; i++) {
 			int found = GMRFLib_iwhich_sorted(a[i], b, nb);
+
 			if (found >= 0) {
 				return 1;
 			}

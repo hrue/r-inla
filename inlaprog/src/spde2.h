@@ -64,7 +64,6 @@ typedef struct {
 	double **row_v;
 } inla_spde2_tp;
 
-
 double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void *arg);
 double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, double *UNUSED(values), void *arg);
 void apply_exponentials(double *RESTRICT dij, int nb);

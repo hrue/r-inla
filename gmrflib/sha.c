@@ -13,6 +13,7 @@
 static inline uint32_t read_be32(const uint8_t *p)
 {
 	uint32_t val;
+
 	memcpy(&val, p, 4);				       // Prevents alignment faults on strict alignment devices (like older ARM)
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	return __builtin_bswap32(val);
@@ -103,6 +104,7 @@ void sha256_update(SHA256_CTX *ctx, const uint8_t *data, size_t len)
 	if (ctx->buflen > 0) {
 		size_t left = 64 - ctx->buflen;
 		size_t fill = (len < left) ? len : left;
+
 		memcpy(ctx->buffer + ctx->buflen, data, fill);
 		ctx->buflen += fill;
 		i += fill;
@@ -192,6 +194,7 @@ int main()
 
 	// Allocate a message digest context
 	EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
+
 	if (mdctx == NULL) {
 		fprintf(stderr, "Failed to create EVP_MD_CTX\n");
 		return 1;

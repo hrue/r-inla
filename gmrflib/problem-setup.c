@@ -29,7 +29,6 @@ int GMRFLib_init_constr_store(void)
 	return GMRFLib_SUCCESS;
 }
 
-
 static int constr_store_logdet_use = 1;
 static map_strd constr_store_logdet;
 static int constr_store_logdet_must_init = 1;
@@ -58,6 +57,7 @@ double GMRFLib_Qfunc_wrapper(int thread_id, int sub_node, int sub_nnode, double 
 	int node, nnode;
 	double val;
 	GMRFLib_Qfunc_arg_tp *args = NULL;
+
 	args = (GMRFLib_Qfunc_arg_tp *) arguments;
 
 	// we know that the mapping is identity in this case and that the sub_graph is the same as the graph
@@ -79,6 +79,7 @@ double GMRFLib_Qfunc_wrapper(int thread_id, int sub_node, int sub_nnode, double 
 		if (ISNAN(val)) {
 			// the Qfunction does not support it, move on doing it manually
 			int j, jj, k = 0;
+
 			values[k++] = (*(args->user_Qfunc)) (thread_id, node, node, NULL, args->user_Qfunc_args) + args->diagonal_adds[node];
 			for (jj = 0; jj < args->graph->lnnbs[node]; jj++) {
 				j = args->graph->lnbs[node][jj];
@@ -96,6 +97,7 @@ int validate_constr1(GMRFLib_constr_tp *constr, int n)
 {
 	GMRFLib_constr_tp *nnew = NULL;
 	GMRFLib_graph_tp *g = Calloc(1, GMRFLib_graph_tp);
+
 	g->n = n;
 
 	GMRFLib_duplicate_constr(&nnew, constr, g);
@@ -136,11 +138,13 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 #pragma omp critical (Name_e4b888063524c281c8bef772bc2579873731fa49)
 		if (!storage) {
 			storage_t **tmp = Calloc(GMRFLib_CACHE_LEN(), storage_t *);
+
 			storage = tmp;
 		}
 	}
 
 	int id = 0;
+
 	GMRFLib_CACHE_SET_IDX(id);
 
 	if (!storage[id]) {
@@ -153,6 +157,7 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 		int K = m * (m + 1) / 2;
 		int *ii = Calloc(2 * K, int);
 		int *jj = ii + K;
+
 		for (int k = 0, i = 0; i < m; i++) {
 			for (int j = i; j < m; j++) {
 				ii[k] = i;
@@ -176,6 +181,7 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 	}
 
 	int nt = 0;
+
 	if (omp_get_level() > 2) {
 		nt = 1;
 	} else {
@@ -187,6 +193,7 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -209,11 +216,13 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp *constr)
 #pragma omp critical (Name_756fb3e47fb1205cd5e595775867506d805d78f6)
 		if (!storage) {
 			storage_t **tmp = Calloc(GMRFLib_CACHE_LEN(), storage_t *);
+
 			storage = tmp;
 		}
 	}
 
 	int id = 0;
+
 	GMRFLib_CACHE_SET_IDX(id);
 
 	if (!storage[id]) {
@@ -226,6 +235,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp *constr)
 		int K = m * (m + 1) / 2;
 		int *ii = Calloc(2 * K, int);
 		int *jj = ii + K;
+
 		for (int k = 0, i = 0; i < m; i++) {
 			for (int j = i; j < m; j++) {
 				ii[k] = i;
@@ -255,6 +265,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp *constr)
 	}
 
 	int nt = 0;
+
 	if (omp_get_level() > 2) {
 		nt = 1;
 	} else {
@@ -266,6 +277,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp *constr)
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int dgemv_special(double *res, double *x, GMRFLib_constr_tp *constr)
@@ -280,6 +292,7 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp *constr)
 		nt = 1;
 	} else {
 		int f = 64;
+
 		nt = IMAX(1, IMIN(nc / f, GMRFLib_MAX_THREADS()));
 	}
 
@@ -308,6 +321,7 @@ int dgemv_special_many(int m, int n, double *res, double *x, GMRFLib_constr_tp *
 		nt = 1;
 	} else {
 		int f = 64;
+
 		nt = IMAX(1, IMIN((m * nc) / f, GMRFLib_MAX_THREADS()));
 	}
 
@@ -316,6 +330,7 @@ int dgemv_special_many(int m, int n, double *res, double *x, GMRFLib_constr_tp *
 		for (int i = 0; i < nc; i++) {
 			int offset_res = k * nc;
 			int offset_x = k * n;
+
 			res[i + offset_res] = GMRFLib_sparse_ddot_(constr->idxval[i], x + offset_x);
 		}
 	}
@@ -345,6 +360,7 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp *problem, int idx, G
 		int inc = 1;
 		double t_vector[nc];
 		double alpha = -1.0, beta = 1.0;
+
 		GMRFLib_eval_constr0(t_vector, NULL, x, problem->sub_constr, problem->sub_graph);
 		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, x, &inc, F_ONE);
 	}
@@ -361,8 +377,10 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem, GMRFLib_st
 
 #if 0
 	static double tref = 0.0;
+
 #       pragma omp threadprivate(tref)
 	static int trefc = 0;
+
 #       pragma omp threadprivate(trefc)
 	tref -= GMRFLib_timer();
 #endif
@@ -373,6 +391,7 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem, GMRFLib_st
 	GMRFLib_solve_llt_sparse_matrix(x, nrhs, &(problem->sub_sm_fact), problem->sub_graph, problem, stiles_idx);
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		double alpha = -1.0, beta = 1.0, t_vector[nc * nrhs];
+
 		GMRFLib_eval_constr0_many(nrhs, t_vector, x, problem->sub_constr, problem->sub_graph);
 		dgemm_("N", "N", &n, &nrhs, &nc, &alpha, problem->constr_m, &n, t_vector, &nc, &beta, x, &n, F_ONE, F_ONE);
 	}
@@ -461,6 +480,7 @@ int GMRFLib_init_problem_store(int thread_id,
 	 */
 	if (!x) {
 		x = Calloc(graph->n, double);
+
 		free_x = 1;
 	}
 
@@ -468,6 +488,7 @@ int GMRFLib_init_problem_store(int thread_id,
 
 	if (stiles_idx) {
 		GMRFLib_stiles_idx_tp *sidx = Calloc(1, GMRFLib_stiles_idx_tp);
+
 		Memcpy(sidx, stiles_idx, sizeof(GMRFLib_stiles_idx_tp));
 		if (sidx->within_group < 0) {
 			sidx->within_group = omp_get_thread_num();
@@ -527,6 +548,7 @@ int GMRFLib_init_problem_store(int thread_id,
 		 * use the reordering in store 
 		 */
 		(*problem)->sub_sm_fact.remap = Calloc(sub_n, int);
+
 		Memcpy((*problem)->sub_sm_fact.remap, store->remap, sub_n * sizeof(int));
 		if (smtp == GMRFLib_SMTP_BAND) {
 			(*problem)->sub_sm_fact.bandwidth = store->bandwidth;
@@ -543,6 +565,7 @@ int GMRFLib_init_problem_store(int thread_id,
 		if (store_store_remap) {
 			if ((*problem)->sub_sm_fact.remap != NULL) {
 				store->remap = Calloc(sub_n, int);
+
 				Memcpy(store->remap, (*problem)->sub_sm_fact.remap, sub_n * sizeof(int));
 				if (smtp == GMRFLib_SMTP_BAND) {
 					store->bandwidth = (*problem)->sub_sm_fact.bandwidth;
@@ -575,6 +598,7 @@ int GMRFLib_init_problem_store(int thread_id,
 	sub_Qfunc = GMRFLib_Qfunc_wrapper;
 	sub_Qfunc_arg = Calloc(1, GMRFLib_Qfunc_arg_tp);
 	sub_Qfunc_arg->diagonal_adds = Calloc(sub_n, double);
+
 	sub_Qfunc_arg->graph = (*problem)->sub_graph;
 
 	if (c) {
@@ -604,6 +628,7 @@ int GMRFLib_init_problem_store(int thread_id,
 
 	if (!GMRFLib_is_zero(mean, sub_n)) {
 		double *tmp = Calloc(sub_n, double);
+
 		GMRFLib_Qx(thread_id, tmp, mean, (*problem)->sub_graph, (*problem)->tab->Qfunc, (*problem)->tab->Qfunc_arg);
 		GMRFLib_daddto(sub_n, tmp, bb);
 		Free(tmp);
@@ -630,6 +655,7 @@ int GMRFLib_init_problem_store(int thread_id,
 	}
 
 	int ret;
+
 	ret = GMRFLib_build_sparse_matrix(thread_id, &((*problem)->sub_sm_fact), (*problem)->tab->Qfunc,
 					  (char *) ((*problem)->tab->Qfunc_arg), (*problem)->sub_graph, *problem);
 	if (ret != GMRFLib_SUCCESS) {
@@ -642,6 +668,7 @@ int GMRFLib_init_problem_store(int thread_id,
 #       pragma omp critical (Name_f00e7fa853c3143c7e085df069302f8c195844d1)
 		{
 			FILE *fp = fopen("Q-trouble.txt", "w");
+
 			GMRFLib_printf_Qfunc(thread_id, fp, (*problem)->sub_graph, (*problem)->tab->Qfunc, (char *) ((*problem)->tab->Qfunc_arg));
 			fclose(fp);
 			FIXME("WRITE failed Q to file and exit");
@@ -689,6 +716,7 @@ int GMRFLib_init_problem_store(int thread_id,
 			// we assume this is ok for INLA so we turn this off.
 			double *qi_at_m_store = NULL;	       /* possible reuse old results */
 			(*problem)->qi_at_m = Calloc(nc * sub_n, double);
+
 			if (qi_at_m_store == NULL) {
 				/*
 				 * compute it as usual 
@@ -697,6 +725,7 @@ int GMRFLib_init_problem_store(int thread_id,
 					int kk = k * sub_n;
 					double *yy = (*problem)->qi_at_m + kk;
 					double *xx = (*problem)->sub_constr->a_matrix + k;
+
 #pragma omp simd
 					for (int i = 0; i < sub_n; i++) {
 						yy[i] = xx[i * nc];
@@ -713,6 +742,7 @@ int GMRFLib_init_problem_store(int thread_id,
 					int kk = k * sub_n;
 					double *yy = (*problem)->qi_at_m + kk;
 					double *xx = (*problem)->sub_constr->a_matrix + k;
+
 #pragma omp simd
 					for (int i = 0; i < sub_n; i++) {
 						yy[i] = xx[i * nc];
@@ -727,6 +757,7 @@ int GMRFLib_init_problem_store(int thread_id,
 			 * compute l_aqat_m = chol(AQ^{-1}A^T)^{-1}) = chol(A qi_at_m)^{-1}, size = nc x nc 
 			 */
 			aqat_m = Calloc(nc * nc, double);
+
 			alpha = 1.0;
 			beta = 0.0;
 			if (GMRFLib_faster_constr) {
@@ -763,6 +794,7 @@ int GMRFLib_init_problem_store(int thread_id,
 			for (int j = 0; j < nc; j++) {
 				double *yy = tmp_vector + j;
 				double *xx = (*problem)->qi_at_m + j * sub_n;
+
 #pragma omp simd
 				for (int i = 0; i < sub_n; i++) {
 					yy[i * nc] = xx[i];
@@ -774,6 +806,7 @@ int GMRFLib_init_problem_store(int thread_id,
 			for (int j = 0; j < nc; j++) {
 				double *yy = (*problem)->constr_m + j * sub_n;
 				double *xx = tmp_vector + j;
+
 #pragma omp simd
 				for (int i = 0; i < sub_n; i++) {
 					yy[i] = xx[i * nc];
@@ -867,7 +900,6 @@ int GMRFLib_init_problem_store(int thread_id,
 		dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr, &inc, F_ONE);
 	}
 
-
 	/*
 	 * make the ``mean variables'', which are easier accessible for the user. 
 	 */
@@ -886,6 +918,7 @@ int GMRFLib_init_problem_store(int thread_id,
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_sample(GMRFLib_problem_tp *problem)
@@ -904,6 +937,7 @@ int GMRFLib_sample(GMRFLib_problem_tp *problem)
 	 */
 	for (i = 0, sqrterm = 0.0; i < n; i++) {
 		double z = GMRFLib_stdnormal();
+
 		sqrterm += SQR(z);
 		problem->sub_sample[i] = z;
 	}
@@ -978,6 +1012,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp *problem, int compute_const)
 	n = problem->sub_graph->n;
 	int m = GMRFLib_align_len(n, sizeof(double));
 	work = Calloc(2 * m, double);
+
 	xx = work;
 	yy = work + m;
 
@@ -1040,6 +1075,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp *problem, int compute_const)
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_free_problem(GMRFLib_problem_tp *problem)
@@ -1153,6 +1189,7 @@ double *GMRFLib_Qinv_get(GMRFLib_problem_tp *problem, int i, int j)
 {
 	int ii = problem->sub_inverse->mapping[i];
 	int jj = problem->sub_inverse->mapping[j];
+
 	return map_id_ptr(problem->sub_inverse->Qinv[IMIN(ii, jj)], IMAX(ii, jj));
 }
 
@@ -1161,6 +1198,7 @@ double GMRFLib_Qinv_get0(GMRFLib_problem_tp *problem, int i, int j)
 	int ii = problem->sub_inverse->mapping[i];
 	int jj = problem->sub_inverse->mapping[j];
 	double *d = map_id_ptr(problem->sub_inverse->Qinv[IMIN(ii, jj)], IMAX(ii, jj));
+
 	if (d == NULL)
 		printf("i j NULL %d %d\n", i, j);
 	return (d ? *d : 0.0);
@@ -1182,6 +1220,7 @@ int GMRFLib_free_constr(GMRFLib_constr_tp *constr)
 
 	if (constr_store_use && constr->sha) {
 		void *p = NULL;
+
 		p = map_strvp_ptr(&constr_store, (char *) constr->sha);
 		if (constr_store_debug) {
 			if (p) {
@@ -1258,6 +1297,7 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph, i
 		for (int k = 0; k < nc; k++) {
 			int idx = idamax_(&n, constr->a_matrix + k, &nc) - 1;
 			double a = 1.0 / ABS(constr->a_matrix[idx * nc + k]);
+
 			if (!ISEQUAL(a, 1.0)) {
 				dscal_(&n, &a, constr->a_matrix + k, &nc);
 				constr->e_vector[k] *= a;
@@ -1268,10 +1308,12 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph, i
 
 	int len = GMRFLib_align_len(nc, sizeof(int));
 	constr->jfirst = Calloc(2 * len, int);
+
 	constr->jlen = constr->jfirst + len;
 
 	for (int i = 0; i < nc; i++) {
 		double *a = constr->a_matrix + i;
+
 		for (int j = 0; j < n; j++) {
 			if (ISNONZERO(a[j * nc])) {
 				constr->jfirst[i] = j;
@@ -1289,8 +1331,10 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph, i
 	constr->idxval = Calloc(nc, GMRFLib_idxval_tp *);
 	for (int i = 0; i < nc; i++) {
 		double *a = constr->a_matrix;
+
 		for (int j = 0; j < n; j++) {
 			int k = i + j * nc;
+
 			if (ISNONZERO(a[k])) {
 				GMRFLib_idxval_add(&(constr->idxval[i]), j, a[k]);
 			}
@@ -1332,10 +1376,12 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 	 * if value, *value = Ax-e if sqr_value, *sqr_value = (Ax-e)'Q(Ax-e) 
 	 */
 	int nc = constr->nc;
+
 	Calloc_init(2 * nc, 2);
 
 	double *t_vector = Calloc_get(nc);
 	double *res = Calloc_get(nc);
+
 	Memcpy(t_vector, constr->e_vector, nc * sizeof(double));
 
 	if (GMRFLib_faster_constr) {
@@ -1348,6 +1394,7 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 		int inc = 1;
 		double alpha = 1.0;
 		double beta = -1.0;
+
 		dgemv_("N", &nc, &(graph->n), &alpha, constr->a_matrix, &nc, x, &inc, &beta, t_vector, &inc, F_ONE);
 	}
 
@@ -1361,6 +1408,7 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -1372,6 +1420,7 @@ int GMRFLib_eval_constr0(double *value, double *sqr_value, double *x, GMRFLib_co
 	 * eval a constraint `constr' at x-value `x', setting e=0
 	 */
 	int nc = constr->nc;
+
 	Calloc_init(2 * nc, 2);
 
 	double *t_vector = Calloc_get(nc);
@@ -1387,6 +1436,7 @@ int GMRFLib_eval_constr0(double *value, double *sqr_value, double *x, GMRFLib_co
 		int inc = 1;
 		double alpha = 1.0;
 		double beta = -1.0;
+
 		dgemv_("N", &nc, &(graph->n), &alpha, constr->a_matrix, &nc, x, &inc, &beta, t_vector, &inc, F_ONE);
 	}
 
@@ -1400,6 +1450,7 @@ int GMRFLib_eval_constr0(double *value, double *sqr_value, double *x, GMRFLib_co
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_eval_constr0_many(int m, double *value, double *x, GMRFLib_constr_tp *constr, GMRFLib_graph_tp *graph)
@@ -1421,6 +1472,7 @@ int GMRFLib_duplicate_constr(GMRFLib_constr_tp **new_constr, GMRFLib_constr_tp *
 
 	if (constr_store_use && constr->sha) {
 		void **p = NULL;
+
 		p = map_strvp_ptr(&constr_store, (char *) constr->sha);
 		if (constr_store_debug) {
 			if (p) {
@@ -1478,9 +1530,11 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp **new_constr, GMRFLib_constr_tp *con
 		(*new_constr)->is_scaled = constr->is_scaled;
 
 		(*new_constr)->a_matrix = Calloc(graph->n * constr->nc, double);
+
 		Memcpy((*new_constr)->a_matrix, constr->a_matrix, graph->n * constr->nc * sizeof(double));
 
 		(*new_constr)->e_vector = Calloc(constr->nc, double);
+
 		Memcpy((*new_constr)->e_vector, constr->e_vector, constr->nc * sizeof(double));
 
 		// this will add jfirst and jlen
@@ -1743,6 +1797,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 		if (tmp->log_prec_omp) {
 			int tmax = GMRFLib_MAX_THREADS();
 			Qfunc_arg->log_prec_omp = Calloc(tmax, double *);
+
 			for (i = 0; i < tmax; i++) {
 				Qfunc_arg->log_prec_omp[i] = tmp->log_prec_omp[i];
 			}
@@ -1777,6 +1832,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 		}
 		np->sub_inverse->Qinv = Qinv;
 		np->sub_inverse->mapping = Calloc(n, int);
+
 		Memcpy(np->sub_inverse->mapping, problem->sub_inverse->mapping, n * sizeof(int));
 	} else {
 		np->sub_inverse = NULL;
@@ -1786,6 +1842,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp *problem, int s
 #undef COPY
 	return np;
 }
+
 #pragma GCC diagnostic pop
 
 GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp *store, int skeleton, int copy_ptr)
@@ -1828,6 +1885,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp *store, int skeleton,
 	}
 	new_store->copy_ptr = copy_ptr;
 	char *tmp = Calloc(1, char);
+
 	Free(tmp);
 
 	COPY(store_problems);
@@ -1865,6 +1923,7 @@ double GMRFLib_Qfunc_generic(int UNUSED(thread_id), int i, int j, double *UNUSED
 		return -1.0;
 	} else {
 		GMRFLib_graph_tp *g = (GMRFLib_graph_tp *) arg;
+
 		return g->n;
 	}
 }
@@ -1950,6 +2009,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 			taucs_ccs_matrix *L = NULL;
 
 			GMRFLib_global_node_tp lgn;
+
 			if (gn) {
 				Memcpy((void *) &lgn, (void *) gn, sizeof(GMRFLib_global_node_tp));
 			} else {
@@ -1980,6 +2040,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 				GMRFLib_compute_reordering_TAUCS(&iperm, graph, rs[kkk], &lgn);
 
 				perm = Malloc(n, int);
+
 				for (ii = 0; ii < n; ii++) {
 					perm[iperm[ii]] = ii;
 				}

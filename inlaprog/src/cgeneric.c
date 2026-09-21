@@ -51,6 +51,7 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 		assert(nread == (size_t) 1);
 		data->ints[k]->len = j;
 		data->ints[k]->ints = Calloc(j, int);
+
 		nread = fread((void *) data->ints[k]->ints, sizeof(int), (size_t) j, fp);
 		assert(nread == (size_t) j);
 		if (debug) {
@@ -76,6 +77,7 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 
 		data->doubles[k]->len = j;
 		data->doubles[k]->doubles = Calloc(j, double);
+
 		nread = fread((void *) data->doubles[k]->doubles, sizeof(double), (size_t) j, fp);
 		assert(nread == (size_t) j);
 		if (debug) {
@@ -101,6 +103,7 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 
 		data->chars[k]->len = j;
 		data->chars[k]->chars = Calloc(j + 1L, char);
+
 		nread = fread((void *) data->chars[k]->chars, sizeof(char), (size_t) (j + 1L), fp);
 		assert(nread == (size_t) (j + 1L));
 		if (debug) {
@@ -121,6 +124,7 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 		READ_NAME(data->mats[k]->name);
 
 		int dim[2], nn;
+
 		nread = fread((void *) dim, sizeof(int), (size_t) 2, fp);
 		assert(nread == (size_t) 2);
 		data->mats[k]->nrow = dim[0];
@@ -130,6 +134,7 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 		data->mats[k]->nrow = dim[0];
 		data->mats[k]->ncol = dim[1];
 		data->mats[k]->x = Calloc(nn, double);
+
 		nread = fread((void *) data->mats[k]->x, sizeof(double), (size_t) nn, fp);
 		assert(nread == (size_t) nn);
 		if (debug) {
@@ -152,6 +157,7 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 		data->smats[k] = Calloc(1, inla_cgeneric_smat_tp);
 		READ_NAME(data->smats[k]->name);
 		int dim[3], n;
+
 		nread = fread((void *) dim, sizeof(int), (size_t) 3, fp);
 		assert(nread == (size_t) 3);
 		data->smats[k]->nrow = dim[0];
@@ -160,6 +166,7 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 		data->smats[k]->i = Calloc(n, int);
 		data->smats[k]->j = Calloc(n, int);
 		data->smats[k]->x = Calloc(n, double);
+
 		nread = fread((void *) data->smats[k]->i, sizeof(int), (size_t) n, fp);
 		assert(nread == (size_t) n);
 		nread = fread((void *) data->smats[k]->j, sizeof(int), (size_t) n, fp);

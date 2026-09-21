@@ -11,6 +11,7 @@ FORCEINLINE double GMRFLib_prod_diff(double a, double b, double c, double d)
 {
 	// return a*b-c*d , see https://pharr.org/matt/blog/2019/11/03/difference-of-floats 
 	double cd = c * d;
+
 	return fma(a, b, -cd) + fma(-c, d, cd);
 }
 
@@ -26,7 +27,6 @@ int GMRFLib_default_blockupdate_param(GMRFLib_blockupdate_param_tp **blockupdate
 
 	return GMRFLib_SUCCESS;
 }
-
 
 int GMRFLib_2order_taylor(int thread_id, int *lcache_idx, double *a, double *b, double *c, double *dd, double d, double x0, int idx,
 			  double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
@@ -210,6 +210,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			// special implementation: ONLY used for initial values
 			step = 1.0e-4;
 			const int n = 3;
+
 			xx[0] = x0 - step;
 			xx[1] = x0;
 			xx[2] = x0 + step;
@@ -226,12 +227,14 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 		{
 			if (unlikely(!step_len || ISZERO(*step_len))) {
 				double ref = GSL_DBL_EPSILON / 2.220446049e-16;
+
 				step = ref * 5.0E-4;
 			} else {
 				step = *step_len;
 			}
 
 			const int n = 5, nn = 2, wlength = 8;
+
 			static const double wf[24] = {
 				1.0 / 12.0,
 				-2.0 / 3.0,
@@ -274,6 +277,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			double *f_ref = f + nn;
 			double *wf_ref = (double *) wf + nn;
 			double *wff_ref = wff + nn;
+
 #if 1
 			if (!dd) {
 				ddf = f_ref[0] * wff_ref[0];
@@ -283,9 +287,11 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				}
 			} else {
 				double *wfff_ref = wfff + nn;
+
 				ddf = f_ref[0] * wff_ref[0];
 				for (int i = 1; i <= nn; i++) {
 					double dif = f_ref[i] - f_ref[-i];
+
 					df += wf_ref[i] * dif;
 					ddf += wff_ref[i] * (f_ref[i] + f_ref[-i]);
 					dddf += wfff_ref[i] * dif;
@@ -298,6 +304,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			ddf = fma(wff_ref[0], f_ref[0], ddf);
 			if (dd) {
 				double *wfff_ref = wfff + nn;
+
 				dddf = GMRFLib_prod_diff(wfff_ref[1], f_ref[1] - f_ref[-1], -wfff_ref[2], f_ref[2] - f_ref[-2]);
 			}
 #endif
@@ -308,12 +315,14 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 		{
 			if (!step_len || ISZERO(*step_len)) {
 				double ref = GSL_DBL_EPSILON / 2.220446049e-16;
+
 				step = ref * 100.0E-4;
 			} else {
 				step = *step_len;
 			}
 
 			const int n = 7, nn = 3, wlength = 8;
+
 			static const double wf[24] = {
 				-0.01666666666666667,
 				0.15,
@@ -367,8 +376,10 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				}
 			} else {
 				double *wfff_ref = wfff + nn;
+
 				for (int i = 1; i <= nn; i++) {
 					double dif = f_ref[i] - f_ref[-i];
+
 					df += wf_ref[i] * dif;
 					ddf += wff_ref[i] * (f_ref[i] + f_ref[-i]);
 					dddf += wfff_ref[i] * dif;
@@ -381,6 +392,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			    GMRFLib_prod_diff(wff_ref[2], f_ref[2] + f_ref[-2], -wff_ref[3], f_ref[3] + f_ref[-3]);
 			if (dd) {
 				double *wfff_ref = wfff + nn;
+
 				dddf = GMRFLib_prod_diff(wfff_ref[1], f_ref[1] - f_ref[-1], -wfff_ref[2], f_ref[2] - f_ref[-2]);
 				dddf = fma(wfff_ref[3], f_ref[3] - f_ref[-3], dddf);
 			}
@@ -394,6 +406,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 	}
 
 	double istep = 1.0 / step;
+
 	df *= istep;
 	ddf *= SQR(istep);
 	*a = f0;
@@ -406,4 +419,5 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop

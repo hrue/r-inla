@@ -27,10 +27,12 @@ inla_spde_points_tp *inla_spde_set_points(GMRFLib_matrix_tp *M)
 	inla_spde_points_tp *p = NULL;
 
 	hold = Calloc(M->nrow * M->ncol, double);
+
 	p = Calloc(1, inla_spde_points_tp);
 	p->n = M->nrow;
 	p->dim = M->ncol;
 	p->s = Calloc(M->nrow, double *);
+
 	for (i = 0; i < M->nrow; i++) {
 		p->s[i] = &hold[i * M->ncol];
 	}
@@ -43,6 +45,7 @@ inla_spde_points_tp *inla_spde_set_points(GMRFLib_matrix_tp *M)
 
 	return p;
 }
+
 int inla_spde_free_points(inla_spde_points_tp *p)
 {
 	if (p) {
@@ -51,6 +54,7 @@ int inla_spde_free_points(inla_spde_points_tp *p)
 	}
 	return INLA_OK;
 }
+
 double inla_spde_Qfunction(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (nnode < 0) {
@@ -74,6 +78,7 @@ double inla_spde_Qfunction(int thread_id, int node, int nnode, double *UNUSED(va
 #pragma omp critical (Name_2605e6f8037552855d97df46966e3c070414466a)
 		if (!OC) {
 			OC_tp *tmp = Calloc(GMRFLib_MAX_THREADS(), OC_tp);
+
 			OC = tmp;
 		}
 	}
@@ -185,6 +190,7 @@ double inla_spde_KT_model_eval(int thread_id, inla_spde_theta_tp *theta_model, i
 	}
 	return exp(value);
 }
+
 #pragma GCC diagnostic pop
 
 int inla_spde_KT_model_eval2(int thread_id, double *value0, double *value1, inla_spde_theta_tp *theta_model, int idx, int iidx)
@@ -225,6 +231,7 @@ int inla_spde_KT_model_eval2(int thread_id, double *value0, double *value1, inla
 
 	return INLA_OK;
 }
+
 int inla_spde_build_model(int UNUSED(thread_id), inla_spde_tp **smodel, const char *prefix)
 {
 	int n, i, j;
@@ -238,6 +245,7 @@ int inla_spde_build_model(int UNUSED(thread_id), inla_spde_tp **smodel, const ch
 	 * ocillating coeff 
 	 */
 	model->oc = Calloc(GMRFLib_MAX_THREADS(), double *);
+
 	for (i = 0; i < GMRFLib_MAX_THREADS(); i++)
 		model->oc[i] = Calloc(1, double);
 
@@ -275,6 +283,7 @@ int inla_spde_build_model(int UNUSED(thread_id), inla_spde_tp **smodel, const ch
 	if (0) {
 		int imax = 0;
 		int jmax = 0;
+
 		for (i = 0; i < M->elems; i++) {
 			printf("%d %d %d %g\n", i, M->i[i], M->j[i], M->values[i]);
 			imax = IMAX(imax, M->i[i]);
@@ -410,4 +419,5 @@ double *inla_spde_userfunc1(int thread_id, double *UNUSED(theta), int nhyper, do
 #undef DO_COMPUTE
 	return NULL;
 }
+
 #pragma GCC diagnostic pop

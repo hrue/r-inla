@@ -11,6 +11,7 @@
 int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence)
 {
 	FILE *fp = NULL;
+
 	fp = fopen(filename, "rb");
 	assert(fp);
 	if (!fp) {
@@ -92,6 +93,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	}
 
 	READ(&len_header, 1, int);
+
 	if (len_header < 8) {
 		GMRFLib_sprintf(&msg, "Header in file [%s] is only %1d (< 8) ints long.", filename, len_header);
 		ERROR(msg);
@@ -143,9 +145,11 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 		assert(elems == nrow * ncol);
 
 		M->A = Calloc(elems, double);
+
 		if (integer) {
 			M->iA = Calloc(elems, int);
 			READ(M->iA, elems, int);
+
 			for (i = 0; i < elems; i++) {
 				M->A[i] = (double) M->iA[i];
 			}
@@ -197,6 +201,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 		M->i = Calloc(elems, int);
 		M->j = Calloc(elems, int);
 		M->values = Calloc(elems, double);
+
 		if (integer) {
 			M->ivalues = Calloc(elems, int);
 		}
@@ -205,8 +210,10 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 			for (k = 0; k < elems; k++) {
 				READ(&(M->i[k]), 1, int);
 				READ(&(M->j[k]), 1, int);
+
 				if (integer) {
 					READ(&(M->ivalues[k]), 1, int);
+
 					M->values[k] = (double) M->ivalues[k];
 				} else {
 					READ(&(M->values[k]), 1, double);
@@ -215,8 +222,10 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 		} else {
 			READ(M->i, elems, int);
 			READ(M->j, elems, int);
+
 			if (integer) {
 				READ(M->ivalues, elems, int);
+
 				for (k = 0; k < elems; k++) {
 					M->values[k] = (double) M->ivalues[k];
 				}
@@ -250,6 +259,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 			}
 
 			int nneq = 0;
+
 			for (k = 0; k < elems; k++) {
 				if (M->i[k] != M->j[k]) {
 					nneq++;
@@ -259,11 +269,13 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 				M->i = Realloc(M->i, elems + nneq, int);
 				M->j = Realloc(M->j, elems + nneq, int);
 				M->values = Realloc(M->values, elems + nneq, double);
+
 				if (integer) {
 					M->ivalues = Realloc(M->ivalues, elems + nneq, int);
 				}
 
 				int kk = elems;
+
 				for (k = 0; k < elems; k++) {
 					if (M->i[k] != M->j[k]) {
 						M->i[kk] = M->j[k];	/* yes */
@@ -347,6 +359,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 
 	return (M);
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long int offset, int whence)
@@ -443,6 +456,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 	} else {
 		WRITE(M->i, M->elems, int);
 		WRITE(M->j, M->elems, int);
+
 		if (integer) {
 			WRITE(M->ivalues, M->elems, int);
 		} else {
@@ -487,6 +501,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 
 	nhold = M->elems;
 	hold = Calloc(nhold, int);
+
 	offset = 0;
 	for (int k = 0; k < M->nrow; k++) {
 		if (g->nnbs[k] == 0) {
@@ -503,6 +518,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 		if (M->i[k] != M->j[k]) {
 			int i = M->i[k];
 			int j = M->j[k];
+
 			g->nbs[i][g->nnbs[i]] = j;
 			g->nnbs[i]++;
 		}
@@ -528,6 +544,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 
 		// need to count, as we cannot use g->nnbs
 		int *nnbs_r = Calloc(M->ncol, int);
+
 		for (int k = 0; k < M->elems; k++) {
 			if (M->i[k] != M->j[k]) {
 				nnbs_r[M->j[k]]++;
@@ -548,6 +565,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 			}
 		} else {
 			int lim[nt + 1];
+
 			lim[0] = 0;
 			for (int k = 1; k < nt + 1; k++) {
 				lim[k] = (M->ncol * k) / nt;
@@ -556,6 +574,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 			for (int kk = 0; kk < nt; kk++) {
 				int cut_low = lim[kk];
 				int cut_high = lim[kk + 1];
+
 				for (int k = 0; k < M->elems; k++) {
 					if (cut_low <= M->j[k] && M->j[k] < cut_high) {
 						map_id_set(M->htable[M->j[k]], M->i[k], M->values[k]);
@@ -577,6 +596,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 			}
 		} else {
 			int lim[nt + 1];
+
 			lim[0] = 0;
 			for (int k = 1; k < nt + 1; k++) {
 				lim[k] = (M->nrow * k) / nt;
@@ -585,6 +605,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 			for (int kk = 0; kk < nt; kk++) {
 				int cut_low = lim[kk];
 				int cut_high = lim[kk + 1];
+
 				for (int k = 0; k < M->elems; k++) {
 					if (cut_low <= M->i[k] && M->i[k] < cut_high) {
 						map_id_set(M->htable[M->i[k]], M->j[k], M->values[k]);
@@ -614,6 +635,7 @@ double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp *M)
 
 		if (M->nrow) {
 			diag = Calloc(M->nrow, double);
+
 			if (M->A) {
 				for (i = 0; i < M->nrow; i++) {
 					diag[i] = M->A[i + i * M->nrow];
@@ -642,6 +664,7 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp *M)
 	}
 	if (M->i) {
 		double *d = NULL;
+
 		if (M->htable_column_order) {
 			d = map_id_ptr(M->htable[j], i);
 		} else {
@@ -650,6 +673,7 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp *M)
 		return (d ? *d : 0.0);
 	} else {
 		int idx = i + j * M->nrow;
+
 		return (M->A ? M->A[idx] : (double) M->iA[idx]);
 	}
 }
@@ -691,6 +715,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp *M)
 			} else {
 				// much better
 				map_id_storage *ptr = NULL;
+
 				for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL;) {
 					j = ptr->key;
 					values[j] = ptr->value;
@@ -714,6 +739,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp *M)
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix_tp *M, int sort)
@@ -731,6 +757,7 @@ int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix
 			assert(0 == 1);
 		} else {
 			map_id_storage *ptr = NULL;
+
 			for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL;) {
 				GMRFLib_idxval_add(row, ptr->key, ptr->value);
 			}
@@ -762,6 +789,7 @@ int GMRFLib_matrix_free(GMRFLib_matrix_tp *M)
 		GMRFLib_graph_free(M->graph);
 		if (M->htable) {
 			int k;
+
 			if (M->htable_column_order) {
 				for (k = 0; k < M->ncol; k++) {
 					if (M->htable[k]) {
@@ -817,6 +845,7 @@ int GMRFLib_file_exists(const char *filename, const char *mode)
 	 */
 
 	FILE *fp = fopen(filename, mode);
+
 	if (fp) {
 		fclose(fp);
 		return GMRFLib_SUCCESS;
@@ -842,18 +871,22 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
 		 * sparse 
 		 */
 		N->i = Calloc(M->elems, int);
+
 		Memcpy(N->i, M->j, M->elems * sizeof(int));
 
 		N->j = Calloc(M->elems, int);
+
 		Memcpy(N->j, M->i, M->elems * sizeof(int));
 
 		N->values = Calloc(M->elems, double);
+
 		Memcpy(N->values, M->values, M->elems * sizeof(double));
 	} else {
 		int i, j, idx, idx_transpose;
 
 		if (M->A) {
 			N->A = Calloc(N->nrow * N->ncol, double);
+
 			for (i = 0; i < M->nrow; i++) {
 				for (j = 0; j < M->ncol; j++) {
 					idx = i + j * M->nrow;
@@ -864,6 +897,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
 		}
 		if (M->iA) {
 			N->iA = Calloc(N->nrow * N->ncol, int);
+
 			for (i = 0; i < M->nrow; i++) {
 				for (j = 0; j < M->ncol; j++) {
 					idx = i + j * M->nrow;
@@ -891,6 +925,7 @@ int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, 
 	}
 
 	int nelm = 0;
+
 	for (int i = 0; i < nrow; i++) {
 		nelm += idxval[i]->n;
 	}
@@ -906,6 +941,7 @@ int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, 
 		for (int i = 0, k = 0; i < nrow; i++) {
 			for (int jj = 0; jj < idxval[i]->n; jj++, k++) {
 				int j = idxval[i]->idx[jj];
+
 				(*M)->i[k] = i;
 				(*M)->j[k] = j;
 				(*M)->values[k] = idxval[i]->val[jj];
@@ -913,14 +949,17 @@ int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, 
 		}
 	} else {
 		int *kk = Calloc(nrow, int);
+
 		for (int i = 1; i < nrow; i++) {
 			kk[i] = kk[i - 1] + idxval[i - 1]->n;
 		}
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < nrow; i++) {
 			int k = kk[i];
+
 			for (int jj = 0; jj < idxval[i]->n; jj++, k++) {
 				int j = idxval[i]->idx[jj];
+
 				(*M)->i[k] = i;
 				(*M)->j[k] = j;
 				(*M)->values[k] = idxval[i]->val[jj];

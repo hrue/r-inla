@@ -16,6 +16,7 @@
 #include "GMRFLib/GMRFLib.h"
 
 static unsigned long int GMRFLib_rng_seed;
+
 #pragma omp threadprivate(GMRFLib_rng_seed)
 
 int GMRFLib_rng_set_default_seed(void)
@@ -24,12 +25,14 @@ int GMRFLib_rng_set_default_seed(void)
 	unsigned long int seed;
 	const int debug = 0;
 	size_t len = sizeof(unsigned long int);
+
 #pragma omp critical (Name_96da5f632ecbd97ae1e5504794f8724fabfdee73)
 	{
 #if defined(_WIN32)
 		{
 			// this is the eqv of /dev/random for Windows
 			HCRYPTPROV prov;
+
 			if (CryptAcquireContext(&prov, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
 				if (!CryptGenRandom(prov, (DWORD) len, (BYTE *) & seed)) {
 					// error: fall back to default
@@ -45,8 +48,10 @@ int GMRFLib_rng_set_default_seed(void)
 #else
 		{
 			int fd = open("/dev/urandom", O_RDONLY);
+
 			if (fd >= 0) {
 				ssize_t nb = read(fd, (void *) &seed, len);
+
 				if (nb != (ssize_t) len) {
 					seed = seed_default;
 				}

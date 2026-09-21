@@ -11,18 +11,22 @@
 int inla_parse_param_constraints(inla_tp *mb)
 {
 	const int debug = 1;
+
 	for (int k = 0; k < mb->nds; k++) {
 		Data_section_tp *ds = &(mb->data_sections[k]);
+
 		if (!(ds->data_observations.sem_B)) {
 			continue;
 		}
 
 		int dim = ds->data_observations.sem_dim;
+
 		if (debug) {
 			printf("parse section %d dim %d\n", k, dim);
 		}
 
 		ds->data_observations.sem_B_ptr = Calloc(ISQR(dim), double **);
+
 		ds->data_observations.sem_B_map = Calloc(ISQR(dim), map_func_tp *);
 		ds->data_observations.sem_B_map_arg = Calloc(ISQR(dim), void *);
 		char **B = ds->data_observations.sem_B;	       /* shorthand */
@@ -34,14 +38,17 @@ int inla_parse_param_constraints(inla_tp *mb)
 
 			if (strcasecmp(B[i], SEM_NO_VAR) != 0) {
 				int j = find_tag(mb, B[i]);
+
 				if (j < 0) {
 					char *err = NULL;
+
 					GMRFLib_sprintf(&err, "SEM: search for model component B[%1d] = [%s]: not found\n", i, B[i]);
 					inla_error_general(err);
 					exit(1);
 				}
 				if (mb->f_id[j] != F_COPY) {
 					char *err = NULL;
+
 					GMRFLib_sprintf(&err, "SEM: model component [%s] not COPY\n", mb->f_tag[j]);
 					inla_error_general(err);
 					exit(1);
@@ -51,6 +58,7 @@ int inla_parse_param_constraints(inla_tp *mb)
 				ds->data_observations.sem_B_map_arg[i] = mb->f_theta_map_arg[j][0];
 			} else {
 				double **one = NULL;
+
 				HYPER_NEW(one, 1.0);
 				ds->data_observations.sem_B_ptr[i] = one;
 				ds->data_observations.sem_B_map[i] = map_one;
@@ -61,6 +69,7 @@ int inla_parse_param_constraints(inla_tp *mb)
 				double bvalue = ds->data_observations.sem_B_map[i] (ds->data_observations.sem_B_ptr[i][0][0],
 										    MAP_FORWARD,
 										    ds->data_observations.sem_B_map_arg[i]);
+
 				printf("B[%1d] :  A = %g  B = %g\n", i, ds->data_observations.sem_A[i], bvalue);
 			}
 		}
@@ -87,11 +96,13 @@ double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 #pragma omp critical  (Name_63a8d38d09184295d229c3a47bcbba98187ddc96)
 		if (!(ds->data_observations.sem_cache)) {
 			cache_tp **c = Calloc(GMRFLib_CACHE_LEN(), cache_tp *);
+
 			ds->data_observations.sem_cache = (void *) c;
 		}
 	}
 
 	int cache_idx = -1;
+
 	GMRFLib_CACHE_SET_IDX(cache_idx);
 	cache_tp *c = ((cache_tp **) ds->data_observations.sem_cache)[cache_idx];
 
@@ -100,8 +111,10 @@ double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 		if (!c) {
 			debug_("INIT CACHE");
 			cache_tp *cc = Calloc(1, cache_tp);
+
 			cc->dim = dim;
 			cc->theta = Calloc(ISQR(dim), double);
+
 			in_cache = 0;
 			c = ((cache_tp **) ds->data_observations.sem_cache)[cache_idx] = cc;
 		}
@@ -142,9 +155,11 @@ double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 
 	gsl_matrix *B = gsl_matrix_calloc(dim, dim);
 	gsl_matrix *S = gsl_matrix_calloc(dim, dim);
+
 	for (size_t j = 0, k = 0; j < dim; j++) {
 		for (size_t i = 0; i < dim; i++) {
 			double Bval, Aval, ABval;
+
 			c->theta[k] = ds->data_observations.sem_B_ptr[k][thread_id][0];
 			Bval = ds->data_observations.sem_B_map[k] (c->theta[k], MAP_FORWARD, ds->data_observations.sem_B_map_arg[k]);
 			Aval = ds->data_observations.sem_A[k];
@@ -159,7 +174,6 @@ double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 		GMRFLib_printf_gsl_matrix(stdout, B, " %g");
 	}
 
-
 	GMRFLib_gsl_mmt(B, B, S);
 	GMRFLib_gsl_spd_inverse(S);			       /* S <- solve(B %*% t(B)) */
 	c->value = 1.0 / gsl_matrix_get(S, idx, idx);	       /* return the marginal precision */
@@ -171,5 +185,6 @@ double inla_eval_param_constraint(int thread_id, Data_section_tp *ds)
 
 	return c->value;
 }
+
 #undef debug_
 #undef debug2_

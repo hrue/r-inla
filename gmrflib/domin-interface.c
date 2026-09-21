@@ -78,8 +78,10 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.log_extra = log_extra;
 	G.log_extra_arg = log_extra_arg;
 	G.f_count = Calloc(GMRFLib_MAX_THREADS(), int);
+
 	G.compute = compute;
 	G.solution = Calloc(nhyper, double);
+
 	G.fvalue = 0.0;
 	G.x = x;
 	G.b = b;
@@ -96,6 +98,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.parallel_linesearch = ai_par->parallel_linesearch;
 	G.Qfunc = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_Qfunc_tp *);
 	G.Qfunc_arg = Calloc(GMRFLib_MAX_THREADS(), void *);
+
 	for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 		G.Qfunc[i] = Qfunc;
 		G.Qfunc_arg[i] = Qfunc_arg;
@@ -119,6 +122,7 @@ int GMRFLib_opt_turn_off_parallel_linesearch()
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_opt_reset_directions(void)
 {
 	// restart with diagonal direction matrix
@@ -361,6 +365,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 #pragma omp critical (Name_a8223b8560b2af9a9e60da72c5e46a9412439b79)
 			{
 				FILE *fp = (G.ai_par->fp_log ? G.ai_par->fp_log : stdout);
+
 				fprintf(fp, "\n\n *** call exit(0) due to INLA_INTERNAL_MAX_FNCALLS=%1d\n", max_fncalls);
 				fprintf(fp, " *** num_fncall = %1d  time.pr.fncall =  %.4fs\n",
 					fncall_timing.num_fncall, fncall_timing.time_used / fncall_timing.num_fncall);
@@ -373,9 +378,11 @@ int GMRFLib_opt_f_intern(int thread_id,
 #pragma omp critical (Name_a38699a291079526a8d63683d419e9686e8f68b8)
 			if (check_for_exit) {
 				char *e = getenv("INLA_INTERNAL_MAX_FNCALLS");
+
 				if (GMRFLib_is_int(e, &max_fncalls)) {
 					max_fncalls = IMAX(0, max_fncalls);
 					FILE *fp = (G.ai_par->fp_log ? G.ai_par->fp_log : stdout);
+
 					fprintf(fp, "\n\n *** read INLA_INTERNAL_MAX_FNCALLS=%1d\n\n", max_fncalls);
 				}
 				check_for_exit = 0;
@@ -425,6 +432,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 
 			static int first = 1;
 			static int use = 0;
+
 			if (first || use) {
 				first = 0;
 				if (!use) {
@@ -448,6 +456,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 int GMRFLib_opt_gradf(double *x, double *gradx, int *ierr)
 {
 	int val = GMRFLib_opt_gradf_intern(x, gradx, NULL, ierr);
+
 	GMRFLib_opt_get_latent(G.ai_store->mode);
 
 	return val;
@@ -486,6 +495,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		double *f = Calloc(G.nhyper + 1, double);
 
 		int nt = IMIN(G.nhyper + 1, GMRFLib_openmp->max_threads_outer);
+
 		// nt = GMRFLib_openmp->max_threads_outer;
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < G.nhyper + 1; i++) {
@@ -494,6 +504,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			int j, err;
 			GMRFLib_ai_store_tp *ais = NULL;
 			double *xx = Calloc(G.nhyper, double);
+
 			Memcpy(xx, x, G.nhyper * sizeof(double));
 
 			if (GMRFLib_OPENMP_IN_PARALLEL()) {
@@ -543,6 +554,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		 * use central differences. 'Estimate' the f0 using the mean of all difference
 		 */
 		double *f = NULL, *fm = NULL, *ff = NULL, *ffm = NULL;
+
 		/*
 		 * use a five-point stencil instead? 
 		 */
@@ -550,11 +562,13 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 
 		f = Calloc(G.nhyper, double);
 		fm = Calloc(G.nhyper, double);
+
 		if (use_five_point) {
 			ff = Calloc(G.nhyper, double);
 			ffm = Calloc(G.nhyper, double);
 		}
 		int nt = IMIN(2 * G.nhyper, GMRFLib_openmp->max_threads_outer);
+
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < 2 * G.nhyper; i++) {
 			int thread_id = omp_get_thread_num();
@@ -566,6 +580,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			j = (i < G.nhyper ? i : i - G.nhyper);
 
 			xx = Calloc(G.nhyper, double);
+
 			Memcpy(xx, x, G.nhyper * sizeof(double));
 
 			if (GMRFLib_OPENMP_IN_PARALLEL()) {
@@ -618,6 +633,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		 * this should be the mean of the means 
 		 */
 		double sum = 0.0;
+
 		if (use_five_point) {
 			for (int i = 0; i < G.nhyper; i++) {
 				sum += (ff[i] + f[i] + fm[i] + ffm[i]) / 4.0;
@@ -751,6 +767,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	tmax = GMRFLib_MAX_THREADS();
 	f1 = Calloc(n, double);
 	fm1 = Calloc(n, double);
+
 	GMRFLib_dfill(n, NAN, f1);
 	GMRFLib_dfill(n, NAN, fm1);
 	GMRFLib_dfill(ISQR(n), 0.0, hessian);
@@ -765,6 +782,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	GMRFLib_ai_store_tp *ai_store_reference = (GMRFLib_openmp->max_threads_outer > 1 ?
 						   GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE) : NULL);
 	int *order = Calloc(2 * n + 1, int);
+
 	order[0] = 2 * n;
 	for (int i = 0; i < n; i++) {
 		order[1 + i] = i;
@@ -828,6 +846,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		}
 
 		double ff;
+
 		GMRFLib_opt_get_latent(ais->mode);
 		if (i < n) {
 			j = i;
@@ -840,6 +859,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		} else {
 			j = 0;
 			double f0_local;
+
 			F1(f0_local, j, 0.0, xx_hold[i]);
 			ff = f0_local;
 			f0 = f0_local;
@@ -900,6 +920,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 		early_stop = 0;
 		double f_best_save = B.f_best;
+
 		if (!G.ai_par->hessian_force_diagonal) {
 			typedef struct {
 				int i, j;
@@ -917,6 +938,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			}
 
 			int enable_early_stop = 0;	       /* this must be enabled for early_stop to work here */
+
 			nt = IMIN(nn, GMRFLib_openmp->max_threads_outer);
 #pragma omp parallel for num_threads(nt)
 			for (int k = 0; k < nn; k++) {
@@ -1026,6 +1048,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	GMRFLib_opt_dir_transform_hessian(hessian);
 	if (ok) {
 		char *msg = NULL;
+
 		GMRFLib_ensure_spd(hessian, n, -1.0, &msg);
 		if (msg) {
 			if (G.ai_par->fp_log || debug) {
@@ -1073,11 +1096,13 @@ GMRFLib_matrix_tp *GMRFLib_opt_get_directions(void)
 	if (Opt_dir_params.A) {
 		size_t i, j, n;
 		GMRFLib_matrix_tp *D = NULL;
+
 		n = Opt_dir_params.A->size1;
 		D = Calloc(1, GMRFLib_matrix_tp);
 		D->nrow = D->ncol = n;
 		D->elems = ISQR(n);
 		D->A = Calloc(ISQR(n), double);
+
 		for (i = 0; i < n; i++) {
 			for (j = 0; j < n; j++) {
 				D->A[i + j * n] = gsl_matrix_get(Opt_dir_params.A, i, j);
@@ -1093,6 +1118,7 @@ int GMRFLib_opt_get_f_count(void)
 {
 	if (opt_setup) {
 		int i, sum;
+
 		for (sum = 0, i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 			sum += G.f_count[i];
 		}
@@ -1109,6 +1135,7 @@ double GMRFLib_gsl_f(const gsl_vector *v, void *params)
 	int ierr, i;
 
 	x = Calloc(G.nhyper, double);
+
 	for (i = 0; i < G.nhyper; i++) {
 		x[i] = gsl_vector_get(v, i);
 	}
@@ -1129,6 +1156,7 @@ void GMRFLib_gsl_df(const gsl_vector *v, void *UNUSED(params), gsl_vector *df)
 	assert(G.nhyper > 0);
 	x = Calloc(G.nhyper, double);
 	gradx = Calloc(G.nhyper, double);
+
 	Memset(gradx, 0, G.nhyper * sizeof(double));	       /* compiler warn */
 
 	for (int i = 0; i < G.nhyper; i++) {
@@ -1157,6 +1185,7 @@ void GMRFLib_gsl_fdf(const gsl_vector *v, void *UNUSED(params), double *f, gsl_v
 	assert(G.nhyper > 0);
 	x = Calloc(G.nhyper, double);
 	gradx = Calloc(G.nhyper, double);
+
 	Memset(gradx, 0, G.nhyper * sizeof(double));	       /* compiler warning... */
 
 	for (int i = 0; i < G.nhyper; i++) {
@@ -1183,6 +1212,7 @@ int GMRFLib_opt_dir_step(double *x, int idx, double h)
 {
 	if (Opt_dir_params.A) {
 		size_t n = Opt_dir_params.A->size1;
+
 		for (int i = 0; i < (int) n; i++) {
 			x[i] += h * gsl_matrix_get(Opt_dir_params.A, i, idx);
 		}
@@ -1198,6 +1228,7 @@ int GMRFLib_opt_dir_transform_gradient(double *grad)
 	if (Opt_dir_params.A) {
 		size_t n = Opt_dir_params.A->size1, i, j;
 		double *g = Calloc(n, double);
+
 		for (i = 0; i < n; i++) {
 			for (j = 0; j < n; j++) {
 				g[i] += gsl_matrix_get(Opt_dir_params.tAinv, i, j) * grad[j];
@@ -1222,6 +1253,7 @@ int GMRFLib_opt_dir_transform_hessian(double *hessian)
 		for (size_t i = 0; i < n; i++) {
 			for (size_t j = i; j < n; j++) {
 				double tmp = 0.0;
+
 				for (size_t ii = 0; ii < n; ii++) {
 					for (size_t jj = 0; jj < n; jj++) {
 						// yes, swap arguments
@@ -1269,6 +1301,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 
 			double eps = GSL_ROOT3_DBL_EPSILON;
 			double diag = sqrt(DMAX(eps, 1.0 - ((double) Adir->size1 - 1.0) * SQR(eps)));
+
 			gsl_matrix_set_all(Adir, eps);
 			for (size_t i = 0; i < Adir->size1; i++) {
 				gsl_matrix_set(Adir, i, i, diag);
@@ -1332,6 +1365,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 	double best_f_prev = GMRFLib_opt_get_f(), best_f = GMRFLib_opt_get_f();
 	double best_hyper_prev[G.nhyper], best_hyper[G.nhyper];
 	double best_dx, best_df;
+
 	GMRFLib_opt_get_hyper(best_hyper_prev);
 	GMRFLib_opt_get_hyper(best_hyper);
 
@@ -1386,6 +1420,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 				GMRFLib_gsl_mgs(A);
 				if (G.ai_par->fp_log) {
 					double cutoff = 0.25 * sqrt(1.0 / A->size1);
+
 					fprintf(G.ai_par->fp_log, "New directions for numerical gradient\n");
 					for (size_t j = 0; j < A->size2; j++) {
 						printf("\t  dir%.2zu", j + 1);
@@ -1404,6 +1439,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 		}
 
 		double df = ABS(f_prev - gsl_multimin_fdfminimizer_minimum(s));
+
 		status_f = gsl_multimin_test_size(df, ai_par->gsl_epsf * eps_factor);
 		f_prev = gsl_multimin_fdfminimizer_minimum(s);
 
@@ -1492,6 +1528,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 void GMRFLib_opt_trace_append(GMRFLib_opt_trace_tp **otrace, double f, double *theta, int nfunc)
 {
 	int size_alloc = 64;
+
 	if (!*otrace) {
 		*otrace = Calloc(1, GMRFLib_opt_trace_tp);
 		(*otrace)->nt = G.nhyper;
@@ -1513,6 +1550,7 @@ void GMRFLib_opt_trace_append(GMRFLib_opt_trace_tp **otrace, double f, double *t
 
 	static double wtime0 = -1;
 	double wtime = 0.0;
+
 	if (wtime0 < 0) {
 		wtime0 = GMRFLib_timer();
 		wtime = 0.0;
@@ -1556,6 +1594,7 @@ void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, 
 
 	static int count = 0;
 	const char *homedir = getenv("HOME");
+
 	if (!homedir) {
 		homedir = getpwuid(getuid())->pw_dir;
 	}
@@ -1565,10 +1604,12 @@ void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, 
 	}
 
 	char *templat = NULL;
+
 	GMRFLib_sprintf(&templat, "%s/INLA-state-pid%1d-count%1d-XXXXXX", homedir, (int) getpid(), ++count);
 
 	ssize_t rval;
 	int fd = mkstemp(templat);
+
 	rval = write(fd, &fval, sizeof(double));
 	assert(rval >= 0);
 	rval = write(fd, &nfun, sizeof(int));

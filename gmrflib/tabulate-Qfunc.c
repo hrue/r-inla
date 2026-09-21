@@ -59,6 +59,7 @@
 double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *values, void *arg)
 {
 	double val = 0.0;
+
 	TAB_FUNC_CORE(1);
 	return val;
 }
@@ -66,6 +67,7 @@ double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *va
 double GMRFLib_tabulate_Qfunction_std(int thread_id, int node, int nnode, double *values, void *arg)
 {
 	double val = 0.0;
+
 	TAB_FUNC_CORE(0);
 	return val;
 }
@@ -85,6 +87,7 @@ int GMRFLib_tabulate_Qfunc_core(int thread_id,
 				GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, double **log_prec_omp, int force)
 {
 	int i, j, k;
+
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
 
 	if (!force) {
@@ -99,6 +102,7 @@ int GMRFLib_tabulate_Qfunc_core(int thread_id,
 	}
 
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
+
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
 	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
 
@@ -106,6 +110,7 @@ int GMRFLib_tabulate_Qfunc_core(int thread_id,
 	if (log_prec_omp) {
 		int tmax = GMRFLib_MAX_THREADS();
 		arg->log_prec_omp = Calloc(tmax, double *);
+
 		for (i = 0; i < tmax; i++) {
 			arg->log_prec_omp[i] = log_prec_omp[i];
 		}
@@ -125,6 +130,7 @@ int GMRFLib_tabulate_Qfunc_core(int thread_id,
 	} else {
 		arg->values = Calloc(graph->n, map_id *);
 		map_id *work = Calloc(graph->n, map_id);
+
 		for (i = 0; i < graph->n; i++) {
 			arg->values[i] = work + i;
 		}
@@ -142,6 +148,7 @@ int GMRFLib_tabulate_Qfunc_core(int thread_id,
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -304,6 +311,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 	if (log_prec_omp) {
 		int tmax = GMRFLib_MAX_THREADS();
 		arg->log_prec_omp = Calloc(tmax, double *);
+
 		for (i = 0; i < tmax; i++) {
 			arg->log_prec_omp[i] = log_prec_omp[i];
 		}
@@ -315,6 +323,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 	 * allocate hash-table with the *correct* number of elements
 	 */
 	map_id *work = Calloc((*graph)->n, map_id);
+
 	for (i = 0; i < (*graph)->n; i++) {
 		arg->values[i] = work + i;
 	}
@@ -393,6 +402,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 	GMRFLib_matrix_free(M);
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -409,10 +419,12 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 	 */
 
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
+
 	/*
 	 * step 1. build the graph 
 	 */
 	GMRFLib_ged_tp *ged = NULL;
+
 	GMRFLib_ged_init(&ged, NULL);
 
 	/*
@@ -444,6 +456,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 	if (log_prec_omp) {
 		int tmax = GMRFLib_MAX_THREADS();
 		arg->log_prec_omp = Calloc(tmax, double *);
+
 		for (int i = 0; i < tmax; i++) {
 			arg->log_prec_omp[i] = log_prec_omp[i];
 		}
@@ -455,6 +468,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 	 * allocate hash-table with the *correct* number of elements
 	 */
 	map_id *work = Calloc((*graph)->n, map_id);
+
 	for (int i = 0; i < (*graph)->n; i++) {
 		arg->values[i] = work + i;
 	}
@@ -464,6 +478,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 		map_id_set(arg->values[i], i, 0.0);
 		for (int jj = 0; jj < (*graph)->lnnbs[i]; jj++) {
 			int j = (*graph)->lnbs[i][jj];
+
 			map_id_set(arg->values[i], j, 0.0);    /* fill them with default = 0.0 */
 		}
 	}
@@ -472,12 +487,14 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 		if (ilist[i] <= jlist[i]) {
 			int ii = ilist[i];
 			int jj = jlist[i];
+
 			map_id_set(arg->values[ii], jj, Qijlist[i]);
 		}
 	}
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -496,6 +513,7 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc
 	 */
 
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
+
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
 	(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction; /* the Qfunction to use */
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
@@ -506,6 +524,7 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc
 	if (log_prec_omp != NULL) {
 		int tmax = GMRFLib_MAX_THREADS();
 		arg->log_prec_omp = Calloc(tmax, double *);
+
 		for (int i = 0; i < tmax; i++) {
 			arg->log_prec_omp[i] = log_prec_omp[i];
 		}
@@ -517,12 +536,14 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc
 	 * allocate hash-table with the *correct* number of elements
 	 */
 	map_id *work = Calloc(graph->n, map_id);
+
 	for (int i = 0; i < graph->n; i++) {
 		arg->values[i] = work + i;
 		map_id_init_hint(arg->values[i], graph->lnnbs[i] + 1);
 		map_id_set(arg->values[i], i, 0.0);
 		for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
 			int j = graph->lnbs[i][jj];
+
 			map_id_set(arg->values[i], j, 0.0);    /* fill them with default = 0.0 */
 		}
 	}
@@ -531,12 +552,14 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc
 		if (ilist[i] <= jlist[i]) {
 			int ii = ilist[i];
 			int jj = jlist[i];
+
 			map_id_set(arg->values[ii], jj, Qijlist[i]);
 		}
 	}
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp *tabulate_Qfunc)

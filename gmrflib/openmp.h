@@ -12,8 +12,6 @@
 #              define __END_DECLS			       /* empty */
 #       endif
 
-
-
 // workaround for the moment (gcc-15.2.1)
 #       if 1
 #              if defined(__cplusplus)

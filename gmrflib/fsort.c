@@ -18,7 +18,7 @@
 void quadfluxsort(void *array, size_t nmemb, size_t size, int (*cmp)(const void *, const void *))
 {
 #if 0
-	void *a = (void *) malloc(nmemb * size);
+	void *a =(void *) malloc(nmemb * size);
 	void *aa = (void *) malloc(nmemb * size);
 
 	Memcpy(a, array, nmemb * size);
@@ -36,6 +36,7 @@ void quadfluxsort(void *array, size_t nmemb, size_t size, int (*cmp)(const void 
 	tf += GMRFLib_timer();
 
 	double lwin = ABS(tf - tq);
+
 	win += lwin;
 	printf("SORT n %1d winner %s win %g total.win %g\n", (int) nmemb, (tf < tq ? "f" : "q"), lwin, win);
 

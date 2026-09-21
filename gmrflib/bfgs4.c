@@ -33,8 +33,10 @@ static double interp_quad(double f0, double fp0, double f1, double zl, double zh
 
 	if (c > 0) {					       /* positive curvature required for a minimum */
 		double z = -fp0 / c;			       /* location of minimum */
+
 		if (z > zl && z < zh) {
 			double f = f0 + z * (fp0 + z * (f1 - f0 - fp0));
+
 			if (f < fminn) {
 				zmin = z;
 				fminn = f;
@@ -115,6 +117,7 @@ static double interpolate(double a, double fa, double fpa, double b, double fb, 
 
 	if (zmin > zmax) {
 		double tmp = zmin;
+
 		zmin = zmax;
 		zmax = tmp;
 	};
@@ -149,6 +152,7 @@ static void moveto(double alpha, bfgs4_wrapper_t *w)
 static double slope(bfgs4_wrapper_t *w)
 {							       /* compute gradient . direction */
 	double df;
+
 	gsl_blas_ddot(w->g_alpha, w->p, &df);
 	return df;
 }
@@ -156,6 +160,7 @@ static double slope(bfgs4_wrapper_t *w)
 static double wrap_f(double alpha, void *params)
 {
 	bfgs4_wrapper_t *w = (bfgs4_wrapper_t *) params;
+
 	if (alpha == w->f_cache_key) {			       /* using previously cached f(alpha) */
 		return w->f_alpha;
 	}
@@ -171,6 +176,7 @@ static double wrap_f(double alpha, void *params)
 static double wrap_df(double alpha, void *params)
 {
 	bfgs4_wrapper_t *w = (bfgs4_wrapper_t *) params;
+
 	if (alpha == w->df_cache_key) {			       /* using previously cached df(alpha) */
 		return w->df_alpha;
 	}
@@ -258,6 +264,7 @@ static void update_position(bfgs4_wrapper_t *w, double alpha, gsl_vector *x, dou
 	 */
 	{
 		double f_alpha, df_alpha;
+
 		wrap_fdf(alpha, w, &f_alpha, &df_alpha);
 	};
 
@@ -410,7 +417,6 @@ static int vector_bfgs4_set(void *vstate, gsl_multimin_function_fdf *fdf, const 
 #include "bfgs-param.h"
 	}
 
-
 	return GSL_SUCCESS;
 }
 
@@ -459,6 +465,7 @@ static int vector_bfgs4_iterate(void *vstate, gsl_multimin_function_fdf *UNUSED(
 
 	if (delta_f < 0) {
 		double del = GSL_MAX_DBL(-delta_f, 10 * GSL_DBL_EPSILON * fabs(f0));
+
 		alpha1 = GSL_MIN_DBL(1.0, 2.0 * del / (-state->fp0));
 	} else {
 		alpha1 = fabs(state->step);
@@ -574,6 +581,7 @@ int bfgs4_dofit(const gsl_multifit_robust_type *T, const gsl_matrix *X, const gs
 {
 	int s;
 	gsl_multifit_robust_workspace *work = gsl_multifit_robust_alloc(T, X->size1, X->size2);
+
 	s = gsl_multifit_robust(X, y, c, cov, work);
 	gsl_multifit_robust_free(work);
 	return s;
@@ -593,6 +601,7 @@ int gsl_bfgs4_test1(size_t n)
 	const double a = 1.45;				       /* slope */
 	const double b = 3.88;				       /* intercept */
 	gsl_rng *r = NULL;
+
 	X = gsl_matrix_alloc(n, p);
 	x = gsl_vector_alloc(n);
 	y = gsl_vector_alloc(n);
@@ -605,6 +614,7 @@ int gsl_bfgs4_test1(size_t n)
 		double ei = gsl_rng_uniform(r);
 		double xi = -5.0 + i * dx;
 		double yi = a * xi + b;
+
 		gsl_vector_set(x, i, xi);
 		gsl_vector_set(y, i, yi + ei);
 	}
@@ -618,6 +628,7 @@ int gsl_bfgs4_test1(size_t n)
 
 	for (i = 0; i < n; ++i) {
 		double xi = gsl_vector_get(x, i);
+
 		gsl_matrix_set(X, i, 0, 1.0);
 		gsl_matrix_set(X, i, 1, xi);
 	}
@@ -629,6 +640,7 @@ int gsl_bfgs4_test1(size_t n)
 		double yi = gsl_vector_get(y, i);
 		gsl_vector_view v = gsl_matrix_row(X, i);
 		double y_rob, y_err;
+
 		gsl_multifit_robust_est(&v.vector, c, cov, &y_rob, &y_err);
 		printf("%g %g %g\n", xi, yi, y_rob);
 	}
@@ -649,6 +661,7 @@ int gsl_bfgs4_test1(size_t n)
 	gsl_rng_free(r);
 	return 0;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -673,6 +686,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	for (i = 0; i < n; ++i) {
 		gsl_vector_set(yy, idx + i, y[i]);
 		double xi = x[i], xxi = xi;
+
 		gsl_matrix_set(X, idx + i, 0, 1.0);
 		for (j = 1; j < p; j++) {
 			gsl_matrix_set(X, idx + i, j, xxi);
@@ -684,6 +698,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	for (i = 0; i < m; ++i) {
 		gsl_vector_set(yy, idx + i, yd[i]);
 		double xi = xd[i], xxi = 1.0;
+
 		gsl_matrix_set(X, idx + i, 0, 0.0);
 		for (j = 1; j < p; j++) {
 			gsl_matrix_set(X, idx + i, j, j * xxi);
@@ -692,6 +707,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	}
 
 	int err;
+
 	err = bfgs4_dofit(gsl_multifit_robust_bisquare, X, yy, c, cov);
 	// err = bfgs4_dofit(gsl_multifit_robust_fair, X, yy, c, cov);
 	// err = bfgs4_dofit(gsl_multifit_robust_huber, X, yy, c, cov);
@@ -700,6 +716,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 	if (err == GSL_EMAXITER) {
 		int iidx = 0;
+
 		GMRFLib_min_value(y, nn, &iidx);
 		*xmin = x[iidx];
 		if (ymin) {
@@ -734,6 +751,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	}
 
 	int max_iter = 10;
+
 	for (int iter = 0; iter < max_iter; iter++) {
 		double val, grad;
 
@@ -752,6 +770,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 		}
 
 		double ddx = -val / grad;
+
 		x_min += ddx;
 		if (iter == max_iter - 1 || ABS(ddx) < GSL_ROOT3_DBL_EPSILON) {
 			break;
@@ -777,6 +796,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -861,6 +881,7 @@ static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rh
 		{
 			double lower = alpha + delta;
 			double upper = alpha + tau1 * delta;
+
 			alpha_next = interpolate(alpha_prev, falpha_prev, fpalpha_prev, alpha, falpha, fpalpha, lower, upper, state->order);
 		}
 
@@ -898,12 +919,14 @@ static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rh
 	for (i = 0; i < na; i++) {
 		aa[i] = a + (b - a) * pos[i];
 		thetas[i] = Calloc(dim, double);
+
 		for (j = 0; j < dim; j++) {
 			thetas[i][j] = gsl_vector_get(state->x0, j) + aa[i] * gsl_vector_get(state->p, j);
 		}
 	}
 
 	int ierr = 0;
+
 	GMRFLib_opt_f_omp(thetas, na, fun, &ierr);
 
 	// remove possible Inf values (do nan's in the same round...)
@@ -923,6 +946,7 @@ static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rh
 	double amax = GMRFLib_max_value(aa, na, NULL);
 	double amin = GMRFLib_min_value(aa, na, NULL);
 	int nd = 0;
+
 	for (i = j = 0; i < ndfunval; i++) {
 		if ((amin <= dfalphas[i]) && (dfalphas[i] <= amax)) {
 			dfalphas[j] = dfalphas[i];
@@ -956,6 +980,7 @@ static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rh
 	bfgs4_robust_minimize(&aa_min, &fmin, na, aa, fun, nd, dfalphas, dfunval, order);
 	if (aa_min > amax || aa_min < amin) {
 		int idx_min = 0;
+
 		GMRFLib_min_value(fun, na, &idx_min);
 		aa_min = aa[idx_min];
 		robust_regression = 0;
@@ -980,4 +1005,5 @@ static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rh
 
 	return GSL_SUCCESS;
 }
+
 #pragma GCC diagnostic pop

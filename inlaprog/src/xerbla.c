@@ -12,6 +12,7 @@ void xerbla_(char *srname, int *info, FORTRAN_CHARLEN_T len)
 {
 	// fortran version
 	char *name = (char *) calloc(len + 1, sizeof(char));
+
 	assert(name);
 	memcpy(name, srname, len * sizeof(char));
 	name[len] = '\0';

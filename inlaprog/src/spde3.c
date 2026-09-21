@@ -104,6 +104,7 @@ int inla_spde3_build_model(int UNUSED(thread_id), inla_spde3_tp **smodel, const 
 	 * I need to build the graph. Need to add both M_ij and M_ji as M3 can be non-symmetric. 
 	 */
 	GMRFLib_ged_tp *ged = NULL;
+
 	GMRFLib_ged_init(&ged, NULL);
 
 #define ADD_GRAPH(_G)							\
@@ -168,6 +169,7 @@ int inla_spde3_build_model(int UNUSED(thread_id), inla_spde3_tp **smodel, const 
 
 		model->store[i] = Calloc(1, inla_spde3_d3store_tp);
 		model->store[i]->theta = Calloc(model->ntheta, double);
+
 		for (j = 0; j < model->ntheta; j++) {
 			model->store[i]->theta[j] = GMRFLib_uniform();
 		}
@@ -199,6 +201,7 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 	 * to hold the i'th and j'th and k'th row of the B-matrices. use one storage only
 	 */
 	double *row_i = Calloc(3 * model->B[0]->ncol, double), *row_j = NULL, *row_k = NULL;
+
 	row_j = &row_i[model->B[0]->ncol];
 	row_k = &row_i[2 * model->B[0]->ncol];
 
@@ -343,6 +346,7 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 		if (use_store) {
 			// check if we need to recompute storage
 			int recompute = 0;
+
 			for (k = 0; k < model->ntheta; k++) {
 				if (model->theta[k][thread_id][0] != model->store[id]->theta[k]) {
 					recompute = 1;
@@ -470,6 +474,7 @@ double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covm
 			 * Sigma * a, a = row
 			 */
 			double *Sigma_a = Calloc(nhyper, double);
+
 			for (ii = 0; ii < nhyper; ii++) {
 				for (jj = 0; jj < nhyper; jj++) {
 					Sigma_a[ii] += Cov(ii, jj) * row[1 + jj];
@@ -481,6 +486,7 @@ double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covm
 			 */
 			double mean = row[0];
 			double var = 0.0;
+
 			for (ii = 0; ii < nhyper; ii++) {
 				mean += Theta(ii) * row[1 + ii];
 				var += Sigma_a[ii] * row[1 + ii];
@@ -499,6 +505,7 @@ double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covm
 			iarg->eigen_vectors = a->eigen_vectors;
 			iarg->z = Calloc(nhyper, double);
 			iarg->theta = Calloc(nhyper, double);
+
 			iarg->stdev_corr_pos = a->stdev_corr_pos;
 			iarg->stdev_corr_neg = a->stdev_corr_neg;
 			iarg->dz = -1;
@@ -556,4 +563,5 @@ double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covm
 #undef Theta
 	return NULL;
 }
+
 #pragma GCC diagnostic pop

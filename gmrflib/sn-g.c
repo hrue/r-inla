@@ -29,6 +29,7 @@ double *GMRFLib_sn_g_get_coof(double skew, double *cx)
 			assert(ORDER == 5);
 			GMRFLib_spline_tp **ss = Calloc(ORDER + 1, GMRFLib_spline_tp *);
 			int n = sizeof(table_skew) / sizeof(double);
+
 			ss[0] = GMRFLib_spline_create(table_skew, table_c0, n);
 			ss[1] = GMRFLib_spline_create(table_skew, table_c1, n);
 			ss[2] = GMRFLib_spline_create(table_skew, table_c2, n);
@@ -44,6 +45,7 @@ double *GMRFLib_sn_g_get_coof(double skew, double *cx)
 
 	double *cxx = (cx ? cx : Calloc(ORDER + 1, double));
 	double askew = DMIN(ABS(skew), skew_lim);
+
 	for (int i = 0; i < ORDER + 1; i++) {
 		cxx[i] = GMRFLib_spline_eval(askew, cxs[i]);
 	}
@@ -70,6 +72,7 @@ double *GMRFLib_sn_ginv_get_coof(double skew, double *cx)
 			assert(ORDER == 5);
 			GMRFLib_spline_tp **ss = Calloc(ORDER + 1, GMRFLib_spline_tp *);
 			int n = sizeof(table_skew) / sizeof(double);
+
 			ss[0] = GMRFLib_spline_create(table_skew, table_ic0, n);
 			ss[1] = GMRFLib_spline_create(table_skew, table_ic1, n);
 			ss[2] = GMRFLib_spline_create(table_skew, table_ic2, n);
@@ -85,6 +88,7 @@ double *GMRFLib_sn_ginv_get_coof(double skew, double *cx)
 
 	double *cxx = (cx ? cx : Calloc(ORDER + 1, double));
 	double askew = DMIN(ABS(skew), skew_lim);
+
 	for (int i = 0; i < ORDER + 1; i++) {
 		cxx[i] = GMRFLib_spline_eval(askew, icxs[i]);
 	}
@@ -103,13 +107,16 @@ double GMRFLib_sn_g_eval(double x, double *cx)
 	// return g(x) for given polynomial coefficients cx
 
 	double res = 0.0;
+
 	if (upper_lim && ABS(x) > upper_lim) {
 		double x0 = DSIGN(x) * upper_lim;
 		double val = GMRFLib_sn_g_eval(x0, cx);
 		double deriv = GMRFLib_sn_g_eval_deriv(x0, cx);
+
 		res = val + deriv * (x - x0);
 	} else {
 		double fact = 1.0, pow = 1.0;
+
 		res = cx[0];
 		for (int i = 1; i < ORDER + 1; i++) {
 			fact *= i;
@@ -125,11 +132,14 @@ double GMRFLib_sn_g_eval_deriv(double x, double *cx)
 	// return first derivative in x, g'(x), for given polynomial coefficients cx
 
 	double res = 0.0;
+
 	if (upper_lim && ABS(x) > upper_lim) {
 		double x0 = DSIGN(x) * upper_lim;
+
 		res = GMRFLib_sn_g_eval_deriv(x0, cx);
 	} else {
 		double fact = 1.0, pow = 1.0;
+
 		res = cx[1];
 		for (int i = 2; i < ORDER + 1; i++) {
 			fact *= (i - 1);

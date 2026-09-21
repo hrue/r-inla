@@ -18,6 +18,7 @@
 	idx *= len_par;					       /* and now the index in the table */
 
 	double *fit_par = Calloc(len_par, double);
+
 	for (i = 0; i < len_par; i++) {
 		fit_par[i] = (1.0 - weight) * param[idx + i] + weight * param[idx + len_par + i];
 	}
@@ -30,6 +31,7 @@
 
 	// the remaining K-1 are the weights
 	double psum, *par = Calloc(len_par, double);
+
 	par[0] = psum = 1;
 	for (i = 1; i < K; i++) {
 		par[i] = exp(fit_par[K + (i - 1)]);

@@ -15,6 +15,7 @@ inla_bm_tp *inla_bm_alloc(int n, int lbw, int ubw)
 	assert(lbw < n);
 
 	inla_bm_tp *A = Calloc(1, inla_bm_tp);
+
 	A->n = n;
 	A->ubw = ubw;
 	A->lbw = lbw;
@@ -56,6 +57,7 @@ inla_bm_tp *inla_bm_chol(inla_bm_tp *A, inla_bm_tp *chol)
 	Memcpy(chol->band, A->band, A->memlen * sizeof(double));
 
 	int info = 0;
+
 	dpbtrf_("L", &(chol->n), &(chol->lbw), chol->band, &(chol->ldim), &info, F_ONE);
 	assert(info == 0);
 
@@ -67,6 +69,7 @@ void inla_bm_solve(inla_bm_tp *chol, double *b, double *x)
 	// solve Q x = B. if B is NULL then assume b=x. return the solution in x
 	assert(chol->ubw == 0);
 	int stride = 1;
+
 	if (b) {
 		Memcpy(x, b, chol->n * sizeof(double));
 	}
@@ -78,6 +81,7 @@ void inla_bm_nsolve(inla_bm_tp *chol, double *b, double *x, int nrhs)
 {
 	for (int i = 0; i < nrhs; i++) {
 		int n = chol->n;
+
 		inla_bm_solve(chol, (b ? b + i * n : NULL), x + i * n);
 	}
 }
@@ -97,8 +101,10 @@ inla_bm_tp *inla_bm_partial_inv(inla_bm_tp *chol, inla_bm_tp *inv)
 
 	for (int i = chol->n - 1; i >= 0; i--) {
 		double iLii = 1.0 / BM_VAL(chol, i, i);
+
 		for (int j = IMIN(chol->n - 1, i + chol->lbw); j >= i; j--) {
 			double sum = 0.0;
+
 			for (int k = i + 1; k <= IMIN(chol->n - 1, i + chol->lbw); k++) {
 				sum += sBM_VAL(chol, k, i) * sBM_VAL(inv, k, j);
 			}
@@ -115,6 +121,7 @@ inla_bm_tp *inla_bm_mm(inla_bm_tp *A, inla_bm_tp *B, inla_bm_tp *AB)
 	assert(A->n == B->n);
 	int lbw = IMIN(A->n - 1, A->lbw + B->lbw);
 	int ubw = IMIN(A->n - 1, A->ubw + B->ubw);
+
 	if (AB) {
 		assert(AB->lbw == lbw && AB->ubw == ubw);
 		GMRFLib_dfill(AB->memlen, 0.0, AB->band);
@@ -126,6 +133,7 @@ inla_bm_tp *inla_bm_mm(inla_bm_tp *A, inla_bm_tp *B, inla_bm_tp *AB)
 	for (int i = 0; i < AB->n; i++) {
 		for (int j = IMAX(0, i - AB->lbw); j <= IMIN(AB->n - 1, i + AB->ubw); j++) {
 			double sum = 0.0;
+
 			for (int k = IMAX(0, i - A->lbw); k <= IMIN(A->n - 1, i + A->ubw); k++) {
 				if (j - k >= -B->lbw && j - k <= B->ubw) {
 					sum += BM_VAL(A, i, k) * BM_VAL(B, k, j);
@@ -152,6 +160,7 @@ inla_bm_tp *inla_bm_mmm(inla_bm_tp *A, inla_bm_tp *B, inla_bm_tp *C, inla_bm_tp 
 	}
 
 	inla_bm_tp *AB = inla_bm_mm(A, B, NULL);
+
 	inla_bm_mm(AB, C, ABC);
 	inla_bm_free(AB);
 
@@ -161,6 +170,7 @@ inla_bm_tp *inla_bm_mmm(inla_bm_tp *A, inla_bm_tp *B, inla_bm_tp *C, inla_bm_tp 
 inla_bm_tp *inla_bm_duplicate(inla_bm_tp *A)
 {
 	inla_bm_tp *Adup = inla_bm_alloc(A->n, A->lbw, A->ubw);
+
 	memcpy(Adup->band, A->band, A->memlen * sizeof(double));
 	return Adup;
 }
@@ -176,6 +186,7 @@ inla_bm_tp *inla_bm_sum(double a, inla_bm_tp *A, double b, inla_bm_tp *B, double
 
 	int lbw = (C ? IMIN(A->n - 1, IMAX(A->lbw, IMAX(B->lbw, C->lbw))) : IMIN(A->n - 1, IMAX(A->lbw, B->lbw)));
 	int ubw = (C ? IMIN(A->n - 1, IMAX(A->ubw, IMAX(B->ubw, C->ubw))) : IMIN(A->n - 1, IMAX(A->ubw, B->ubw)));
+
 	if (ABC) {
 		ABC->lbw = lbw;
 		ABC->ubw = ubw;
@@ -188,6 +199,7 @@ inla_bm_tp *inla_bm_sum(double a, inla_bm_tp *A, double b, inla_bm_tp *B, double
 		for (int j = IMAX(0, i - ABC->lbw); j <= IMIN(ABC->n - 1, i + ABC->ubw); j++) {
 			int ld = i - j, ud = j - i;
 			double *ABC_ptr = BM_PTR(ABC, i, j);
+
 			*ABC_ptr = 0.0;
 
 			if (ld <= A->lbw && ud <= A->ubw) {
@@ -257,6 +269,7 @@ void inla_bm_scale(double a, inla_bm_tp *A)
 double inla_prw2_corfunc(double d, double kappa)
 {
 	double ad = kappa * ABS(d);
+
 	return (1.0 + ad) * exp(-ad);
 }
 
@@ -269,17 +282,21 @@ inla_prw2_arg_tp *inla_prw2_create(int n, double *loc)
 	assert(GMRFLib_OPENMP_IN_SERIAL());
 
 	inla_prw2_arg_tp *arg = Calloc(1, inla_prw2_arg_tp);
+
 	arg->n = n;
 	arg->loc = Malloc(n, double);
+
 	Memcpy(arg->loc, loc, n * sizeof(double));
 
 	double *h = Malloc(n - 1, double);
+
 	for (int i = 0; i < n - 1; i++) {
 		h[i] = loc[i + 1] - loc[i];
 	}
 	arg->h = h;
 
 	inla_bm_tp *C = inla_bm_alloc(n, 1, 1);
+
 	for (int i = 0; i < n; i++) {
 		if (i == 0) {
 			BM_VAL(C, i, i) = h[0] / 3.0;
@@ -290,6 +307,7 @@ inla_prw2_arg_tp *inla_prw2_create(int n, double *loc)
 		}
 
 		int j = i + 1;
+
 		if (j < n) {
 			BM_VAL(C, i, j) = BM_VAL(C, j, i) = h[i] / 6.0;
 		}
@@ -297,8 +315,10 @@ inla_prw2_arg_tp *inla_prw2_create(int n, double *loc)
 	arg->C = C;
 
 	inla_bm_tp *C_tilde = inla_bm_alloc(n, 0, 0);
+
 	for (int i = 0; i < n; i++) {
 		double sum = 0.0;
+
 		for (int j = IMAX(0, i - C->lbw); j <= IMIN(C->n - 1, i + C->ubw); j++) {
 			sum += BM_VAL(C, i, j);
 		}
@@ -307,6 +327,7 @@ inla_prw2_arg_tp *inla_prw2_create(int n, double *loc)
 	arg->C_tilde = C_tilde;
 
 	inla_bm_tp *G = inla_bm_alloc(n, 1, 1);
+
 	for (int i = 0; i < n; i++) {
 		if (i == 0) {
 			BM_VAL(G, i, i) = 1.0 / h[0];
@@ -317,6 +338,7 @@ inla_prw2_arg_tp *inla_prw2_create(int n, double *loc)
 		}
 
 		int j = i + 1;
+
 		if (j < n) {
 			BM_VAL(G, i, j) = BM_VAL(G, j, i) = -1.0 / h[i];
 		}
@@ -324,6 +346,7 @@ inla_prw2_arg_tp *inla_prw2_create(int n, double *loc)
 	arg->G = G;
 
 	inla_bm_tp *M = inla_bm_alloc(n, 1, 1);
+
 	for (int i = 0; i < n; i++) {
 		if (i == 0) {
 			BM_VAL(M, i, i) = -0.5;
@@ -331,6 +354,7 @@ inla_prw2_arg_tp *inla_prw2_create(int n, double *loc)
 			BM_VAL(M, i, i) = 0.5;
 		}
 		int j = i + 1;
+
 		if (j < n) {
 			BM_VAL(M, i, j) = 0.5;
 			BM_VAL(M, j, i) = -0.5;
@@ -348,6 +372,7 @@ inla_prw2_arg_tp *inla_prw2_create(int n, double *loc)
 
 	return arg;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -370,6 +395,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	inla_bm_tp *H = inla_bm_sum(a, arg->G, b, arg->M, c, arg->C, NULL);
 	inla_bm_tp *Ht = inla_bm_trans(H, NULL);
 	inla_bm_tp *Q = inla_bm_mmm(Ht, arg->C_tilde, H, NULL);
+
 	inla_bm_scale(tau, Q);
 
 	const int m = 4;
@@ -378,6 +404,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	int mmn_len = GMRFLib_align_len(mm * n, sizeof(double));
 	double *xx = Calloc(2 * mmn_len, double);
 	double *yy = xx + mmn_len;
+
 	xx[0] = BM_VAL(Q, 0, 2);
 	xx[0 + mm] = BM_VAL(Q, 1, 2);
 	xx[1 + mm] = BM_VAL(Q, 1, 3);
@@ -387,18 +414,22 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	Memcpy(yy, xx, mm * m * sizeof(double));
 
 	inla_bm_tp *QB = inla_bm_alloc(mm, 2, 0);
+
 	for (int i = 0; i < mm; i++) {
 		for (int j = IMAX(0, i - QB->lbw); j <= i; j++) {
 			int ii = i + 2, jj = j + 2;
+
 			BM_VAL(QB, i, j) = BM_VAL(Q, ii, jj);
 		}
 	}
 
 	inla_bm_tp *chol_QB = inla_bm_chol(QB, NULL);
+
 	inla_bm_nsolve(chol_QB, NULL, xx, 4);
 
 	int idx[] = { 0, 1, n - 2, n - 1 };
 	inla_bm_tp *S = inla_bm_alloc(m, m - 1, 0);
+
 	for (int i = 0; i < m; i++) {
 		BM_VAL(S, i, i) = 1.0;
 		for (int j = 0; j < i; j++) {
@@ -412,6 +443,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 #if 0
 	// we might revisit this later
 	inla_bm_tp *S0 = inla_bm_alloc(m, m - 1, 0);
+
 	for (int i = 0; i < m; i++) {
 		BM_VAL(S0, i, i) = 1.0;
 		for (int j = 0; j < i; j++) {
@@ -432,6 +464,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	// maybe use something else? its all about the difference in Sinv and S0inv ? 
 	if (0) {
 		double small = ABS(sBM_VAL(S, 1, 2));
+
 		if (small > 0.2) {
 			fprintf(stderr, "\n *** Warning *** [%s:%1d](%s) correlation between the boundaries is higher than small [%.3g]\n",
 				__FILE__, __LINE__, __GMRFLib_FuncName, small);
@@ -441,10 +474,12 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 #endif
 
 	double correction[m2];
+
 	GMRFLib_dfill(m2, 0.0, correction);
 	for (int i = 0; i < m; i++) {
 		for (int j = i; j < m; j++) {
 			double sum = 0.0;
+
 			for (int k = 0; k < mm; k++) {
 				sum += yy[k + i * mm] * xx[k + j * mm];
 			}
@@ -467,6 +502,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 		// print the correlation function computed from the FEM and the target one
 		inla_bm_tp *chol = inla_bm_chol(Qsym, NULL);
 		double *x = Calloc(n, double);
+
 		x[n / 2] = 1.0;
 		inla_bm_solve(chol, NULL, x);
 #pragma omp critical (Name_6445b688a836bdfd82eba490147e8e86c75290f2)
@@ -490,11 +526,13 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 
 	return Qsym;
 }
+
 #pragma GCC diagnostic pop
 
 double inla_Qfunc_prw2(int thread_id, int i, int j, double *values, void *arg)
 {
 	int cache_idx;
+
 	GMRFLib_CACHE_SET_IDX(cache_idx);
 
 	inla_prw2_arg_tp *def = (inla_prw2_arg_tp *) arg;
@@ -516,6 +554,7 @@ double inla_Qfunc_prw2(int thread_id, int i, int j, double *values, void *arg)
 		return prec * sBM_VAL(cache->Q, i, j);
 	} else {
 		int k = 0;
+
 		values[k++] = prec * sBM_VAL(cache->Q, i, i);
 		for (int jj = 0; jj < def->graph->lnnbs[i]; jj++) {
 			j = def->graph->lnbs[i][jj];
@@ -531,6 +570,7 @@ void inla_prw2_pcprior_dist(double *rho, int n, double *d)
 
 	for (int i = 0; i < n; i++) {
 		double lrho = log1p(rho[i] - 1.0);
+
 		d[i] = sqrt(-(3.0 + rho[i]) * POW3(expm1(lrho)) / (1.0 + SQR(rho[i])));
 	}
 }
@@ -548,6 +588,7 @@ void inla_prw2_pcprior_cdf_range(double *range, int n, double lambda, double h_s
 	inla_prw2_pcprior_range2rho(range, n, h_size, cdf);    // rho is now cdf
 	inla_prw2_pcprior_dist(cdf, n, cdf);		       // dist is now cdf
 	double v = exp(-lambda * M_SQRT3);
+
 	for (int i = 0; i < n; i++) {
 		cdf[i] = (exp(-lambda * cdf[i]) - v) / (1.0 - v);
 	}
@@ -571,6 +612,7 @@ double priorfunc_prw2_pcprior_range(double *x, double *parameters)
 double priorfunc_prw2_pcprior_range_calibrate_helper(double lambda, double r0, double alpha, double h_size)
 {
 	double cdf = 0.0;
+
 	inla_prw2_pcprior_cdf_range(&r0, 1, lambda, h_size, &cdf);
 	return (log(cdf / (1.0 - cdf)) - log(alpha / (1.0 - alpha)));
 }
@@ -638,6 +680,7 @@ double priorfunc_prw2_pcprior_range_calibrate(double r0, double alpha, double h_
 	// make sure f0 < 0 < f1. easier coding
 	if (f0 > f1) {
 		double tmp = f0;
+
 		f0 = f1;
 		f1 = tmp;
 
@@ -652,6 +695,7 @@ double priorfunc_prw2_pcprior_range_calibrate(double r0, double alpha, double h_
 	}
 
 	double lam_mid = 0.0, f_mid = 0.0, eps = 1e-5;
+
 	while (1) {
 		// interpolate in log-scale
 		lam_mid = exp((log(lam1) * f0 - log(lam0) * f1) / (f0 - f1));
@@ -693,16 +737,19 @@ void inla_bm_test()
 {
 	const int n = 151;
 	double *loc = Calloc(n, double);
+
 	for (int i = 0; i < n; i++) {
 		loc[i] = i;
 	}
 	double rr = loc[n - 1] - loc[0];
+
 	if (0)
 		for (int i = 0; i < n; i++) {
 			loc[i] = (loc[i] - loc[0]) / rr;
 		}
 
 	double **log_range, **log_prec;
+
 	HYPER_NEW(log_range, log(0.2 * rr));
 	HYPER_NEW(log_prec, log(1.0));
 
@@ -711,6 +758,7 @@ void inla_bm_test()
 
 	int thread_id = 0;
 	inla_prw2_arg_tp *arg = inla_prw2_create(n, loc);
+
 	arg->log_prec_omp = log_prec;
 	arg->log_range_omp = log_range;
 	inla_bm_tp *Q = inla_prw2_build_Q(thread_id, arg);
@@ -718,10 +766,12 @@ void inla_bm_test()
 	inla_bm_tp *Qinv = inla_bm_partial_inv(Qchol, NULL);
 
 	double *cor = Calloc(n, double);
+
 	cor[n / 2] = 1.0;
 	inla_bm_solve(Qchol, NULL, cor);
 
 	double kappa = sqrt(12.0) / exp(log_range[0][0]);
+
 	for (int i = 0; i < n; i++) {
 		printf("CORR %f %f %f\n", loc[i], cor[i], inla_prw2_corfunc(loc[n / 2] - loc[i], kappa));
 	}
@@ -751,6 +801,7 @@ void inla_bm_test()
 	inla_bm_free(Qinv);
 	Free(loc);
 }
+
 #       pragma GCC diagnostic pop
 
 void inla_prw2_test(void)
@@ -762,6 +813,7 @@ void inla_prw2_test(void)
 void inla_bm_test()
 {
 }
+
 void inla_prw2_test(void)
 {
 }

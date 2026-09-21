@@ -26,7 +26,6 @@
 #              define __END_DECLS			       /* empty */
 #       endif
 
-
 #       define GMRFLib_IO_COMMENT_CHAR "#"
 #       define GMRFLib_IO_SEP          " \t"
 

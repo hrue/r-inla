@@ -88,6 +88,7 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 		(*csr_to)->s->n = n;
 		(*csr_to)->s->na = na;
 		(*csr_to)->s->iwork = Malloc(llen, int);
+
 		(*csr_to)->s->ia = (*csr_to)->s->iwork;
 		(*csr_to)->s->ja = (*csr_to)->s->iwork + n1;
 		Memcpy((void *) ((*csr_to)->s->iwork), (void *) (csr_from->s->iwork), (size_t) llen * sizeof(int));
@@ -100,11 +101,13 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 				(*csr_to)->a = csr_from->a;
 			} else {
 				(*csr_to)->a = Calloc(csr_from->s->na, double);
+
 				Memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->s->na) * sizeof(double));
 			}
 		} else {
 			(*csr_to)->copy_only = 0;
 			(*csr_to)->a = Calloc(csr_from->s->na, double);
+
 			Memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->s->na) * sizeof(double));
 		}
 	} else {
@@ -128,6 +131,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 
 	if (csr_store_use && graph->sha) {
 		void **p = NULL;
+
 		p = map_strvp_ptr(&csr_store, (char *) graph->sha);
 		if (csr_store_debug) {
 			if (p) {
@@ -149,6 +153,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 	Ms = Calloc(1, GMRFLib_csr_skeleton_tp);
 	if (graph->sha) {
 		Ms->sha = Malloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
+
 		Memcpy(Ms->sha, graph->sha, GMRFLib_SHA_DIGEST_LEN + 1);
 	}
 	n = graph->n;
@@ -159,11 +164,13 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 	Ms->na = na;
 	Ms->n = n;
 	Ms->iwork = Malloc(llen, int);
+
 	Ms->ia = Ms->iwork;
 	Ms->ja = Ms->iwork + n1;
 	Ms->iwork1 = Ms->ia1 = Ms->ja1 = NULL;
 	// new code. by doing it in two steps we can do the second one in parallel, and this is the one that take time.
 	int *k_arr = Malloc(n, int);
+
 	Ms->ia[0] = 0;
 	for (int i = 0, k = 0; i < n; i++) {
 		Ms->ja[k++] = i;
@@ -207,8 +214,10 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 
 	// when this is true, we can just copy the pointer to the matrix.
 	int used_fast_tab = 0;
+
 	if (Qfunc == GMRFLib_tabulate_Qfunction_std) {
 		GMRFLib_tabulate_Qfunc_arg_tp *arg = (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
+
 		if (arg->Q) {
 			M->a = arg->Q->a;
 			// mark this a copy only, not to be free'd.
@@ -219,10 +228,13 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 
 	if (!used_fast_tab) {
 		M->a = Malloc(M->s->na, double);
+
 		// a bit more manual work
 		double val = Qfunc(thread_id, 0, -1, &(M->a[0]), Qfunc_arg);
+
 		if (ISNAN(val)) {
 			static char *tag = NULL;
+
 			if (!tag) {
 #pragma omp critical (Name_7600f798b7727e8eb5fbed77a2db305e4db69365)
 				if (!tag) {
@@ -252,6 +264,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 		} else {
 
 			static char *tag = NULL;
+
 			if (!tag) {
 #pragma omp critical (Name_5d44f84bdfc2d2b324a71dbddd46ed4c72f4fba7)
 				if (!tag) {
@@ -279,6 +292,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 	}
 
 	int nan_error = 0;
+
 	for (int i = 0; i < M->s->na; i++) {
 		GMRFLib_STOP_IF_NAN_OR_INF(M->a[i], i, -1);
 		if (nan_error) {
@@ -296,6 +310,7 @@ int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp *csr)
 {
 	// write to file
 	GMRFLib_io_tp *io = NULL;
+
 	GMRFLib_io_open(&io, filename, "wb");
 	GMRFLib_io_write(io, (const void *) &(csr->s->n), sizeof(int));
 	GMRFLib_io_write(io, (const void *) &(csr->s->na), sizeof(int));
@@ -312,6 +327,7 @@ int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp **csr)
 {
 	// write to file
 	GMRFLib_io_tp *io = NULL;
+
 #define M (*csr)
 	M = Calloc(1, GMRFLib_csr_tp);
 	M->s = Calloc(1, GMRFLib_csr_skeleton_tp);
@@ -322,12 +338,14 @@ int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp **csr)
 
 	int len = M->s->n + 1 + M->s->na;
 	M->s->iwork = Malloc(len, int);
+
 	M->s->ia = M->s->iwork;
 	GMRFLib_io_read(io, (void *) (M->s->ia), sizeof(int) * (M->s->n + 1));
 	M->s->ja = M->s->iwork + M->s->n + 1;
 	GMRFLib_io_read(io, (void *) (M->s->ja), sizeof(int) * M->s->na);
 	M->s->iwork1 = M->s->ia1 = M->s->ja1 = NULL;
 	M->a = Malloc(M->s->na, double);
+
 	GMRFLib_io_read(io, (void *) (M->a), sizeof(double) * M->s->na);
 
 	GMRFLib_io_close(io);
@@ -385,6 +403,7 @@ int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp **Qtab, GMRFLib_graph_tp **graph, GM
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, GMRFLib_global_node_tp *gn)
@@ -403,6 +422,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *gr
 	}
 
 	GMRFLib_reorder_tp r = GMRFLib_reorder;
+
 	if (sm_fact->smtp == GMRFLib_SMTP_STILES) {
 		r = GMRFLib_REORDER_DEFAULT;
 	} else if ((sm_fact->smtp == GMRFLib_SMTP_TAUCS || sm_fact->smtp == GMRFLib_SMTP_BAND) && r == GMRFLib_REORDER_STILES) {
@@ -432,8 +452,10 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *gr
 		{
 			int k = -1;
 			GMRFLib_stiles_store_tp *p = (GMRFLib_stiles_store_tp *) GMRFLib_stiles_get_store_ptr();
+
 			for (int i = 0; i < p->graphs->n; i++) {
 				GMRFLib_graph_tp *g = (GMRFLib_graph_tp *) (p->graphs->ptr[i]);
+
 				if (strcmp((const char *) graph->sha, (const char *) g->sha) == 0) {
 					k = i;
 					break;
@@ -443,6 +465,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *gr
 
 			GMRFLib_stiles_idx_tp stiles_idx = { k, 0, 0 };
 			sm_fact->remap = Malloc(graph->n, int);
+
 			Memcpy((void *) sm_fact->remap, (void *) GMRFLib_stiles_get_perm(&stiles_idx), graph->n * sizeof(int));
 		}
 			break;
@@ -563,6 +586,7 @@ int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRF
 int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, GMRFLib_problem_tp *problem)
 {
 	int ret;
+
 	GMRFLib_ENTER_FUNCTION;
 
 	switch (sm_fact->smtp) {
@@ -679,6 +703,7 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_
 		}
 		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, problem->stiles_idx->within_group, nrhs };
 		int err = GMRFLib_stiles_set_idx(&stiles_idx, nrhs);
+
 		if (err == GMRFLib_SUCCESS) {
 			GMRFLib_stiles_solve_L(&stiles_idx, rhs);
 		} else {
@@ -735,6 +760,7 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm
 		}
 		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, problem->stiles_idx->within_group, nrhs };
 		int err = GMRFLib_stiles_set_idx(&stiles_idx, nrhs);
+
 		if (err == GMRFLib_SUCCESS) {
 			GMRFLib_stiles_solve_LT(&stiles_idx, rhs);
 		} else {
@@ -767,6 +793,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 #pragma omp critical (Name_e17713a7b7212540f4e968c9656f2f9b4f2351ac)
 		if (first) {
 			char *val = getenv("INLA_ENABLE_SOLVE_LLT_TIMER");
+
 			if (val) {
 				interval = IMAX(1, atoi(val));
 				enable_timer = 1;
@@ -791,11 +818,13 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
+
 	if (!wwork) {
 #pragma omp critical (Name_c02cfe7c85f984ba167d3d158f5219787998c27f)
 		if (!wwork) {
 			wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
 			double **tmp = Calloc(GMRFLib_CACHE_LEN(), double *);
+
 			wwork = tmp;
 		}
 	}
@@ -805,9 +834,11 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 
 	if (sm_fact->smtp == GMRFLib_SMTP_TAUCS || sm_fact->smtp == GMRFLib_SMTP_BAND) {
 		int cache_idx = 0;
+
 		GMRFLib_CACHE_SET_IDX(cache_idx);
 		if (nw > wwork_len[cache_idx]) {
 			int numa_node = GMRFLib_numa_get_node();
+
 			if (wwork[cache_idx] && wwork_len[cache_idx] > 0) {
 				GMRFLib_numa_free(wwork[cache_idx], wwork_len[cache_idx]);
 			}
@@ -824,11 +855,13 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
 		for (int i = 0; i < nrhs; i++) {
 			int offset = i * graph->n;
+
 			GMRFLib_solve_llt_sparse_matrix_BAND(rhs + offset, sm_fact->bchol, graph, sm_fact->remap,
 							     sm_fact->bandwidth, work + offset);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_TAUCS) {
 		int min_block_size = GMRFLib_taucs_get_min_block_size();
+
 		// int block_size = GMRFLib_taucs_get_block_size();
 		int ntt = (omp_get_level() == 0 ? GMRFLib_openmp->max_threads_outer :
 			   (omp_get_level() == 1 ? GMRFLib_openmp->max_threads_inner : 1));
@@ -846,9 +879,11 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 
 			GMRFLib_ifill(ntt, 0, csize);
 			int done = 0;
+
 			while (!done) {
 				for (int i = 0; i < ntt && !done; i++) {
 					int off = IMIN(nrhs - GMRFLib_isum(ntt, csize), min_block_size);
+
 					csize[i] += off;
 					if (GMRFLib_isum(ntt, csize) == nrhs) {
 						done = 1;
@@ -866,6 +901,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 
 			// int ntt_orig = ntt;
 			int new_ntt = 0;
+
 			for (int i = 0; i < ntt; i++) {
 				new_ntt += (csize[i] > 0);
 			}
@@ -1025,6 +1061,7 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fa
 		if (remapped) {
 			int *perm = GMRFLib_stiles_get_perm(problem->stiles_idx);
 			double *y = Malloc(graph->n, double);
+
 			Memcpy(y, rhs, graph->n * sizeof(double));
 			GMRFLib_pack(graph->n, y, perm, rhs);
 			Free(y);

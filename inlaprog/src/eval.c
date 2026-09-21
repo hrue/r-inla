@@ -48,6 +48,7 @@ double inla_eval(char *expression, double *x, double *theta, int ntheta)
 	assert(0 == 1);
 	return 0.0;
 }
+
 double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), int UNUSED(ntheta))
 {
 	double value;
@@ -72,6 +73,7 @@ double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), in
 #pragma omp critical (Name_e578aec88a26ae580f841592d1651b595dac46e4)
 		{
 			double xx;
+
 			for (xx = -20; xx < 20; xx += .1)
 				printf("TABLE %g %g\n", xx, GMRFLib_spline_eval(xx, s));
 			exit(1);
@@ -80,6 +82,7 @@ double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), in
 
 	if (ISNAN(value)) {
 		char *msg = NULL;
+
 		GMRFLib_sprintf(&msg, "table-prior returns NAN. Argument is %g but prior is defined on [%g,%g] only.", *xval, s->xmin, s->xmax);
 		inla_error_general(msg);
 		exit(1);
@@ -90,7 +93,6 @@ double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), in
 
 	return value;
 }
-
 
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
@@ -122,22 +124,27 @@ double inla_eval_Gamma(double arg)
 {
 	return exp(gsl_sf_lngamma(arg));
 }
+
 double inla_eval_LogGamma(double arg)
 {
 	return gsl_sf_lngamma(arg);
 }
+
 double inla_eval_lgamma(double arg)
 {
 	return gsl_sf_lngamma(arg);
 }
+
 double inla_eval_digamma(double arg)
 {
 	return gsl_sf_psi(arg);
 }
+
 double inla_eval_trigamma(double arg)
 {
 	return gsl_sf_psi_1(arg);
 }
+
 double inla_eval_Return(double v)
 {
 	return v;
@@ -162,6 +169,7 @@ void inla_eval_OnError(muParserHandle_t hParser)
 muFloat_t *inla_eval_AddVariable(const muChar_t *a_szName, void *pUserData)
 {
 	eval_keep_vars_tp **aa = (eval_keep_vars_tp **) pUserData;
+
 	if (*aa == NULL) {
 		*aa = Calloc(1, eval_keep_vars_tp);
 	}
@@ -174,6 +182,7 @@ muFloat_t *inla_eval_AddVariable(const muChar_t *a_szName, void *pUserData)
 			assert(a->value == NULL);
 		}
 		a->name = Realloc(a->name, a->n_alloc, char *);
+
 		a->value = Realloc(a->value, a->n_alloc, muFloat_t *);
 	}
 	a->value[a->n] = Calloc(1, muFloat_t);
@@ -229,6 +238,7 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 		// add constants like THETA0, THETA1, THETA2, ...
 		for (i = 0; i < ntheta; i++) {
 			char *var = NULL;
+
 			GMRFLib_sprintf(&var, "THETA%1d", i);
 			mupDefineConst(hParser, var, theta[i]);
 			Free(var);
@@ -272,6 +282,7 @@ int inla_eval_int_expression(char *expression, int P, int C)
 	}
 
 	int value;
+
 #       pragma omp critical (Name_0fa7f09460b3fe66b3508c1154b27762dbfac4e8)
 	{
 		if (debug) {
@@ -279,6 +290,7 @@ int inla_eval_int_expression(char *expression, int P, int C)
 		}
 
 		muParserHandle_t hParser = mupCreate(muBASETYPE_FLOAT);
+
 		mupSetErrorHandler(hParser, inla_eval_OnError);
 		mupDefineConst(hParser, "P", P);
 		mupDefineConst(hParser, "C", C);
@@ -299,6 +311,7 @@ int inla_eval_int_expression(char *expression, int UNUSED(P), int UNUSED(C))
 		return 0;
 	}
 	int value = 0;
+
 	if (sscanf(expression, "%d", &value) == 1) {
 		return value;
 	} else {

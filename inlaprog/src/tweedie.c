@@ -21,7 +21,6 @@
 #define TWEEDIE_INCRE 1.2
 #define TWEEDIE_MAX_IDX 16384
 
-
 /**
  * n scalar length of mu
  * y scalar the observation
@@ -49,6 +48,7 @@ void dtweedie_init_cache(void)
 #pragma omp critical (Name_7a0e3ad8ab1b55eeac2d184db7725114058480fd)
 		if (!cache) {
 			dtweedie_cache_tp **ccache = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp *);
+
 			for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
 				ccache[i] = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp);
 				ccache[i]->nterms = -1;
@@ -58,6 +58,7 @@ void dtweedie_init_cache(void)
 				ccache[i]->wwork = NULL;
 			}
 			lgammas = Calloc(TWEEDIE_MAX_IDX, double);
+
 			for (int i = 0; i < TWEEDIE_MAX_IDX; i++) {
 				lgammas[i] = my_gsl_sf_lnfact(i);
 			}
@@ -89,6 +90,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		}
 		cache_ptr->nterms = 0;
 		cache_ptr->work = Calloc(2 * TWEEDIE_MAX_IDX, double);
+
 		cache_ptr->wwork = cache_ptr->work + TWEEDIE_MAX_IDX;
 	}
 
@@ -110,6 +112,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	w = a1 * jmax;
 	double ljmax = log(jmax);
 	double ljmax_add = log((double) TWEEDIE_INCRE);
+
 	while (1) {
 		jmax *= TWEEDIE_INCRE;
 		ljmax += ljmax_add;
@@ -163,6 +166,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		if (!use_interpolation) {
 			for (k = k_low; k < nterms; k++) {
 				double xx = -a * j;
+
 				j = k + one;
 				cache_ptr->wwork[k] = j * logz_stripped - lgammas[j] - LGAMMAfn(xx);
 			}
@@ -194,6 +198,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 							cache_ptr->wwork[k - 1] = estimate + correction;
 						} else {
 							int jj = j - 1.0;
+
 							cache_ptr->wwork[k - 1] = jj * logz_stripped - lgammas[jj] - LGAMMAfn(-a * jj);
 							if (ABS(cache_ptr->wwork[k - 1] - (estimate + correction)) < limit) {
 								// from here on, we can safely use interpolation
@@ -205,6 +210,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 						}
 					} else {
 						int jj = j - 1.0;
+
 						cache_ptr->wwork[k - 1] = jj * logz_stripped - lgammas[jj] - LGAMMAfn(-a * jj);
 					}
 				}
@@ -217,6 +223,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	double lim = -20.72326584;			       // log(1.0e-9)
 
 	int idx_max = 0;
+
 	sum_ww = 0.0;
 	ww_max = cache_ptr->wwork[0] + one * term_removed;
 	for (k = 0; k < nterms; k++) {
@@ -230,6 +237,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 
 	for (k = idx_max; k < nterms; k++) {		       /* assume there is one mode */
 		double tmp = cache_ptr->work[k] - ww_max;
+
 		sum_ww += exp(tmp);
 		if (tmp < lim) {
 			break;
@@ -237,6 +245,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	}
 	for (k = idx_max - 1; k >= 0; k--) {
 		double tmp = cache_ptr->work[k] - ww_max;
+
 		sum_ww += exp(tmp);
 		if (tmp < lim) {
 			break;
@@ -278,11 +287,13 @@ double ptweedie(double y, double mu, double phi, double p)
 #       define LOG_n_max 4096
 	static double *logn_cache = NULL;
 	static double *lognfac_cache = NULL;
+
 	if (!logn_cache) {
 #       pragma omp critical (Name_5aac6c506965cfff83cc864e1be817dda2d01925)
 		if (!logn_cache) {
 			double *tmp = Calloc(2 * LOG_n_max, double);
 			double *tmp2 = tmp + LOG_n_max;
+
 			for (int i = 1; i < LOG_n_max; i++) {
 				tmp[i] = log((double) i);
 				tmp2[i] = tmp2[i - 1] + tmp[i];
@@ -337,9 +348,11 @@ double ptweedie(double y, double mu, double phi, double p)
 		// find first pdf such that diff > lower_diff using a binary search
 		int llow = 0;
 		int hhigh = (int) (lambda - 4.0 * sqrt(lambda));
+
 		hhigh = IMAX(nfirst + 1, hhigh);
 		while (1) {
 			int mmid = (llow + hhigh) / 2;
+
 			diff = LOG_PDF_POISSON(mmid) - lprob_max;
 			if (diff > lower_diff) {
 				hhigh = mmid;
@@ -369,12 +382,15 @@ double ptweedie(double y, double mu, double phi, double p)
 		// as it compute log(gamma_P()) directly
 		double lcdf_left = LOG_CDF(nfirst);
 		double lcdf_right;
+
 		for (n = nfirst; pacc < plim; n += stride) {
 			int nn = n + stride;
+
 			lcdf_right = LOG_CDF(nn);
 			for (int k = (n == nfirst ? 0 : 1); k <= stride; k++) {
 				double w = k / (double) stride;
 				double est = (1.0 - w) * lcdf_left + w * lcdf_right;
+
 				lprob += log_lambda - LOGN(n + k);
 				pacc += exp(lprob);
 				retval += exp(lprob + est);

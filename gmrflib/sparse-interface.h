@@ -110,7 +110,6 @@ typedef struct {
 	int *perm;
 } GMRFLib_taucs_cache_tp;
 
-
 typedef struct {
 
 	/**

@@ -62,6 +62,7 @@ double GMRFLib_Wishart_logdens(gsl_matrix *Q, double r, gsl_matrix *R)
 	logdens = -0.5 * trace + (r - (double) p - 1.0) / 2.0 * GMRFLib_gsl_spd_logdet(QQ);
 
 	log_c = r * (double) p / 2.0 * log(2.0) - r / 2.0 * GMRFLib_gsl_spd_logdet(R) + (double) p *((double) p - 1.0) / 4.0 * log(M_PI);
+
 	for (i = 1; i <= p; i++) {
 		log_c += gsl_sf_lngamma((r + 1.0 - (double) i) / 2.0);
 	}

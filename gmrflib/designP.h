@@ -1,5 +1,6 @@
 static short int nfac_from = 1;
 static short int nfac_to = 52;
+
 static short int nexp[] = {
 	0,
 	3,
@@ -55,6 +56,7 @@ static short int nexp[] = {
 	4199,
 	4201
 };
+
 static signed char points[] = {
 	0,
 	-1,

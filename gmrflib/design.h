@@ -35,6 +35,5 @@ int GMRFLib_design_print(FILE * fp, GMRFLib_design_tp * design);
 int GMRFLib_design_prune(GMRFLib_design_tp * design, double prob);
 int GMRFLib_design_read(GMRFLib_design_tp ** design, GMRFLib_matrix_tp * D, int std_scale);
 
-
 __END_DECLS
 #endif

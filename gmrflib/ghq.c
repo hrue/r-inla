@@ -99,12 +99,14 @@ int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev)
 	// the same for a given mean and stdev. Allocated new memory for xp and wp
 	int i;
 	double *xxp = NULL, *wwp = NULL;
+
 	GMRFLib_ghq(&xxp, &wwp, n);
 	assert(xxp);
 	assert(wwp);
 
 	*xp = aMalloc(n, double);
 	*wp = aMalloc(n, double);
+
 	assert(*xp);
 	assert(*wp);
 	for (i = 0; i < n; i++) {
@@ -113,6 +115,7 @@ int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev)
 	}
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_ghq(double **xp, double **wp, int n)
@@ -134,16 +137,19 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 		if (!abscissas) {
 			weights = Calloc(GMRFLib_CACHE_LEN(), map_ivp *);
 			map_ivp **tmp = Calloc(GMRFLib_CACHE_LEN(), map_ivp *);
+
 			abscissas = tmp;
 		}
 	}
 	int idx = 0;
+
 	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (!abscissas[idx]) {
 #pragma omp critical (Name_144aa75e163ba7c9b9b2548a2c758b4aa2b19808)
 		if (!abscissas[idx]) {
 			map_ivp *tmp = Calloc(1, map_ivp);
+
 			weights[idx] = Calloc(1, map_ivp);
 			map_ivp_init(tmp);
 			map_ivp_init(weights[idx]);
@@ -179,12 +185,14 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 		// this storage is never free'd
 		x = aMalloc(n, double);
 		w = aMalloc(n, double);
+
 		GMRFLib_ghq__intern(x, w, n);
 
 		/*
 		 * the Gauss-Hermite is with kernel exp(-x^2), transform to kernel exp(-x^2/2)/sqrt(2*pi)
 		 */
 		double s = 1.0 / sqrt(2.0 * M_PI);
+
 		GMRFLib_dscale(n, M_SQRT2, x);
 		GMRFLib_dscale(n, M_SQRT2 * s, w);
 

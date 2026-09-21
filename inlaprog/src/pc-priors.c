@@ -28,6 +28,7 @@ double inla_pc_h_default(double x, int inverse, int derivative)
 	assert(0 == 1);
 	return (0.0);
 }
+
 double inla_pc_simplex_d(double *x, double *b, int p, double lambda)
 {
 	double *theta = Calloc(p, double), ldens = 0.0;
@@ -73,12 +74,14 @@ double inla_pc_simplex_core_d(double *x, int p, double lambda)
 	return (ldens);
 #undef simplex_log_volume
 }
+
 #pragma GCC diagnostic pop
 
 double inla_pcp_dof_kld_approx(double dof)
 {
 	// this is the kld for dof > 9
 	double t1, t4, t7, t10, t13, t16, t19, t43, t61;
+
 	t1 = dof * dof;
 	t4 = t1 * dof;
 	t7 = t1 * t1;
@@ -102,21 +105,25 @@ double inla_pcp_dof_d(double dof)
 	double dof_lim = 9.0, kld;
 
 	static GMRFLib_spline_tp **sspline = NULL;
+
 	if (!sspline) {
 #pragma omp critical (Name_f3f0c987d0742e1573765d7104c8e37045f88482)
 		if (!sspline) {
 			GMRFLib_spline_tp **tmp = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
+
 			sspline = tmp;
 		}
 	}
 
 	int idx = 0;
+
 	GMRFLib_CACHE_SET_IDX(idx);
 	if (!sspline[idx]) {
 		sspline[idx] = inla_pcp_dof_create_spline();
 	}
 
 	GMRFLib_spline_tp *spline = sspline[idx];
+
 	if (dof < dof_lim) {
 		kld = GMRFLib_spline_eval(dof, spline);
 	} else {
@@ -125,6 +132,7 @@ double inla_pcp_dof_d(double dof)
 
 	if (ISNAN(kld)) {
 		char *msg = NULL;
+
 		GMRFLib_sprintf(&msg, "inla_pcp_dof_d: return NAN with dof = %.12f\n", dof);
 		inla_error_general(msg);
 	}
@@ -137,18 +145,22 @@ double inla_pcp_dof_dof(double d)
 	// do the inverse interpolation
 
 	int not_yet_tested = 1;
+
 	assert(not_yet_tested == 0);
 
 	static GMRFLib_spline_tp **sspline = NULL;
+
 	if (!sspline) {
 #pragma omp critical (Name_4f48f0fd388e49349a6f90a044c75f3c09eb4e84)
 		if (!sspline) {
 			GMRFLib_spline_tp **tspline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
+
 			sspline = tspline;
 		}
 	}
 
 	int idx = 0;
+
 	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (!sspline[idx]) {
@@ -174,15 +186,18 @@ double inla_pc_sn_d(double skew, double *deriv)
 	double skew_max = GMRFLib_SN_SKEWMAX, dist;
 
 	static GMRFLib_spline_tp **sspline = NULL;
+
 	if (!sspline) {
 #pragma omp critical (Name_ab280d167e4b0884bba69b326db425701a278efa)
 		if (!sspline) {
 			GMRFLib_spline_tp **tspline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
+
 			sspline = tspline;
 		}
 	}
 
 	int idx = 0;
+
 	GMRFLib_CACHE_SET_IDX(idx);
 	if (!sspline[idx]) {
 		sspline[idx] = inla_pc_sn_create_spline();
@@ -207,10 +222,12 @@ double inla_pc_sn_core(int code, double arg)
 		if (!sspline_s2a) {
 			sspline_a2s = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
 			GMRFLib_spline_tp **tspline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
+
 			sspline_s2a = tspline;
 		}
 	}
 	int idx = 0;
+
 	GMRFLib_CACHE_SET_IDX(idx);
 
 	if (!sspline_s2a[idx]) {
@@ -228,6 +245,7 @@ double inla_pc_sn_core(int code, double arg)
 	}
 
 	double value, sign = INLA_SIGN(arg);
+
 	if (code < 0) {
 		value = sign * GMRFLib_spline_eval(ABS(arg), sspline_a2s[idx]);
 	} else {

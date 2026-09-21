@@ -27,6 +27,7 @@ void inla_cgeneric_mapper_list(FILE *fp)
 {
 	fp = (fp ? fp : stdout);
 	int i = 0;
+
 	while (table_cgeneric[i].name && table_cgeneric[i].func) {
 		fprintf(fp, "\ttable_cgeneric[%1d] = { name = %s, func.ptr = %p }\n", i, table_cgeneric[i].name, (void *) table_cgeneric[i].func);
 		i++;
@@ -36,6 +37,7 @@ void inla_cgeneric_mapper_list(FILE *fp)
 inla_cgeneric_func_tp *inla_cgeneric_mapper(char *name)
 {
 	int i = 0;
+
 	while (name && table_cgeneric[i].name) {
 		if (!strcmp(name, table_cgeneric[i].name)) {
 			return table_cgeneric[i].func;
@@ -61,6 +63,7 @@ void inla_cloglike_mapper_list(FILE *fp)
 {
 	fp = (fp ? fp : stdout);
 	int i = 0;
+
 	while (table_cloglike[i].name && table_cloglike[i].func) {
 		fprintf(fp, "\ttable_cloglike[%1d] = { name = %s, func.ptr = %p }\n", i, table_cloglike[i].name, (void *) table_cloglike[i].func);
 		i++;
@@ -70,6 +73,7 @@ void inla_cloglike_mapper_list(FILE *fp)
 inla_cloglike_func_tp *inla_cloglike_mapper(char *name)
 {
 	int i = 0;
+
 	while (name && table_cloglike[i].name) {
 		if (!strcmp(name, table_cloglike[i].name)) {
 			return table_cloglike[i].func;

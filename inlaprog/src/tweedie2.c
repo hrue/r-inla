@@ -59,17 +59,20 @@ void dtweedie2_init_cache_idx(int idx)
 	cache[idx]->res = Calloc(LEN, double);
 	cache[idx]->lgam_terms = Calloc(LEN, double);
 	cache[idx]->lnfact = Calloc(LEN, double);
+
 	for (int j = 1; j < LEN; j++) {
 		cache[idx]->lnfact[j] = cache[idx]->lnfact[j - 1] + log(j);
 	}
 #undef LEN
 }
+
 void dtweedie2_init_cache(void)
 {
 	if (!cache) {
 #pragma omp critical (Name_92509c30f7c8ce2ff56520888da767c88a1ae7d4)
 		if (!cache) {
 			dtweedie_cache_tp **ccache = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp *);
+
 			verbose = 0;			       // GMRFLib_DEBUG_IF_TRUE();
 			cache = ccache;
 		}
@@ -81,6 +84,7 @@ static void dtweedie2_adjust_cache(int idx, int nlen)
 #define MINLEN 64
 	if (nlen > cache[idx]->len) {
 		int olen = cache[idx]->len;
+
 		cache[idx]->len = IMIN(MINLEN, cache[idx]->len);
 		while (cache[idx]->len < nlen) {
 			cache[idx]->len *= 2;
@@ -98,6 +102,7 @@ static void dtweedie2_adjust_cache(int idx, int nlen)
 		// these needs realloc
 		cache[idx]->lgam_terms = Realloc(cache[idx]->lgam_terms, nlen, double);
 		cache[idx]->lnfact = Realloc(cache[idx]->lnfact, nlen, double);
+
 		for (int j = olen; j < nlen; j++) {
 			cache[idx]->lnfact[j] = cache[idx]->lnfact[j - 1] + log((double) j);
 		}
@@ -106,6 +111,7 @@ static void dtweedie2_adjust_cache(int idx, int nlen)
 			// we ignore small numbers here...
 			static double total_cache_size = 0.0;
 			double change = (nlen - olen) * 5 * sizeof(double);
+
 #pragma omp atomic
 			total_cache_size += change;
 			printf("\ttweedie2: extend cache[%1d] from len=%1d to %1d [total.size=%.2fMb]\n", idx, olen, nlen,
@@ -130,11 +136,13 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 #if defined(MEASURE_TIME)
 	static double tref[10] = { 0.0 };
 	static double trefc = 0.0;
+
 	tref[0] -= GMRFLib_timer();
 #endif
 	double ly = log(y);
 
 	int id;
+
 	GMRFLib_CACHE_SET_IDX(id);
 	dtweedie2_init_cache_idx(id);
 	dtweedie_cache_tp *c = cache[id];
@@ -148,6 +156,7 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 	double w = a1 * jmax;
 	int jj = jmax;
 	int inc = TWEEDIE_INC;
+
 	while (1) {
 		jj += inc;
 		if (jj * (cc - a1 * log(jj)) < (w - TWEEDIE_DROP))
@@ -155,6 +164,7 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 		inc += 2;				       /* speed it up a little */
 	}
 	int upper = jj;
+
 	dtweedie2_adjust_cache(id, upper + 1);
 
 	jj = jmax;
@@ -221,6 +231,7 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 
 	c->w[lower] = lower * logz - c->lgam_terms[lower];
 	double w_max = c->w[lower];
+
 #pragma omp simd
 	for (int j = lower + 1; j <= upper; j++) {
 		// w[j] = j * logz - lgamma(1 + j) - lgamma(-alpha * j);
@@ -246,6 +257,7 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 	trefc++;
 	if ((int) trefc % 1000 == 0) {
 		double s = 1.0 / GMRFLib_dsum(3, tref);
+
 		for (int i = 0; i < 3; i++) {
 			printf("chunk %1d: %.3f ", i, tref[i] * s);
 		}
@@ -257,12 +269,15 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 	// verify against the old version?
 	static int first = 1;
 	void dtweedie_init_cache(void);
+
 	if (first)
 		dtweedie_init_cache();
 	first = 0;
 	void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens);
+
 	for (int i = 0; i < n; i++) {
 		double ld = 0;
+
 		dtweedie(1, y, &(mu[i]), phi, p, &ld);
 		if (ABS(ldens[i] - ld) > 0.001) {
 			printf("i %d %.8f %.8f %.12f\n", i, ldens[i], ld, ldens[i] - ld);
@@ -292,6 +307,7 @@ double ptweedie2(double y, double mu, double phi, double p)
 		     inla_logcdf_normal_fast((y - ((n_) * c1)) / (sqrt((n_)) * c2)))
 
 	int id;
+
 	GMRFLib_CACHE_SET_IDX(id);
 	dtweedie_cache_tp *c = cache[id];
 
@@ -323,9 +339,11 @@ double ptweedie2(double y, double mu, double phi, double p)
 		// find first pdf such that diff > lower_diff using a binary search
 		int llow = 0;
 		int hhigh = (int) (lambda - 4.0 * sqrt(lambda));
+
 		hhigh = IMAX(nfirst + 1, hhigh);
 		while (1) {
 			int mmid = (llow + hhigh) / 2;
+
 			diff = LOG_PDF_POISSON(mmid) - lprob_max;
 			if (diff > lower_diff) {
 				hhigh = mmid;
@@ -355,12 +373,15 @@ double ptweedie2(double y, double mu, double phi, double p)
 		// as it compute log(gamma_P()) directly
 		double lcdf_left = LOG_CDF(nfirst);
 		double lcdf_right;
+
 		for (n = nfirst; pacc < plim; n += stride) {
 			int nn = n + stride;
+
 			lcdf_right = LOG_CDF(nn);
 			for (int k = (n == nfirst ? 0 : 1); k <= stride; k++) {
 				double w = k / (double) stride;
 				double est = (1.0 - w) * lcdf_left + w * lcdf_right;
+
 				lprob += log_lambda - log(n + k);
 				pacc += exp(lprob);
 				retval += exp(lprob + est);

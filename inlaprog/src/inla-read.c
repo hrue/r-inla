@@ -20,12 +20,14 @@ int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_
 		 * This is the binary-file interface 
 		 */
 		GMRFLib_matrix_tp *M = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+
 		assert(M->elems == M->nrow * M->ncol);	       /* no sparse matrix! */
 
 		*n = M->nrow * M->ncol;
 		*x = Calloc(*n, double);
 
 		int i, j, k;
+
 		for (i = k = 0; i < M->nrow; i++) {
 			for (j = 0; j < M->ncol; j++) {
 				(*x)[k++] = M->A[i + j * M->nrow];
@@ -40,6 +42,7 @@ int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_
 		return INLA_OK;
 	} else {
 		double *c = Calloc(len, double);
+
 		GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
 		{
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
@@ -104,9 +107,11 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 	ndata = nx / ncol_true;
 	if (xx) {
 		*xx = Malloc(n, double);
+
 		GMRFLib_dfill(n, default_value, *xx);
 	} else {
 		*ix = Malloc(n, int);
+
 		GMRFLib_ifill(n, (int) default_value, *ix);
 	}
 
@@ -141,13 +146,16 @@ char *inla_read_lineno(int lineno, const char *filename)
 	// intmax_t siz = GMRFLib_io_file_size(filename);
 
 	size_t siz = 4096;
+
 	assert(lineno >= 0);
 	assert(fp);
 
 	char *line = Calloc(siz + 1, char);
 	int count = 0;
+
 	while (1) {
 		int ret = fscanf(fp, "%s\n", line);
+
 		assert(ret != EOF);
 		if (count == lineno) {
 			break;
@@ -157,6 +165,7 @@ char *inla_read_lineno(int lineno, const char *filename)
 	fclose(fp);
 
 	char *ret = Strdup(line);
+
 	Free(line);
 
 	return (ret);
@@ -318,9 +327,11 @@ int inla_sread_q(void **x, int *nx, const char *str, int code)
 		if (ok) {
 			if (code == 0) {
 				ix = Realloc(ix, count + 1, int);
+
 				ix[count++] = ix_try;
 			} else {
 				dx = Realloc(dx, count + 1, double);
+
 				dx[count++] = dx_try;
 			}
 		}
@@ -339,6 +350,7 @@ int inla_sread_q(void **x, int *nx, const char *str, int code)
 
 	if (debug) {
 		int i;
+
 		for (i = 0; i < *nx; i++) {
 			if (code == 0) {
 				printf("%s : %d %d\n", str, i, ix[i]);
@@ -541,7 +553,6 @@ int inla_read_weightsinfo(inla_tp *mb, dictionary *ini, int sec, File_tp *file)
 	return INLA_OK;
 }
 
-
 int inla_trim_family(char *family)
 {
 	size_t i, j = 0;
@@ -587,6 +598,7 @@ GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n)
 	nc = m / (n + 1);				       /* yes, integer division */
 	if (nc * n + nc != m) {
 		char *msg = NULL;
+
 		GMRFLib_sprintf(&msg, "Number of elements[%1d] in file[%s] does is not a multiplum of n=[%1d]", m, filename, n + 1);
 		inla_error_general(msg);
 	}
@@ -615,8 +627,6 @@ GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n)
 	return c;
 }
 
-
-
 int inla_read_graph(const char *filename)
 {
 	/*
@@ -628,6 +638,7 @@ int inla_read_graph(const char *filename)
 	GMRFLib_graph_write2(stdout, graph);
 
 	int *cc = NULL, i;
+
 	cc = GMRFLib_graph_cc(graph);
 	for (i = 0; i < graph->n; i++)
 		printf("%d\n", cc[i]);

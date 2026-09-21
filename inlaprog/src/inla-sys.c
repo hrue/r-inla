@@ -19,17 +19,18 @@ int inla_ncpu(void)
 #elif defined(__APPLE__)				       /* MacOSX */
 	int count = -1;
 	size_t size = sizeof(count);
+
 	sysctlbyname("hw.ncpu", &count, &size, NULL, 0);
 	return count;
 #elif defined(_WIN32)
 	SYSTEM_INFO SystemInfo;
+
 	GetSystemInfo(&SystemInfo);
 	return SystemInfo.dwNumberOfProcessors;
 #else
 	return -1;
 #endif
 }
-
 
 #if defined(__linux__)
 int inla_remove_dir_callback(const char *dirname, const struct stat *UNUSED(sb), int typeflag, struct FTW *UNUSED(ftwbuf))
@@ -41,6 +42,7 @@ int inla_remove_dir_callback(const char *dirname, const struct stat *UNUSED(sb),
 	}
 	return 0;
 }
+
 void inla_remove_dir(char *dirname)
 {
 	nftw(dirname, inla_remove_dir_callback, 10, FTW_DEPTH | FTW_PHYS);
@@ -66,6 +68,7 @@ int inla_mkdir(const char *dirname)
 unsigned long long getTotalSystemMemory()
 {
 	MEMORYSTATUSEX status;
+
 	status.dwLength = sizeof(status);
 	GlobalMemoryStatusEx(&status);
 	return ((status.ullTotalPhys / 1024L / 1024L));
@@ -75,6 +78,7 @@ unsigned long long getTotalSystemMemory()
 {
 	long pages = sysconf(_SC_PHYS_PAGES);
 	long page_size = sysconf(_SC_PAGE_SIZE);
+
 	return ((pages * page_size) / 1024L / 1024L);
 }
 #endif
@@ -107,6 +111,7 @@ void inla_signal(int sig)
 int inla_endian(void)
 {
 	int x = 1;
+
 	return ((*(char *) &x) ? INLA_LITTLE_ENDIAN : INLA_BIG_ENDIAN);
 }
 
@@ -145,6 +150,7 @@ int inla_tolower(char *string)
 {
 	if (string) {
 		int i;
+
 		for (i = 0; i < (int) strlen(string); i++) {
 			string[i] = (char) tolower((int) string[i]);
 		}
@@ -168,8 +174,10 @@ static int parse_max(const char *str)
 {
 	char *dup = strdup(str);
 	char *token = strtok(dup, ",\n");
+
 	while (token != NULL) {
 		int start, end;
+
 		// Check if token is a range (e.g., "0-7") or a single core (e.g., "0")
 		if (sscanf(token, "%d-%d", &start, &end) == 2) {
 			free(dup);
@@ -188,11 +196,14 @@ int inla_num_p_cores(void)
 {
 	// check if the system explicitly exposes a P-core layout (Intel Hybrid)
 	struct stat st;
+
 	if (stat("/sys/devices/cpu_core/cpus", &st) == 0) {
 		FILE *f = fopen("/sys/devices/cpu_core/cpus", "r");
+
 		if (f) {
 			int num_p = 0;
 			char buf[256];
+
 			if (fgets(buf, sizeof(buf), f) != NULL) {
 				num_p = parse_max(buf);
 			}
@@ -206,6 +217,7 @@ int inla_num_p_cores(void)
 
 	// if it's a non-hybrid machine, use standard POSIX to get the total number of online processing units
 	long total_cores = sysconf(_SC_NPROCESSORS_ONLN);
+
 	if (total_cores > 0) {
 		return (int) total_cores;
 	}
@@ -217,8 +229,10 @@ static void parse_and_add_cpus(const char *str, cpu_set_t *cpuset)
 {
 	char *dup = strdup(str);
 	char *token = strtok(dup, ",\n");
+
 	while (token != NULL) {
 		int start, end;
+
 		// Check if token is a range (e.g., "0-7") or a single core (e.g., "0")
 		if (sscanf(token, "%d-%d", &start, &end) == 2) {
 			for (int i = start; i <= end; i++) {
@@ -238,10 +252,12 @@ int inla_lock_to_p_cores(void)
 		return 1;
 
 	cpu_set_t cpuset;
+
 	CPU_ZERO(&cpuset);
 
 	// open the Linux kernel file that stores the P-core mappings
 	FILE *f = fopen("/sys/devices/cpu_core/cpus", "r");
+
 	if (!f) {
 		// Fallback: If the file isn't there, it might be an older CPU with no E-cores
 		perror("Could not read P-core layout (non-hybrid CPU?)");
@@ -249,6 +265,7 @@ int inla_lock_to_p_cores(void)
 	}
 
 	char buf[256];
+
 	if (fgets(buf, sizeof(buf), f) != NULL) {
 		// printf("Detected P-core range string: %s", buf);
 		parse_and_add_cpus(buf, &cpuset);
@@ -288,6 +305,7 @@ int inla_num_p_cores(void)
 {
 	int num_p = 0;
 	size_t size = sizeof(num_p);
+
 	sysctlbyname("hw.perflevel0.physicalcpu", &num_p, &size, NULL, 0);
 	return (num_p > 0 ? num_p : NUM_P_CORES_DEFAULT());
 }
@@ -298,6 +316,7 @@ int inla_lock_to_p_cores(void)
 	// Elevate the current thread to the absolute highest performance tier.
 	// This strictly forces macOS to run your code on the P-Cores.
 	int result = pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);
+
 	if (result != 0) {
 		perror("Failed to set Mac QoS class");
 		return 1;
@@ -311,6 +330,7 @@ int main(void)
 	// 1. Get the P-Core count using sysctl
 	int p_cores = 0;
 	size_t size = sizeof(p_cores);
+
 	sysctlbyname("hw.perflevel0.physicalcpu", &p_cores, &size, NULL, 0);
 	printf("Detected P-Cores available: %d\n", p_cores);
 
@@ -330,6 +350,7 @@ int inla_lock_to_p_cores(void)
 	// not yet implemented. very different on Windows, not sure its worth while
 	return 0;
 }
+
 int inla_num_p_cores(void)
 {
 	int p_cores_default = NUM_P_CORES_DEFAULT();
@@ -344,6 +365,7 @@ int inla_num_p_cores(void)
 	}
 
 	PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX) malloc(bufferSize);
+
 	if (!buffer) {
 		fprintf(stderr, "Memory allocation failed.\n");
 		return p_cores_default;
@@ -365,6 +387,7 @@ int inla_num_p_cores(void)
 
 	while (ptr < end) {
 		PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX info = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX) ptr;
+
 		if (info->Relationship == RelationProcessorCore) {
 			totalPhysicalCores++;
 			if (info->Processor.EfficiencyClass > maxEfficiency) {
@@ -377,9 +400,11 @@ int inla_num_p_cores(void)
 	// Step 2: Count how many cores belong to that maximum efficiency class
 	int pCoreCount = 0;
 	int POSSIBLY_UNUSED(eCoreCount) = 0;
+
 	ptr = (unsigned char *) buffer;
 	while (ptr < end) {
 		PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX info = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX) ptr;
+
 		if (info->Relationship == RelationProcessorCore) {
 			// If the max efficiency is 0, the system is symmetric (all cores are the same)
 			if (maxEfficiency == 0) {
@@ -417,6 +442,7 @@ int inla_lock_to_p_cores(void)
 {
 	return 0;
 }
+
 int inla_num_p_cores(void)
 {
 	return 0;

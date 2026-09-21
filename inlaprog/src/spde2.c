@@ -16,8 +16,10 @@ FORCEINLINE void compute_d_values_opt(double *RESTRICT d, double *RESTRICT vals,
 {
 	double d0 = 0.0, d1 = 0.0, d2 = 0.0;
 	int nc2 = 2 * nc;
+
 	for (int k = 0; k < nc; k++) {
 		double t = theta[k];
+
 		d0 += vals[k] * t;
 		d1 += vals[k + nc] * t;
 		d2 += vals[k + nc2] * t;
@@ -59,6 +61,7 @@ FORCEINLINE void perform_matrix_vector_mult(double *RESTRICT V, double *RESTRICT
 	int inc = 1;
 	double alpha = 1.0;
 	double beta = 0.0;
+
 	dgemv_("T", &m, &n, &alpha, V, &lda, theta, &inc, &beta, dij, &inc, F_ONE);
 }
 
@@ -66,6 +69,7 @@ FORCEINLINE void apply_exponentials(double *RESTRICT dij, int nb)
 {
 	for (int i = 0; i <= nb; i++) {
 		int idx = i * 3;
+
 		dij[idx] = exp(dij[idx]);
 		dij[idx + 1] = exp(dij[idx + 1]);
 	}
@@ -78,6 +82,7 @@ FORCEINLINE void apply_transform_vectorized(int transform, double *RESTRICT dij,
 #pragma omp simd
 		for (int i = 0; i <= nb; i++) {
 			int off = 2 + i * 3;
+
 			dij[off] = 2.0 * exp(dij[off]) - 1.0;
 		}
 		break;
@@ -86,6 +91,7 @@ FORCEINLINE void apply_transform_vectorized(int transform, double *RESTRICT dij,
 #pragma omp simd
 		for (int i = 0; i <= nb; i++) {
 			int off = 2 + i * 3;
+
 			dij[off] = cos(M_PI / (1.0 + exp(-dij[off])));
 		}
 		break;
@@ -116,6 +122,7 @@ FORCEINLINE void compute_diagonal_values(double *RESTRICT dij, double *RESTRICT 
 		double v3 = v[v_off + 3];
 
 		double inner = d_i1 * d_j1 * v0 + d_i2 * d_i1 * v1 + d_j1 * d_j2 * v2 + v3;
+
 		values[kk] = d_i0 * d_j0 * inner;
 	}
 }
@@ -135,6 +142,7 @@ FORCEINLINE double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, do
 	build_theta_vector(theta_ptr, nc, model->theta, thread_id);
 
 	double *RESTRICT vals_i = model->row_V[ii];
+
 	compute_d_values_opt(d_i, vals_i, theta_ptr, nc);
 	apply_single_transform(model->transform, &d_i[2]);
 
@@ -145,12 +153,14 @@ FORCEINLINE double inla_spde2_Qfunction_ij_opt(int thread_id, int ii, int jj, do
 		double d_i1_sq = d_i[1] * d_i[1];
 		double d_i2_d_i1 = d_i[2] * d_i[1];
 		double value = d_i0_sq * (d_i1_sq * v[0] + d_i2_d_i1 * (v[1] + v[2]) + v[3]);
+
 		if (nc > lim2)
 			free(theta_ptr);
 		return value;
 	}
 	// Off-diagonal case
 	spde2_vV_tp *vals_j_p = (spde2_vV_tp *) * map_ivp_ptr(&(model->Vmatrix->vmat[ii]), jj);
+
 	compute_d_values_opt(d_j, vals_j_p->V, theta_ptr, nc);
 	apply_single_transform(model->transform, &d_j[2]);
 
@@ -194,6 +204,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 	} else {
 		// Use heap for large arrays
 		theta = Malloc(nc + dij_size, double);
+
 		dij = theta + nc;
 	}
 
@@ -211,6 +222,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 
 	return 0.0;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -242,6 +254,7 @@ double inla_spde2_Qfunction_OLD(int thread_id, int ii, int jj, double *values, v
 		double beta = 0.0;
 		double dij[(1 + nb) * 3];
 		double dij2[(1 + nb) * 3];
+
 		dgemv_("T", &m, &n, &alpha, V, &lda, theta, &inc, &beta, dij2, &inc, F_ONE);
 
 		GMRFLib_exp_inc(1 + nb, dij2, 3, dij);
@@ -290,6 +303,7 @@ double inla_spde2_Qfunction_OLD(int thread_id, int ii, int jj, double *values, v
 		return inla_spde2_Qfunction_ij(thread_id, IMIN(ii, jj), IMAX(ii, jj), values, arg);
 	}
 }
+
 #pragma GCC diagnostic pop
 
 FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
@@ -304,6 +318,7 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 	double *vals_i = model->row_V[ii];
 
 	double theta[nc];
+
 	theta[0] = 1.0;
 	for (int k = 1; k < nc; k++) {
 		theta[k] = model->theta[k - 1][thread_id][0];
@@ -313,6 +328,7 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 		double d0 = 0.0;
 		double d1 = 0.0;
 		double d2 = 0.0;
+
 #pragma omp simd reduction(+: d0, d1, d2)
 		for (int k = 0; k < nc; k++) {
 			d0 += vals_i[k] * theta[k];
@@ -329,6 +345,7 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 		int inc = 1;
 		double alpha = 1.0;
 		double beta = 0.0;
+
 		dgemv_("T", &m, &n, &alpha, vals_i, &lda, theta, &inc, &beta, d_i, &inc, F_ONE);
 		d_i[0] = exp(d_i[0]);
 		d_i[1] = exp(d_i[1]);
@@ -355,6 +372,7 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 	if (ii == jj) {
 		double *v = model->row_v[ii];
 		double value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+
 		return value;
 	}
 
@@ -365,6 +383,7 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 		double d0 = 0.0;
 		double d1 = 0.0;
 		double d2 = 0.0;
+
 #pragma omp simd reduction(+: d0, d1, d2)
 		for (int k = 0; k < nc; k++) {
 			d0 += vals_j[k] * theta[k];
@@ -381,6 +400,7 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 		int inc = 1;
 		double alpha = 1.0;
 		double beta = 0.0;
+
 		dgemv_("T", &m, &n, &alpha, vals_j, &lda, theta, &inc, &beta, d_j, &inc, F_ONE);
 		d_j[0] = exp(d_j[0]);
 		d_j[1] = exp(d_j[1]);
@@ -478,6 +498,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 	 * I need to build the graph. Need to add both M_ij and M_ji as M1 can be non-symmetric. 
 	 */
 	GMRFLib_ged_tp *ged = NULL;
+
 	GMRFLib_ged_init(&ged, NULL);
 
 #define ADD_GRAPH(_G)							\
@@ -511,6 +532,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 
 	model->row_V = Calloc(model->n, double *);
 	model->row_v = Calloc(model->n, double *);
+
 	GMRFLib_vmatrix_init(&(model->Vmatrix), model->n, model->graph);
 	int nc = model->B[0]->ncol;
 
@@ -536,6 +558,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 		v[3] = GMRFLib_matrix_get(i, j, model->M[2]);
 
 		spde2_vV_tp *vV = Calloc(1, spde2_vV_tp);
+
 		vV->v = v;
 		vV->V = V;
 		map_ivp_set(&(model->Vmatrix->vmat[i]), i, (void *) vV);
@@ -604,6 +627,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 	int ncol = model->BLC->ncol;
 	double *row_spde2 = Calloc(ncol, double);	       /* yes, one row has length ncol. */
 	double *row = NULL;				       /* set later */
+
 	if (debug) {
 		P(nhyper);
 		P(model->ntheta);
@@ -617,6 +641,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 	 */
 	nhyper_new = nhyper + model->ntheta - model->ntheta_used;
 	idx_map = Calloc(nhyper_new, int);
+
 	for (k = kk = 0; k < nhyper_new; k++) {
 		if ((k >= idx_offset) && (k < idx_offset + model->ntheta) && model->fixed[k - idx_offset]) {
 			idx_map[k] = -1;
@@ -629,6 +654,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 	theta_new = Calloc(nhyper_new, double);
 	stdev_corr_pos_new = Calloc(nhyper_new, double);
 	stdev_corr_neg_new = Calloc(nhyper_new, double);
+
 	sqrt_eigen_values_new = gsl_vector_alloc(nhyper_new);
 	for (k = kk = 0; k < nhyper_new; k++) {
 		if (idx_map[k] >= 0) {
@@ -650,6 +676,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 	}
 
 	covmat_new = Calloc(ISQR(nhyper_new), double);
+
 	eigen_vectors_new = gsl_matrix_calloc(nhyper_new, nhyper_new);
 	for (k = 0; k < nhyper_new; k++) {
 		for (kk = 0; kk < nhyper_new; kk++) {
@@ -704,6 +731,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 	GMRFLib_ai_INLA_userfunc2_density[number] = Calloc(GMRFLib_ai_INLA_userfunc2_len[number], GMRFLib_density_tp *);
 
 	row = Calloc(nhyper_new + 1, double);
+
 	if (use_new_version) {
 		for (i = 0; i < nrow; i++) {
 			/*
@@ -718,6 +746,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 			 * Sigma * a, a = row
 			 */
 			double *Sigma_a = Calloc(nhyper_new, double);
+
 			for (ii = 0; ii < nhyper_new; ii++) {
 				for (jj = 0; jj < nhyper_new; jj++) {
 					Sigma_a[ii] += CovNew(ii, jj) * row[1 + jj];
@@ -729,6 +758,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 			 */
 			double mean = row[0];
 			double var = 0.0;
+
 			for (ii = 0; ii < nhyper_new; ii++) {
 				mean += ThetaNew(ii) * row[1 + ii];
 				var += Sigma_a[ii] * row[1 + ii];
@@ -747,6 +777,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 			iarg->eigen_vectors = eigen_vectors_new;
 			iarg->z = Calloc(nhyper_new, double);
 			iarg->theta = Calloc(nhyper_new, double);
+
 			iarg->stdev_corr_pos = stdev_corr_pos_new;
 			iarg->stdev_corr_neg = stdev_corr_neg_new;
 			iarg->dz = -1;

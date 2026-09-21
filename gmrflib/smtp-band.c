@@ -21,6 +21,7 @@ int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp *graph)
 	 */
 	if (graph->nnz == 0) {
 		int *imap = Calloc(graph->n, int);
+
 		for (i = 0; i < graph->n; i++) {
 			imap[i] = i;
 		}
@@ -34,6 +35,7 @@ int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp *graph)
 	lconnec = graph->nnz;
 	connec = Calloc(lconnec, int);
 	rstart = Calloc(graph->n, int);
+
 	degree = graph->nnbs;				       /* yes! */
 	rstart[0] = 1;					       /* fortran indx'ing */
 	for (i = 1; i < graph->n; i++) {
@@ -48,6 +50,7 @@ int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp *graph)
 	worklen = 6 * graph->n + 3;			       /* maximum over all graphs */
 	work = Calloc(worklen, int);
 	*remap = Calloc(graph->n, int);
+
 	for (i = 0; i < graph->n; i++) {
 		(*remap)[i] = i + 1;			       /* fortran indx'ing */
 	}
@@ -158,6 +161,7 @@ int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp *fin
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_free_fact_sparse_matrix_BAND(double *bchol)
@@ -308,6 +312,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMR
 
 	if (0) {
 		double *rrhs = Calloc(graph->n, double);
+
 		rrhs[idx] = 1.0;
 		GMRFLib_solve_llt_sparse_matrix_BAND(rrhs, bchol, graph, remap, bandwidth, NULL);
 		for (int i = 0; i < graph->n; i++)
@@ -537,6 +542,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp *problem)
 	 * transformed to the reordered sub_graph. 
 	 */
 	problem->sub_inverse->mapping = Calloc(n, int);
+
 	Memcpy(problem->sub_inverse->mapping, problem->sub_sm_fact.remap, n * sizeof(int));
 
 	/*
@@ -552,6 +558,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp *problem)
 #undef Cov
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band, GMRFLib_graph_tp *graph, int *UNUSED(remap), int bandwidth)

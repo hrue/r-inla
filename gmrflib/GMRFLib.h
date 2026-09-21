@@ -11,7 +11,6 @@
 #              define __END_DECLS			       /* empty */
 #       endif
 
-
 #       if !defined(_GNU_SOURCE)
 #              define _GNU_SOURCE 1
 #       endif
@@ -89,7 +88,6 @@
 #       else
 #              define NOINLINE
 #       endif
-
 
 /* ... */
 #       if defined(INLA_WITH_CLONE_TARGETS) && defined(__linux__)

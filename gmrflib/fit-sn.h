@@ -18,7 +18,5 @@ void fitsn_test(void);
 void fitsn_test_grad(void);
 void fitsn_test_hess(void);
 
-
-
 __END_DECLS
 #endif

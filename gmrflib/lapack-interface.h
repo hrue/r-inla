@@ -143,6 +143,5 @@ void dtrmv_(const char *, const char *, const char *, int *, double *, int *, do
 	    FORTRAN_CHARLEN_T);
 void dwaxpby_(int *, double *, double *, int *, double *, double *, int *, double *, int *);
 
-
 __END_DECLS
 #endif

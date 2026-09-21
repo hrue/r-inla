@@ -13,6 +13,7 @@ double ERF(double x)
 {
 	// robust version
 	const double lim = 1.0 - 10.0 * DBL_EPSILON;
+
 	return TRUNCATE(erf(x), -lim, lim);
 }
 
@@ -44,7 +45,6 @@ void fitsn_gradhess(double x, double *param, double *grad, double *hess)
 	    t40, t41, t43, t44, t45, t46, t47, t49, t5, t50, t52, t54, t57, t58, t6, t61,
 	    t62, t64, t68, t69, t7, t70, t76, t77, t8, t84, t88, t89, t9, t91, t92;
 
-
 	t1 = exp(lsinv);
 	t2 = sqrt(M_PI);
 	t3 = t2 * t1;
@@ -75,7 +75,6 @@ void fitsn_gradhess(double x, double *param, double *grad, double *hess)
 	    0.1e1 / (t13 - 1) / t3 * (-t13 * t5 * t4 + t5 * t4 + 0.2e1 * t13 * t17 * t4 - 0.2e1 * t17 * t4 - t4 * t13 * t23 + t23 * t4 -
 				      a * x * t36 + a * mu * t36 + t13 * t3 - t3);
 	grad[1] = t47;
-
 
 	t1 = a * a;
 	t3 = exp((2 * lsinv));
@@ -296,6 +295,7 @@ void fitsn_fit(int n, double *w, double *x, double *y, GMRFLib_sn_param_tp *sn)
 		m2 += p[i] * SQR(x[i]);
 	}
 	double mean, stdev, skew;
+
 	mean = m1 / m0;
 	stdev = sqrt(DMAX(FLT_EPSILON, m2 / m0 - SQR(mean)));
 
@@ -310,12 +310,14 @@ void fitsn_fit(int n, double *w, double *x, double *y, GMRFLib_sn_param_tp *sn)
 	param[2] = sn->alpha;
 
 	double aa = 0.0;
+
 	param[3] = 0.0;
 	fitsn_ld(n, x, param, ld);
 	for (int i = 0; i < n; i++) {
 		aa += w[i] * (y[i] - ld[i]);
 	}
 	double wsi = 1.0 / GMRFLib_dsum(n, w);
+
 	param[3] = aa * wsi;
 
 	int iter_max = 100;
@@ -337,6 +339,7 @@ void fitsn_fit(int n, double *w, double *x, double *y, GMRFLib_sn_param_tp *sn)
 		fitsn_ld(n, x, param, ld);
 		for (int i = 0; i < n; i++) {
 			double res = w[i] * (y[i] - ld[i]);
+
 			func_val += w[i] * SQR(y[i] - ld[i]);
 			fitsn_gradhess(x[i], param, grad, hess);
 			for (int k = 0; k < NPARAM; k++) {
@@ -349,6 +352,7 @@ void fitsn_fit(int n, double *w, double *x, double *y, GMRFLib_sn_param_tp *sn)
 		}
 
 		double *chol = NULL;
+
 		GMRFLib_ensure_spd(Hess, NPARAM, -1.0, NULL);
 		GMRFLib_comp_chol_general(&chol, Hess, NPARAM, NULL, !GMRFLib_SUCCESS);
 		GMRFLib_solveAxb_posdef(delta, chol, Grad, NPARAM, 1);
@@ -383,6 +387,7 @@ void fitsn_fit(int n, double *w, double *x, double *y, GMRFLib_sn_param_tp *sn)
 	Free(ld);
 	Free(p);
 }
+
 #pragma GCC diagnostic pop
 
 #if defined(INLA_WITH_DEVEL)
@@ -400,6 +405,7 @@ void fitsn_test_grad(void)
 
 	for (int k = 0; k < NPARAM; k++) {
 		double ld[2];
+
 		Memcpy(pparam, param, NPARAM * sizeof(double));
 
 		pparam[k] = param[k] - h;
@@ -426,6 +432,7 @@ void fitsn_test_hess(void)
 
 	for (int k = 0; k < NPARAM; k++) {
 		double ld[3];
+
 		Memcpy(pparam, param, NPARAM * sizeof(double));
 
 		pparam[k] = param[k] - h;
@@ -454,6 +461,7 @@ void fitsn_test(void)
 	double y[] = { -2.0, -0.5, 0, -0.54, -3.3 };
 
 	GMRFLib_sn_param_tp sn;
+
 	// fitsn_test_grad();
 	// fitsn_test_hess();
 	fitsn_fit(5, w, x, y, &sn);
@@ -464,9 +472,11 @@ void fitsn_test(void)
 void fitsn_test_grad(void)
 {
 }
+
 void fitsn_test_hess(void)
 {
 }
+
 void fitsn_test(void)
 {
 }

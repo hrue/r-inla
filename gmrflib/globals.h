@@ -38,6 +38,7 @@ extern GMRFLib_smtp_tp GMRFLib_smtp;
 extern GMRFLib_reorder_tp GMRFLib_reorder;
 
 extern gsl_rng *GMRFLib_rng_ptr;
+
 #              pragma omp threadprivate(GMRFLib_rng_ptr)
 
 extern GMRFLib_uniform_tp *GMRFLib_uniform;
@@ -107,7 +108,6 @@ extern int GMRFLib_force_stiles;
 extern char *GMRFLib_tmpdir;
 
 extern double GMRFLib_overall_cpu[8];
-
 
 #       endif
 __END_DECLS

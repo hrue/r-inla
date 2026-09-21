@@ -56,10 +56,12 @@ char *my_strsep(char **stringp, const char *delim)
 {
 	// Find the first occurrence of any character in delim
 	char *start = *stringp;
+
 	if (start == NULL) {
 		return NULL;
 	}
 	char *p = strpbrk(start, delim);
+
 	if (p) {
 		*p = '\0';				       // Split the string
 		*stringp = p + 1;			       // Move pointer past the delimiter
@@ -75,6 +77,7 @@ double drand48(void)
 {
 	return GMRFLib_uniform();
 }
+
 void srand48(long int UNUSED(seed))
 {
 	return;
