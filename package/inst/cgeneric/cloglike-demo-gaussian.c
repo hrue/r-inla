@@ -32,6 +32,7 @@ double *inla_cloglike_gaussian(inla_cloglike_cmd_tp cmd, double *theta,
 		// where M is the number of hyperparameters
 
 		ret = Malloc(2, double);
+
 		ret[0] = 1;
 		ret[1] = 4.0;
 	}
@@ -41,6 +42,7 @@ double *inla_cloglike_gaussian(inla_cloglike_cmd_tp cmd, double *theta,
 	{
 		// return c(LOG_PRIOR). with a Gamma(1,1) for precision, this is the log prior for the log(precision).
 		ret = Malloc(1, double);
+
 		ret[0] = -prec + lprec;
 	}
 		break;
@@ -59,8 +61,10 @@ double *inla_cloglike_gaussian(inla_cloglike_cmd_tp cmd, double *theta,
 	{
 		// Prob(y[0] < x[i]) when y[0] ~ N(x[i], prec)
 		double sprec = sqrt(prec);
+
 		for (int i = 0; i < nx; i++) {
 			double z = (y[0] - x[i]) * sprec;
+
 			result[i] = CDF(z);
 		}
 	}
