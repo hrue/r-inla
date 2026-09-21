@@ -639,8 +639,10 @@ int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 	CHOL_DONE_CHECK(LLT);
 
 #if 0
-	double tref = 0;
-	double trefc = 0;
+	static double tref = 0;
+#pragma omp threadprivate(tref)
+	static int trefc = 0;
+#pragma omp threadprivate(trefc)
 
 	tref += -GMRFLib_timer();
 #endif
@@ -662,7 +664,7 @@ int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 	tref += GMRFLib_timer();
 	trefc += stiles_idx->nrhs;
 	if (stiles_idx->nrhs > 1)
-		printf("[%1d] solve %1d rhs using %.6f * E-6 each, total %.6f\n", lidx.within_group, (int) trefc, 1.0E6 * tref / trefc, tref);
+		printf("[%1d] solve %1d rhs using %.6f * E-6 each, total %.6f\n", lidx.within_group, stiles_idx->nrhs, 1.0E6 * tref / trefc, tref);
 #endif
 	return GMRFLib_SUCCESS;
 }
