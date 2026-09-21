@@ -46,11 +46,15 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum(int n, double *x)
 {
+#if defined(__x86_64__)
 	if (n <= 64) {
 		SUM_CORE_UNROLL(double, n);
 	} else {
 		return GMRFLib_dsum_ext(n, x);
 	}
+#else
+	SUM_CORE_UNROLL(double, n);
+#endif	
 }
 
 #pragma GCC diagnostic pop
@@ -85,21 +89,20 @@ double GMRFLib_dsum_ext(int n, double *x)
 	x += k;
 	n -= k;
 #       include "intrinsics/simde/dsum-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-	double alignas(16) r0 = 0.0;
-	int k = ((16 - ((uintptr_t) x & 15)) & 15) / sizeof(double);
-
-	for (int i = 0; i < k; i++) {
-		r0 += x[i];
-	}
-	x += k;
-	n -= k;
-#       include "intrinsics/simde/dsum-sse2.h"
+//#elif defined(INLA_WITH_SIMDE)
+//	double alignas(16) r0 = 0.0;
+//	int k = ((16 - ((uintptr_t) x & 15)) & 15) / sizeof(double);
+//
+//	for (int i = 0; i < k; i++) {
+//		r0 += x[i];
+//	}
+//	x += k;
+//	n -= k;
+//#       include "intrinsics/simde/dsum-sse2.h"
 #else
 	SUM_CORE_UNROLL(double, n);
 #endif
 }
-
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
