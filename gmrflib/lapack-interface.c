@@ -1989,12 +1989,11 @@ void GMRFLib_ddot2(double *RESTRICT a, double *RESTRICT b, int n, double *RESTRI
 	// a = ddot(x,y); b = ddot(x,z)
 	// this is a very particular function, only used for n=16
 	if (n == 16) {
-#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+		// only enable for x86_64
+#if defined(INLA_WITH_SIMDE_AVX512F_) && (defined(__x86_64__) && defined(__AVX512F__))
 #       include "intrinsics/simde/ddot2-avx512f.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+#elif defined(INLA_WITH_SIMDE_AVX2_) && (defined(__x86_64__) && defined(__AVX2__))
 #       include "intrinsics/simde/ddot2-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-#       include "intrinsics/simde/ddot2-sse2.h"
 #else
 		DDOT2_CORE();
 #endif
