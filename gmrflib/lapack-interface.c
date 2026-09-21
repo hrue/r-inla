@@ -2058,10 +2058,9 @@ void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, double *RESTRICT 
 {
 	// y[] = a[ia[]]
 
-	// enable this for x86_64 & avx2 only
-
 	// MKL does not run that well: vdPackV(n, a, ia, y);
 
+	// enable this for x86_64 & avx2 only
 #if defined(INLA_WITH_SIMDE_AVX2_) && (defined(__x86_64__) && defined(__AVX2__))
 #  include "intrinsics/simde/pack-avx2.h"
 #else
