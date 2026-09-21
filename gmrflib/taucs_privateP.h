@@ -47,7 +47,6 @@ taucs_ccs_matrix *taucs_ccs_permute_symmetrically(taucs_ccs_matrix * A, int *per
 void taucs_dtl(ccs_times_vec) (taucs_ccs_matrix * m, double *X, double *B);
 void taucs_ccs_times_vec(taucs_ccs_matrix * m, void *X, void *B);
 
-
 taucs_ccs_matrix *taucs_dtl(ccs_augment_nonpositive_offdiagonals) (taucs_ccs_matrix * A);
 taucs_ccs_matrix *taucs_ccs_augment_nonpositive_offdiagonals(taucs_ccs_matrix * A);
 

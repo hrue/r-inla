@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 #include "inla.h"
-#include "inla-special-functions.h"
+#include "fast-math/special-functions.h"
 #include "my.h"
 #include "my-fix.h"
 #include "GMRFLib/GMRFLib.h"
@@ -20,12 +20,14 @@
 int my_file_exists(const char *filename)
 {
 	struct stat sb;
+
 	return ((stat(filename, &sb) == 0 && S_ISREG(sb.st_mode)) ? INLA_OK : !INLA_OK);
 }
 
 int my_dir_exists(const char *dirname)
 {
 	struct stat sb;
+
 	return ((stat(dirname, &sb) == 0 && S_ISDIR(sb.st_mode)) ? INLA_OK : !INLA_OK);
 }
 
@@ -79,6 +81,7 @@ double my_gsl_sf_lnfact(int x)
 #pragma omp critical (Name_764ffe066cfbd16ba7b1096b9b762ad9b1f8e669)
 		if (first) {
 			lng = Calloc(nmax, double);
+
 			lng[0] = 0.0;
 			for (int i = 1; i < nmax; i++) {
 				lng[i] = lng[i - 1] + log((double) i);
@@ -99,36 +102,11 @@ double my_gsl_sf_lnfact(int x)
 
 double my_gsl_sf_lngamma(double x)
 {
-	if (round(x) != x) {
-		return LGAMMAfn(x);
+	if ((int) x == x) {
+		return my_gsl_sf_lnfact((int) (x - 1));
 	} else {
-		// x is an int, then use the cached values
-
-		static int first = 1;
-		static int nmax = 1048576;
-		static double *lng = NULL;
-
-		if (first) {
-#pragma omp critical (Name_72a7f789baa1bbf55989513ddf777ec4ee6c91df)
-			if (first) {
-				lng = Calloc(nmax, double);
-				lng[0] = NAN;
-				lng[1] = 0.0;
-				for (int i = 2; i < nmax; i++) {
-					lng[i] = lng[i - 1] + log((double) (i - 1));
-				}
-				first = 0;
-			}
-		}
-		if (x >= nmax) {
-			return LGAMMAfn(x);
-		} else {
-			return lng[(int) round(x)];
-		}
+		return LGAMMAfn(x);
 	}
-
-	assert(0 == 1);
-	return NAN;
 }
 
 int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result *result)
@@ -152,6 +130,7 @@ int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result *result)
 		gsl_sf_result nf;
 		gsl_sf_result mf;
 		gsl_sf_result nmmf;
+
 		if (m * 2 > n)
 			m = n - m;
 		my_gsl_sf_lnfact_e(n, &nf);
@@ -207,7 +186,7 @@ double my_gsl_sf_lnbeta(double a, double b)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
-double my_betabinomial_helper8(int n, double a, double *work)
+double my_betabinomial_helper8(int n, double a, double *work, double *wwork)
 {
 	const int roll = 8L;
 	const int roll2 = roll / 2L;
@@ -222,15 +201,17 @@ double my_betabinomial_helper8(int n, double a, double *work)
 		double aa = a + i * roll;
 
 		double bb = a + j * roll + roll2;
+
 		work[i] = ((aa * (aa + 1)) * ((aa + 2) * (aa + 3))) * ((bb * (bb + 1)) * ((bb + 2) * (bb + 3)));
 	}
 
-	GMRFLib_log(nn, work, work);
-	double s0 = GMRFLib_dsum(nn, work);
+	GMRFLib_log(nn, work, wwork);
+	double s0 = GMRFLib_dsum(nn, wwork);
 
 	if (d.rem) {
 		double aa = m + a;
 		double s = aa;
+
 		for (int i = 1; i < d.rem; i++) {
 			s *= (aa + i);
 		}
@@ -239,12 +220,13 @@ double my_betabinomial_helper8(int n, double a, double *work)
 
 	return (s0);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
-double my_betabinomial_helper16(int n, double a, double *work)
+double my_betabinomial_helper16(int n, double a, double *work, double *wwork)
 {
 	const int roll = 16L;
 	const int roll2 = roll / 2;
@@ -258,16 +240,18 @@ double my_betabinomial_helper16(int n, double a, double *work)
 		int j = nn - 1 - i;
 		double aa = a + i * roll;
 		double bb = a + j * roll + roll2;
+
 		work[i] = (((aa * (aa + 1)) * ((aa + 2) * (aa + 3))) * (((aa + 4) * (aa + 5)) * ((aa + 6) * (aa + 7)))) *
 		    (((bb * (bb + 1)) * ((bb + 2) * (bb + 3))) * (((bb + 4) * (bb + 5)) * ((bb + 6) * (bb + 7))));
 	}
 
-	GMRFLib_log(nn, work, work);
-	double s0 = GMRFLib_dsum(nn, work);
+	GMRFLib_log(nn, work, wwork);
+	double s0 = GMRFLib_dsum(nn, wwork);
 
 	if (d.rem) {
 		double aa = m + a;
 		double s = aa;
+
 		for (int i = 1; i < d.rem; i++) {
 			s *= (aa + i);
 		}
@@ -276,12 +260,13 @@ double my_betabinomial_helper16(int n, double a, double *work)
 
 	return (s0);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
-void my_betabinomial_helper16_s(int mm, int *ns, double *ab, double *work, double *out)
+void my_betabinomial_helper16_s(int mm, int *ns, double *ab, double *work, double *wwork, double *out)
 {
 	const int roll = 16L;
 	const int roll2 = roll / 2;
@@ -299,16 +284,18 @@ void my_betabinomial_helper16_s(int mm, int *ns, double *ab, double *work, doubl
 			int j = nn - 1 - i;
 			double aa = a + i * roll;
 			double bb = a + j * roll + roll2;
+
 			work[i] = (aa * (aa + 1) * (aa + 2) * (aa + 3) * (aa + 4) * (aa + 5) * (aa + 6) * (aa + 7) *
 				   bb * (bb + 1) * (bb + 2) * (bb + 3) * (bb + 4) * (bb + 5) * (bb + 6) * (bb + 7));
 		}
 
-		GMRFLib_log(nn, work, work);
-		double s0 = GMRFLib_dsum(nn, work);
+		GMRFLib_log(nn, work, wwork);
+		double s0 = GMRFLib_dsum(nn, wwork);
 
 		if (d.rem) {
 			double aa = m + a;
 			double s = aa;
+
 			for (int i = 1; i < d.rem; i++) {
 				s *= (aa + i);
 			}
@@ -317,12 +304,13 @@ void my_betabinomial_helper16_s(int mm, int *ns, double *ab, double *work, doubl
 		out[k] = s0;
 	}
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
-void my_betabinomial_helper8_s(int mm, int *ns, double *ab, double *work, double *out)
+void my_betabinomial_helper8_s(int mm, int *ns, double *ab, double *work, double *wwork, double *out)
 {
 	const int roll = 8L;
 	const int roll2 = roll / 2;
@@ -340,15 +328,17 @@ void my_betabinomial_helper8_s(int mm, int *ns, double *ab, double *work, double
 			int j = nn - 1 - i;
 			double aa = a + i * roll;
 			double bb = a + j * roll + roll2;
+
 			work[i] = ((aa * (aa + 1)) * ((aa + 2) * (aa + 3))) * ((bb * (bb + 1)) * ((bb + 2) * (bb + 3)));
 		}
 
-		GMRFLib_log(nn, work, work);
-		double s0 = GMRFLib_dsum(nn, work);
+		GMRFLib_log(nn, work, wwork);
+		double s0 = GMRFLib_dsum(nn, wwork);
 
 		if (d.rem) {
 			double aa = m + a;
 			double s = aa;
+
 			for (int i = 1; i < d.rem; i++) {
 				s *= (aa + i);
 			}
@@ -357,12 +347,13 @@ void my_betabinomial_helper8_s(int mm, int *ns, double *ab, double *work, double
 		out[k] = s0;
 	}
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((flatten, target_clones(INLA_CLONE_TARGETS "default")))
-double my_betabinomial_helper_core(int n, double a, double *work, int roll)
+double my_betabinomial_helper_core(int n, double a, double *work, double *wwork, int roll)
 {
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
@@ -371,6 +362,7 @@ double my_betabinomial_helper_core(int n, double a, double *work, int roll)
 	for (int i = 0; i < nn; i++) {
 		double aa = i * roll + a;
 		double s = 1.0;
+
 #pragma omp simd reduction(*: s)
 		for (int j = 0; j < roll; j++) {
 			s *= (aa + j);
@@ -378,12 +370,13 @@ double my_betabinomial_helper_core(int n, double a, double *work, int roll)
 		work[i] = s;
 	}
 
-	GMRFLib_log(nn, work, work);
-	double s0 = GMRFLib_dsum(nn, work);
+	GMRFLib_log(nn, work, wwork);
+	double s0 = GMRFLib_dsum(nn, wwork);
 
 	if (d.rem) {
 		double aa = m + a;
 		double s = aa;
+
 #pragma omp simd reduction(*: s)
 		for (int j = 1; j < d.rem; j++) {
 			s *= (aa + j);
@@ -393,6 +386,7 @@ double my_betabinomial_helper_core(int n, double a, double *work, int roll)
 
 	return (s0);
 }
+
 #pragma GCC diagnostic pop
 
 // these functions work together!
@@ -401,24 +395,25 @@ int my_betabinomial_work_len(int n)
 	return 1 + n / 8L;
 }
 
-double my_betabinomial(int y, int n, double a, double b, double *work, bool large)
+double my_betabinomial(int y, int n, double a, double b, double *work, double *wwork, bool large)
 {
 	// recall to change _work_len() if this is changed
 	int nn[3] = { y, n - y, n };
 	double ab[3] = { a, b, a + b };
-	double out[3] = { 0 };
+	double out[3] = { 0.0 };
 	if (large) {
-		my_betabinomial_helper16_s(3, nn, ab, work, out);
+		my_betabinomial_helper16_s(3, nn, ab, work, wwork, out);
 	} else {
-		my_betabinomial_helper8_s(3, nn, ab, work, out);
+		my_betabinomial_helper8_s(3, nn, ab, work, wwork, out);
 	}
 	return (out[0] + out[1] - out[2]);
 }
 
-double my_betabinomial2(int y, int n, double a, double b, double *work)
+double my_betabinomial2(int y, int n, double a, double b, double *work, double *wwork)
 {
 	// using Gamma(1+z)=z*Gamma(z), we can get this
 	double mul = 1.0;
+
 	while (a > 1.0) {
 		a--;
 		mul *= (((y + a) * (a + b)) / ((n + a + b) / a));
@@ -430,15 +425,17 @@ double my_betabinomial2(int y, int n, double a, double b, double *work)
 
 	// here we have 0<a<1, 0<b<1, but NOT a+b<1.
 	// this could be helpful creating approximations
-	double s1 = my_betabinomial_helper8(y, a, work);
-	double s2 = my_betabinomial_helper8(n - y, b, work);
-	double s3 = my_betabinomial_helper8(n, a + b, work);
+	double s1 = my_betabinomial_helper8(y, a, work, wwork);
+	double s2 = my_betabinomial_helper8(n - y, b, work, wwork);
+	double s3 = my_betabinomial_helper8(n, a + b, work, wwork);
+
 	return (s1 + s2) - (s3 + log(mul));
 }
 
 double my_lambert_W0(double y)
 {
 	double val = 0.0;
+
 	my_lambert_W0s(1, &y, &val);
 
 	return val;
@@ -466,6 +463,7 @@ void my_lambert_W0s(int m, double *y, double *res)
 				xx[i] = log(gsl_sf_lambert_W0(exp(yy[i])));
 			}
 			GMRFLib_spline_tp *tspline = GMRFLib_spline_create(yy, xx, n);
+
 			Free(work);
 			spline_lambert_W0 = tspline;
 		}
@@ -474,12 +472,14 @@ void my_lambert_W0s(int m, double *y, double *res)
 	for (int k = 0; k < m; k++) {
 		if (y[k] > 0.0) {
 			double log_y = log(y[k]);
+
 			if (log_y < logy_lim[1]) {
 				// this version adds an extra Newton-R correction step. then we can do the caching less accurate
 				double theta = GMRFLib_spline_eval(log_y, spline_lambert_W0);
 				double exp_theta = exp(theta);
 				double err = theta + exp_theta - log_y;
 				double t1 = 1.0 + exp_theta;
+
 				theta -= err / (t1 + err * exp_theta / t1);
 				res[k] = exp(theta);
 			} else {
@@ -539,6 +539,7 @@ double *my_compute_lbell(int nmax)
 		// need to compute log(exp(terms[0]) + ... + exp(terms[n1])), do this the obvious way: summing the smallest terms first using
 		// the largest element (the last one) as scaling.
 		double sum = 0.0;
+
 		for (int k = 0; k < n1; k++) {
 			sum += exp(terms[k] - terms[n1]);
 		}

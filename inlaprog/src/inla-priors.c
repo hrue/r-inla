@@ -187,6 +187,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 			    void *UNUSED(args))
 {
 	char *secname = NULL, *param = NULL;
+
 	secname = Strdup(iniparser_getsecname(ini, sec));
 	prior->name = Strdup(iniparser_getstring(ini, inla_string_join(secname, prior_tag), Strdup(default_prior)));
 
@@ -202,6 +203,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		 * remove trailing -[a-zA-Z]*$ 
 		 */
 		char *p = NULL, *new_name = NULL;
+
 		new_name = Strdup(prior->name);
 		p = GMRFLib_rindex((const char *) new_name, '-');
 		if (p) {
@@ -234,11 +236,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_laplace;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 0;
 			prior->parameters[1] = sqrt(2.0 * DEFAULT_NORMAL_PRIOR_PRECISION);
 		}
@@ -250,11 +254,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_gamma;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = DEFAULT_GAMMA_PRIOR_A;
 			prior->parameters[1] = DEFAULT_GAMMA_PRIOR_B;
 		}
@@ -266,11 +272,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_loggamma;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = DEFAULT_GAMMA_PRIOR_A;
 			prior->parameters[1] = DEFAULT_GAMMA_PRIOR_B;
 		}
@@ -282,11 +290,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_loggamma;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 25.0;
 			prior->parameters[1] = 25.0;
 		}
@@ -298,11 +308,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_gaussian;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 0.0;	       /* mean */
 			prior->parameters[1] = DEFAULT_NORMAL_PRIOR_PRECISION;
 		}
@@ -314,11 +326,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_gaussian;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 1.0;	       /* mean */
 			prior->parameters[1] = 1.0;	       /* precision */
 		}
@@ -330,11 +344,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_gaussian;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 0.0;	       /* mean */
 			prior->parameters[1] = 6.25;	       /* precision */
 		}
@@ -346,11 +362,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_gaussian;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 0.0;	       /* mean */
 			prior->parameters[1] = 1.0;	       /* precision */
 		}
@@ -362,11 +380,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_gaussian;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 0.0;	       /* mean */
 			prior->parameters[1] = 0.2;	       /* precision */
 		}
@@ -378,11 +398,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_gaussian;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 0.0;	       /* mean */
 			prior->parameters[1] = 0.2;	       /* precision */
 		}
@@ -416,6 +438,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 			}
 		}
 		tmp = Calloc(nparam + 1, double);
+
 		tmp[0] = dim;
 		Memcpy(&(tmp[1]), prior->parameters, nparam * sizeof(double));
 		Free(prior->parameters);
@@ -535,11 +558,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_minuslogsqrtruncnormal;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 0.0;
 			prior->parameters[1] = DEFAULT_NORMAL_PRIOR_PRECISION;
 		}
@@ -595,6 +620,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -606,6 +632,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 2;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -622,6 +649,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -633,6 +661,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 3;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -649,6 +678,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -660,6 +690,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 4;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -676,6 +707,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -687,6 +719,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 5;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -703,6 +736,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -714,6 +748,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 6;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -730,6 +765,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -741,6 +777,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 7;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -757,6 +794,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -768,6 +806,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 8;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -784,6 +823,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -795,6 +835,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 9;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -811,6 +852,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -822,6 +864,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 10;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -838,6 +881,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -849,6 +893,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 11;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -865,6 +910,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -876,6 +922,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 12;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -892,6 +939,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -903,6 +951,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 13;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -919,6 +968,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -930,6 +980,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 14;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -946,6 +997,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -957,6 +1009,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 15;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -973,6 +1026,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -984,6 +1038,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 16;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -1000,6 +1055,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -1011,6 +1067,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 17;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -1027,6 +1084,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -1038,6 +1096,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 18;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -1054,6 +1113,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -1065,6 +1125,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 19;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -1081,6 +1142,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -1092,6 +1154,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 20;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -1108,6 +1171,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -1119,6 +1183,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 21;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -1135,6 +1200,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -1146,6 +1212,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 22;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -1162,6 +1229,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -1173,6 +1241,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 23;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -1189,6 +1258,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -1200,6 +1270,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		double *xx = NULL;
 		int nxx;
 		int idim = 24;
+
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -1216,6 +1287,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		}
 		if (mb->verbose) {
 			int ii;
+
 			for (ii = 0; ii < nxx; ii++) {
 				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
 			}
@@ -1246,11 +1318,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_fgn_priorH;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 0.9;
 			prior->parameters[1] = 0.1;
 		}
@@ -1262,11 +1336,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_betacorrelation;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 5.0;
 			prior->parameters[1] = 5.0;
 		}
@@ -1278,11 +1354,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_betacorrelation;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 1.0;
 			prior->parameters[1] = 1.0;
 		}
@@ -1294,11 +1372,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_pc_prec;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 0.1;	       /* u */
 			prior->parameters[1] = 0.001;	       /* alpha */
 		}
@@ -1310,11 +1390,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_pc_dof;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double); /* Prob(dof < u) = alpha */
+
 			prior->parameters[0] = 10.0;	       /* u */
 			prior->parameters[1] = 0.5;	       /* alpha */
 		}
@@ -1326,11 +1408,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_pc_sn;
 		if (param && inla_is_NAs(1, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(1, double);
+
 			if (inla_sread_doubles(prior->parameters, 1, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(1, double);
+
 			prior->parameters[0] = 10.0;	       /* lambda */
 		}
 		if (mb->verbose) {
@@ -1341,11 +1425,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_linksnintercept;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 0.0;
 			prior->parameters[1] = 0.0;
 		}
@@ -1357,11 +1443,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_logitbeta;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 5.0;
 			prior->parameters[1] = 5.0;
 		}
@@ -1373,11 +1461,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_pc_cor0;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 0.5;	       /* u */
 			prior->parameters[1] = 0.5;	       /* alpha */
 		}
@@ -1389,11 +1479,13 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_pc_cor1;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
+
 			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 0.5;	       /* u */
 			prior->parameters[1] = 0.5;	       /* alpha */
 		}
@@ -1406,6 +1498,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		if (param && inla_is_NAs(1, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(2, double);
 			double tmp = 0.0;
+
 			if (inla_sread_doubles(&tmp, 1, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
@@ -1413,6 +1506,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 			prior->parameters[1] = -1;	       /* ORDER: to be decided */
 		} else {
 			prior->parameters = Calloc(2, double);
+
 			prior->parameters[0] = 1.0;	       /* lambda */
 			prior->parameters[1] = -1;	       /* ORDER: to be decided */
 		}
@@ -1424,6 +1518,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_dirichlet;
 		if (param && inla_is_NAs(1, param) != GMRFLib_SUCCESS) {
 			prior->parameters = Calloc(3, double); /* yes, 3 */
+
 			if (inla_sread_doubles(prior->parameters, 1, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
@@ -1431,6 +1526,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 			prior->parameters[2] = NAN;	       /* cdf, added later */
 		} else {
 			prior->parameters = Calloc(3, double);
+
 			prior->parameters[0] = 0.5;	       /* alpha */
 			prior->parameters[1] = NAN;	       /* number of classes, added later */
 			prior->parameters[2] = NAN;	       /* number of classes, added later */
@@ -1443,6 +1539,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->priorfunc = priorfunc_prw2_pcprior_range;
 		if (param) {
 			prior->parameters = Calloc(4, double);
+
 			if (inla_sread_doubles(prior->parameters, 4, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
@@ -1458,6 +1555,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->id = P_REF_AR;
 		prior->priorfunc = priorfunc_ref_ar;
 		prior->parameters = Calloc(1, double);
+
 		prior->parameters[0] = -1;		       /* ORDER: to be decided */
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[NULL]\n", prior_tag, param_tag);
@@ -1504,6 +1602,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 	}
 	return INLA_OK;
 }
+
 double priorfunc_linksnintercept(double *x, double *parameters)
 {
 	// input is theta, need to find the corresponding mu.
@@ -1523,6 +1622,7 @@ double priorfunc_linksnintercept(double *x, double *parameters)
 
 	// d_mu/d_theta = 1 / (d_theta/d_mu) 
 	double deriv = 1.0 / ((inla_logitcdf_normal(mu + step) - inla_logitcdf_normal(mu - step)) / (2.0 * step));
+
 	return (log(ABS(deriv)) + priorfunc_normal(&mu, parameters));
 }
 
@@ -1778,6 +1878,7 @@ double priorfunc_pc_sn(double *x, double *parameters)
 double priorfunc_pc_prec(double *x, double *parameters)
 {
 	double u = parameters[0], alpha = parameters[1], theta, val, xx2;
+
 	theta = -log(alpha) / u;
 	xx2 = (*x) / 2.0;
 	val = log(theta / 2.0) - theta * exp(-xx2) - xx2;
@@ -1828,6 +1929,7 @@ double priorfunc_pc_cor1(double *x, double *parameters)
 
 	if (!(u > -1.0 && u < 1.0 && alpha > sqrt((1.0 - u) / 2.0) && alpha < 1.0)) {
 		char *msg = NULL;
+
 		GMRFLib_sprintf(&msg, "Wrong cor1 prior-parameters. We must have alpha > sqrt((1-u)/2); see the documentation.");
 		inla_error_general(msg);
 		exit(1);
@@ -1949,6 +2051,7 @@ double priorfunc_betacorrelation(double *x, double *parameters)
 	 * The function returns the log prior for \rho.intern = log((1 +\rho)/(1-\rho))
 	 */
 	double p = exp(*x) / (1.0 + exp(*x)), a = parameters[0], b = parameters[1];
+
 	return log(gsl_ran_beta_pdf(p, a, b)) + (*x) - 2.0 * log1p(exp(*x));
 }
 
@@ -1958,6 +2061,7 @@ double priorfunc_logitbeta(double *x, double *parameters)
 	 * The prior for the the logit of a Beta(a,b), logit(p) = log(p/(1-p))
 	 */
 	double p = exp(*x) / (1.0 + exp(*x)), a = parameters[0], b = parameters[1];
+
 	return log(gsl_ran_beta_pdf(p, a, b)) + (*x) - 2.0 * log1p(exp(*x));
 }
 
@@ -2001,6 +2105,7 @@ double priorfunc_pc_ar(double *x, double *parameters)
 	p = (int) parameters[1];
 	lambda = parameters[0];
 	b = Calloc(3 * p, double);
+
 	gamma = &(b[p]);
 	pacf = &(b[2 * p]);
 
@@ -2013,6 +2118,7 @@ double priorfunc_pc_ar(double *x, double *parameters)
 		// hence we need two jacobians, one for x->pacf and one for pacf->gamma. recall that we have a singularity for
 		// x[i]=0
 		double xtmp = (ISZERO(pacf[i]) ? INLA_REAL_SMALL : pacf[i]);
+
 		logjac += log(ABS(ar_map_pacf(x[i], MAP_DFORWARD, NULL))) + log(ABS(xtmp / (1.0 - SQR(pacf[i]))));
 	}
 	ldens = inla_pc_simplex_d(gamma, b, p, lambda) + logjac;
@@ -2078,6 +2184,7 @@ double priorfunc_ref_ar(double *x, double *parameters)
 double priorfunc_laplace(double *x, double *parameters)
 {
 	double mean = parameters[0], lambda = sqrt(2.0 * parameters[1]);
+
 	return -M_LN2 + log(lambda) - lambda * ABS(*x - mean);
 }
 
@@ -2094,6 +2201,7 @@ double priorfunc_loggamma(double *x, double *parameters)
 	 * return log(loggamma(x,a,b)). NOTE: if y ~ gamma(a,b), then log(y) ~ loggamma(a,b). 
 	 */
 	double val = exp(*x);
+
 	return priorfunc_gamma(&val, parameters) + (*x);
 }
 
@@ -2170,6 +2278,7 @@ double priorfunc_dirichlet(double *x, double *parameters)
 
 	return (ld);
 }
+
 #pragma GCC diagnostic pop
 
 double priorfunc_gamma(double *x, double *parameters)
@@ -2222,6 +2331,7 @@ double priorfunc_normal(double *x, double *parameters)
 		return 0.0;				       // = log(1)
 	} else {
 		double mean = parameters[0], prec = parameters[1];
+
 		return (-0.9189385332 + 0.5 * log(prec) - 0.5 * prec * SQR(*x - mean));
 	}
 }
@@ -2278,6 +2388,7 @@ double priorfunc_mvnorm(double *x, double *parameters)
 
 	return (-n / 2.0 * log(2 * M_PI) + 0.5 * logdet - 0.5 * q);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -2296,6 +2407,7 @@ int inla_iid_wishart_adjust(int dim, double *theta)
 	double f = 0.95, *S = NULL, *chol = NULL;
 
 	S = Calloc(ISQR(dim), double);
+
 	while (!ok) {
 		k = 0;
 		for (i = 0; i < dim; i++) {
@@ -2341,6 +2453,7 @@ int inla_iid_wishart_adjust(int dim, double *theta)
 #undef _IDX
 	return (ok ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
+
 #pragma GCC diagnostic pop
 
 double priorfunc_wishart1d(double *x, double *parameters)
@@ -2350,6 +2463,7 @@ double priorfunc_wishart1d(double *x, double *parameters)
 	// return priorfunc_wishart_generic(1, x, parameters);
 
 	double p[2];
+
 	p[0] = parameters[0] / 2.0;
 	p[1] = parameters[1] / 2.0;
 
@@ -2534,6 +2648,7 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 
 	return val;
 }
+
 #pragma GCC diagnostic pop
 
 double priorfunc_wishartk_2d(double *x, double *parameters)
@@ -2580,58 +2695,72 @@ double priorfunc_wishartk_10d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(10, x, parameters);
 }
+
 double priorfunc_wishartk_11d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(11, x, parameters);
 }
+
 double priorfunc_wishartk_12d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(12, x, parameters);
 }
+
 double priorfunc_wishartk_13d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(13, x, parameters);
 }
+
 double priorfunc_wishartk_14d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(14, x, parameters);
 }
+
 double priorfunc_wishartk_15d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(15, x, parameters);
 }
+
 double priorfunc_wishartk_16d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(16, x, parameters);
 }
+
 double priorfunc_wishartk_17d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(17, x, parameters);
 }
+
 double priorfunc_wishartk_18d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(18, x, parameters);
 }
+
 double priorfunc_wishartk_19d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(19, x, parameters);
 }
+
 double priorfunc_wishartk_20d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(20, x, parameters);
 }
+
 double priorfunc_wishartk_21d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(21, x, parameters);
 }
+
 double priorfunc_wishartk_22d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(22, x, parameters);
 }
+
 double priorfunc_wishartk_23d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(23, x, parameters);
 }
+
 double priorfunc_wishartk_24d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(24, x, parameters);
@@ -2695,6 +2824,7 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 	double h, save, *xx = NULL;
 
 	xx = Calloc(n_x, double);
+
 	Memcpy(xx, x, n_x * sizeof(double));
 
 	h = 0.005;
@@ -2755,4 +2885,5 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 
 	return val;
 }
+
 #pragma GCC diagnostic pop

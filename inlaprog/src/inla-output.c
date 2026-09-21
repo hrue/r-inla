@@ -46,6 +46,7 @@ int inla_output_Q(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 int inla_output_graph(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 {
 	char *fnm = NULL;
+
 	GMRFLib_sprintf(&fnm, "%s/graph.dat", dir);
 	if (mb->verbose) {
 		printf("\t\tstore graph in[%s]\n", fnm);
@@ -73,10 +74,12 @@ int inla_output_matrix(const char *dir, const char *sdir, const char *filename, 
 	M->nrow = M->ncol = n;
 	M->elems = ISQR(n);
 	M->A = Calloc(ISQR(n), double);
+
 	if (order == NULL) {
 		Memcpy(M->A, matrix, ISQR(n) * sizeof(double));
 	} else {
 		int i, j;
+
 		for (i = 0; i < n; i++) {
 			for (j = 0; j < n; j++) {
 				M->A[order[i] + order[j] * n] = matrix[i + j * n];
@@ -106,6 +109,7 @@ int inla_output_names(const char *dir, const char *sdir, int n, const char **nam
 	GMRFLib_sprintf(&fnm, "%s/NAMES", ndir);
 
 	int i;
+
 	fp = fopen(fnm, "w");
 	for (i = 0; i < n; i++) {
 		fprintf(fp, "%s%s\n", names[i], (suffix ? suffix : ""));
@@ -137,6 +141,7 @@ int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal
 char *inla_create_hyperid(int id, const char *secname)
 {
 	char *hyperid = NULL;
+
 	GMRFLib_sprintf(&hyperid, "%1d|%s", id, secname);
 
 	return (hyperid);
@@ -187,6 +192,7 @@ int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_t
 int inla_output(inla_tp *mb)
 {
 	int n = 0, j, *offsets = NULL, len_offsets, local_verbose = 0;
+
 	assert(mb);
 
 	/*
@@ -227,6 +233,7 @@ int inla_output(inla_tp *mb)
 #pragma omp parallel for num_threads(1)
 		for (int k = 0; k < 1; k++) {
 			int offset = offsets[0];
+
 			inla_output_detail(mb->dir, &(mb->density[offset]),
 					   NULL, mb->predictor_n + mb->predictor_m, 1,
 					   mb->predictor_output, mb->predictor_dir, mb->output->return_marginals_predictor,
@@ -238,6 +245,7 @@ int inla_output(inla_tp *mb)
 		for (int k = 0; k < 1; k++) {
 			char *sdir = NULL, *newtag = NULL;
 			int offset = offsets[0];
+
 			GMRFLib_sprintf(&newtag, "%s in user scale", mb->predictor_tag);
 			GMRFLib_sprintf(&sdir, "%s-user-scale", mb->predictor_dir);
 			inla_output_detail(mb->dir, &(mb->density[offset]),
@@ -251,6 +259,7 @@ int inla_output(inla_tp *mb)
 #pragma omp parallel for num_threads(1)
 		for (int k = 0; k < 1; k++) {
 			int offset = offsets[0];
+
 			inla_output_detail(mb->dir, &(mb->density[offset]),
 					   NULL, mb->predictor_n + mb->predictor_m, 1,
 					   mb->predictor_output, mb->predictor_dir, mb->output->return_marginals_predictor,
@@ -262,10 +271,12 @@ int inla_output(inla_tp *mb)
 
 	if (mb->nf) {
 		int div = IMIN(GMRFLib_MAX_THREADS(), IMIN(4, mb->nf));
+
 		GMRFLib_openmp_implement_strategy_special(div, IMAX(1, GMRFLib_MAX_THREADS() / div));
 #pragma omp parallel for num_threads(div)
 		for (int ii = 0; ii < mb->nf; ii++) {
 			int offset = offsets[ii + 1];
+
 			inla_output_detail(mb->dir, &(mb->density[offset]),
 					   mb->f_locations[ii],
 					   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii],
@@ -277,6 +288,7 @@ int inla_output(inla_tp *mb)
 	}
 
 	char *fnm = NULL;
+
 	GMRFLib_sprintf(&fnm, "%s/totaloffset", mb->dir);
 	inla_mkdir(fnm);
 	Free(fnm);
@@ -290,6 +302,7 @@ int inla_output(inla_tp *mb)
 
 	for (int ii = 0; ii < mb->nlinear; ii++) {
 		int offset = offsets[mb->nf + 1 + ii];
+
 		inla_output_detail(mb->dir, &(mb->density[offset]),
 				   NULL, 1, 1, mb->linear_output[ii], mb->linear_dir[ii], mb->output->return_marginals,
 				   NULL, NULL, NULL, mb->linear_tag[ii], NULL, local_verbose);
@@ -299,6 +312,7 @@ int inla_output(inla_tp *mb)
 	if (mb->density_lin) {
 		char *newtag2, *newdir2;
 		int ii = 0;
+
 		GMRFLib_sprintf(&newtag2, "lincombs.derived.all");
 		GMRFLib_sprintf(&newdir2, "lincombs.derived.all");
 		inla_output_detail(mb->dir, &(mb->density_lin[ii]), mb->lc_order, mb->nlc,
@@ -314,6 +328,7 @@ int inla_output(inla_tp *mb)
 		GMRFLib_openmp_implement_strategy_special(1, 1);
 		for (int ii = 0; ii < mb->ntheta; ii++) {
 			char *sdir = NULL;
+
 			GMRFLib_sprintf(&sdir, "hyperparameter-1-%.6d-%s", ii, mb->theta_dir[ii]);
 			inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, 1, 1, mb->output, sdir,
 					   mb->output->return_marginals, NULL, NULL, NULL, mb->theta_tag[ii], NULL, local_verbose);
@@ -384,6 +399,7 @@ int inla_output(inla_tp *mb)
 			if (mb->output->q) {
 				if (local_verbose == 0) {
 					int save = mb->verbose;
+
 					mb->verbose = 0;
 					if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 						inla_output_Q(mb, mb->dir, mb->hgmrfm->graph);
@@ -411,6 +427,7 @@ int inla_output(inla_tp *mb)
 				 * we need to create the corresponding normal as well 
 				 */
 				char *sdir = NULL;
+
 				sdir = Strdup("random.effect.UserFunction0");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc0_density, NULL,
 						   GMRFLib_ai_INLA_userfunc0_dim, 1, mb->output, sdir, mb->output->return_marginals,
@@ -423,6 +440,7 @@ int inla_output(inla_tp *mb)
 				 * we need to create the corresponding normal as well 
 				 */
 				char *sdir = NULL;
+
 				sdir = Strdup("random.effect.UserFunction1");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc1_density, NULL,
 						   GMRFLib_ai_INLA_userfunc1_dim, 1, mb->output, sdir, mb->output->return_marginals,
@@ -439,6 +457,7 @@ int inla_output(inla_tp *mb)
 					char *sdir = NULL, *local_tag = NULL;
 
 					int dim = GMRFLib_ai_INLA_userfunc2_len[ii];
+
 					GMRFLib_sprintf(&sdir, "spde2.blc.%6.6d", ii + 1);
 					GMRFLib_sprintf(&local_tag, "%s", GMRFLib_ai_INLA_userfunc2_tag[ii]);
 					inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc2_density[ii], NULL, dim, 1,
@@ -458,6 +477,7 @@ int inla_output(inla_tp *mb)
 					char *sdir = NULL, *local_tag = NULL;
 
 					int dim = GMRFLib_ai_INLA_userfunc3_len[ii];
+
 					GMRFLib_sprintf(&sdir, "spde3.blc.%6.6d", ii + 1);
 					GMRFLib_sprintf(&local_tag, "%s", GMRFLib_ai_INLA_userfunc3_tag[ii]);
 					inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc3_density[ii], NULL, dim, 1,
@@ -474,6 +494,7 @@ int inla_output(inla_tp *mb)
 	}
 
 	int N = -1;
+
 	if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 		N = mb->preopt->n + mb->preopt->mnpred;
 	} else {
@@ -511,12 +532,14 @@ int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp *gcpo, GMRFLib_gcpo
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "type.dat");
 	FILE *fp = fopen(nndir, "w");
+
 	fprintf(fp, "%s\n", (param->type_cv == 0 ? "single" : "joint"));
 	fclose(fp);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "gcpo.dat");
 	{
 		int count = 1 + n * 4;
+
 		for (i = 0; i < n; i++) {
 			count += 2 * gcpo->groups[i]->n;
 		}
@@ -797,6 +820,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	GMRFLib_sprintf(&nndir, "%s/theta-tags", ndir);
 	{
 		FILE *fp = fopen(nndir, "w");
+
 		for (i = 0; i < ntheta; i++) {
 			fprintf(fp, "%s\n", theta_tag[i]);
 		}
@@ -810,6 +834,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	if (any) {
 		GMRFLib_sprintf(&nndir, "%s/theta-from", ndir);
 		FILE *fp = fopen(nndir, "w");
+
 		for (i = 0; i < ntheta; i++) {
 			fprintf(fp, "%s\n", theta_from[i]);
 		}
@@ -823,6 +848,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	if (any) {
 		GMRFLib_sprintf(&nndir, "%s/theta-to", ndir);
 		FILE *fp = fopen(nndir, "w");
+
 		for (i = 0; i < ntheta; i++) {
 			fprintf(fp, "%s\n", theta_to[i]);
 		}
@@ -840,7 +866,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 		Dclose();
 	}
 	Free(nndir);
-
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-eigenvectors.dat");
 	{
@@ -878,6 +903,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "mode-status.dat");
 	{
 		FILE *fp = fopen(nndir, "w");
+
 		if (!fp) {
 			inla_error_open_file(nndir);
 		}
@@ -889,6 +915,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "nfunc.dat");
 	{
 		FILE *fp = fopen(nndir, "w");
+
 		if (!fp) {
 			inla_error_open_file(nndir);
 		}
@@ -900,6 +927,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "log-posterior-mode.dat");
 	{
 		FILE *fp = fopen(nndir, "w");
+
 		if (!fp) {
 			inla_error_open_file(nndir);
 		}
@@ -911,10 +939,12 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "stdev_corr_pos.dat");
 	if (mo->stdev_corr_pos) {
 		GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
+
 		M->nrow = mo->nhyper;
 		M->ncol = 1;
 		M->elems = M->nrow * M->ncol;
 		M->A = Calloc(mo->nhyper, double);
+
 		Memcpy(M->A, mo->stdev_corr_pos, mo->nhyper * sizeof(double));
 		GMRFLib_write_fmesher_file(M, nndir, 0L, -1);
 		GMRFLib_matrix_free(M);
@@ -923,10 +953,12 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "stdev_corr_neg.dat");
 	if (mo->stdev_corr_pos) {
 		GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp);
+
 		M->nrow = mo->nhyper;
 		M->ncol = 1;
 		M->elems = M->nrow * M->ncol;
 		M->A = Calloc(mo->nhyper, double);
+
 		Memcpy(M->A, mo->stdev_corr_neg, mo->nhyper * sizeof(double));
 		GMRFLib_write_fmesher_file(M, nndir, 0L, -1);
 		GMRFLib_matrix_free(M);
@@ -995,6 +1027,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "configs.dat");
 		fp = fopen(nnndir, "wb");
 		int id = 0, header = 0, nconfig = 0;
+
 		for (id = 0; id < GMRFLib_MAX_THREADS(); id++) {
 			if (mo->configs[id]) {
 				nconfig += mo->configs[id]->nconfig;	/* need the accumulated one! */
@@ -1020,11 +1053,13 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 						       (size_t) mo->configs[id]->constr->nc, fp);
 					} else {
 						int zero = 0;
+
 						fwrite((void *) &zero, sizeof(int), (size_t) 1, fp);
 					}
 				}
 
 				double *off = Calloc(mo->configs[id]->n, double);
+
 				Memcpy(off, &(OFFSET3(0)), (mb->predictor_n + mb->predictor_m) * sizeof(double));
 
 				for (i = 0; i < mo->configs[id]->nconfig; i++) {
@@ -1047,6 +1082,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 
 	if (mo->configs_preopt) {
 		FILE *fp = NULL;
+
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "config_preopt");
 		if (inla_mkdir(nndir) != 0) {
 			GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", nndir, strerror(errno));
@@ -1084,6 +1120,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "configs.dat");
 		fp = fopen(nnndir, "wb");
 		int id = 0, header = 0, nconfig = 0;
+
 		for (id = 0; id < GMRFLib_MAX_THREADS(); id++) {
 			if (mo->configs_preopt[id]) {
 				nconfig += mo->configs_preopt[id]->nconfig;	/* need the accumulated one! */
@@ -1118,15 +1155,18 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 						       (size_t) mo->configs_preopt[id]->constr->nc, fp);
 					} else {
 						int zero = 0;
+
 						fwrite((void *) &zero, sizeof(int), (size_t) 1, fp);
 					}
 
 					double *off = Calloc(mo->configs_preopt[id]->mnpred, double);
+
 					Memcpy(off, &(OFFSET3(0)), mo->configs_preopt[id]->mnpred * sizeof(double));
 					fwrite((void *) off, sizeof(double), (size_t) mo->configs_preopt[id]->mnpred, fp);
 					Free(off);
 
 					char *A = NULL, *pA = NULL;
+
 					GMRFLib_sprintf(&A, "%s/%s", nndir, "A.dat");
 					GMRFLib_write_fmesher_file(mo->configs_preopt[id]->A, A, (long int) 0, -1);
 					GMRFLib_sprintf(&pA, "%s/%s", nndir, "pA.dat");
@@ -1166,16 +1206,19 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 
 					if (mo->configs_preopt[id]->config[i]->ll_info) {
 						double one = 1.0;
+
 						fwrite((void *) &one, sizeof(double), 1, fp);
 						fwrite((void *) (mo->configs_preopt[id]->config[i]->ll_info),
 						       sizeof(double), (size_t) (4 * mo->configs_preopt[id]->Npred), fp);
 					} else {
 						double zero = 0.0;
+
 						fwrite((void *) &zero, sizeof(double), 1, fp);
 					}
 
 					if (mo->configs_preopt[id]->config[i]->lpred_mean) {
 						double one = 1.0;
+
 						fwrite((void *) &one, sizeof(double), 1, fp);
 						fwrite((void *) (mo->configs_preopt[id]->config[i]->lpred_mean),
 						       sizeof(double), (size_t) mo->configs_preopt[id]->mnpred, fp);
@@ -1183,6 +1226,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 						       sizeof(double), (size_t) mo->configs_preopt[id]->mnpred, fp);
 					} else {
 						double zero = 0.0;
+
 						fwrite((void *) &zero, sizeof(double), 1, fp);
 					}
 				}
@@ -1194,6 +1238,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	GMRFLib_sprintf(&nnndir, "%s/%s", ndir, "warnings.txt");
 	if (mo->warnings) {
 		FILE *fp = fopen(nnndir, "w");
+
 		for (int k = 0;; k++) {
 			if (mo->warnings[k]) {
 				fprintf(fp, "%s\n", mo->warnings[k]);
@@ -1208,6 +1253,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	if (mo->opt_trace) {
 		GMRFLib_sprintf(&nnndir, "%s/%s", ndir, "opt-trace.dat");
 		FILE *fp = fopen(nnndir, "wb");
+
 		fwrite((void *) &(mo->opt_trace->nt), sizeof(int), (size_t) 1, fp);
 		fwrite((void *) &(mo->opt_trace->niter), sizeof(int), (size_t) 1, fp);
 		fwrite((void *) mo->opt_trace->nfunc, sizeof(int), (size_t) mo->opt_trace->niter, fp);
@@ -1228,6 +1274,7 @@ int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp *
 	 * output whatever is requested.... 
 	 */
 	char *ndir = NULL, *msg = NULL, *nndir = NULL;
+
 	if (!mlik) {
 		return INLA_OK;
 	}
@@ -1342,6 +1389,7 @@ int inla_output_linkfunctions(const char *dir, inla_tp *mb)
 	 * need to use double as we need NAN
 	 */
 	double *idx = Calloc(mb->predictor_ndata, double);
+
 	for (i = 0; i < mb->predictor_ndata; i++) {
 		int found;
 
@@ -1465,6 +1513,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 	ndiv = n / nrep;
 
 	double *d_mode = Calloc(n, double);
+
 	for (int i = 0; i < n; i++) {
 		d_mode[i] = NAN;
 	}
@@ -1479,8 +1528,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 
 	if (1) {
 		char *nndir = NULL;
+
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "N");
 		FILE *fp = fopen(nndir, "w");
+
 		if (!fp) {
 			inla_error_open_file(nndir);
 		}
@@ -1491,8 +1542,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 
 	if (tag) {
 		char *nndir = NULL;
+
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "TAG");
 		FILE *fp = fopen(nndir, "w");
+
 		if (!fp) {
 			inla_error_open_file(nndir);
 		}
@@ -1503,8 +1556,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 
 	if (modelname) {
 		char *nndir = NULL;
+
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "MODEL");
 		FILE *fp = fopen(nndir, "w");
+
 		if (!fp) {
 			inla_error_open_file(nndir);
 		}
@@ -1516,6 +1571,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 	if (output->summary) {
 		if (inla_computed(density, n)) {
 			char *nndir = NULL;
+
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "summary.dat");
 			Dinit_r(n, 3, nndir);
 
@@ -1542,8 +1598,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 	if (return_marginals || strncmp("hyperparameter", sdir, 13) == 0) {
 		if (inla_computed(density, n)) {
 			char *nndir = NULL;
+
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-densities.dat");
 			int mm = 0;
+
 			GMRFLib_density_layout_x(NULL, &mm, NULL);
 			Dinit_r(n, 2 + mm * 2, nndir);
 
@@ -1676,13 +1734,16 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 				 */
 				if (inla_computed(density, n)) {
 					char *nndir = NULL;
+
 					GMRFLib_sprintf(&nndir, "%s/%s", ndir, "symmetric-kld.dat");
 					Dinit_core(n * 2, nndir);
 					GMRFLib_density_tp *gd = NULL;
+
 					GMRFLib_density_create_normal(&gd, 0.0, 1.0, 0.0, 1.0, GMRFLib_FALSE);
 					for (int i = 0; i < n; i++) {
 						if (density[i]) {
 							double kld;
+
 							if (0) {
 								// old code
 								// GMRFLib_density_tp *gd = NULL;
@@ -1718,10 +1779,12 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 				if (inla_computed(density, n)) {
 					double x_user;
 					char *nndir = NULL;
+
 					GMRFLib_sprintf(&nndir, "%s/%s", ndir, "quantiles.dat");
 					Dinit_core(n * (1 + 2 * output->nquantiles), nndir);
 					for (int i = 0; i < n; i++) {
 						double xp, p;
+
 						if (density[i]) {
 							D1W((locations ? locations[i % ndiv] : i));
 							D1W(output->nquantiles);
@@ -1753,6 +1816,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 			if (output->mode) {
 				if (inla_computed(density, n)) {
 					char *nndir = NULL;
+
 					GMRFLib_sprintf(&nndir, "%s/%s", ndir, "mode.dat");
 					Dinit_core(n * (1 + 3), nndir);
 					for (int i = 0; i < n; i++) {
@@ -1774,10 +1838,12 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 			if (output->ncdf) {
 				if (inla_computed(density, n)) {
 					char *nndir = NULL;
+
 					GMRFLib_sprintf(&nndir, "%s/%s", ndir, "cdf.dat");
 					Dinit_core(n * (1 + 2 * output->ncdf), nndir);
 					for (int i = 0; i < n; i++) {
 						double xp, x, p;
+
 						if (density[i]) {
 							D1W((locations ? locations[i % ndiv] : i));
 							D1W(output->ncdf);
@@ -1885,11 +1951,13 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		(*out)->nquantiles = mb->output->nquantiles;
 		if (mb->output->nquantiles) {
 			(*out)->quantiles = Calloc(mb->output->nquantiles, double);
+
 			Memcpy((*out)->quantiles, mb->output->quantiles, (size_t) mb->output->nquantiles * sizeof(double));
 		}
 		(*out)->ncdf = mb->output->ncdf;
 		if (mb->output->ncdf) {
 			(*out)->cdf = Calloc(mb->output->ncdf, double);
+
 			Memcpy((*out)->cdf, mb->output->cdf, (size_t) mb->output->ncdf * sizeof(double));
 		}
 	}
@@ -1911,6 +1979,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		char *str_ptr = NULL;
 		char *token = NULL;
 		const char *delim = " \t";
+
 		str = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.KEEP"), NULL));
 		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))) {
 			str = NULL;
@@ -1925,6 +1994,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		}
 
 		char *tstr = NULL;
+
 		tstr = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.STRATEGY"), Strdup("posterior")));
 		if (!strcasecmp(tstr, "posterior")) {
 			mb->gcpo_param->build_strategy = GMRFLib_GCPO_BUILD_STRATEGY_POSTERIOR;
@@ -1945,6 +2015,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		if (gfile) {
 			FILE *fp = fopen(gfile, "rb");
 			int len, total_len, glen, offset = 0;
+
 			ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
 			assert(ret == 1);
 			ret = fread((void *) &total_len, sizeof(int), (size_t) 1, fp);
@@ -1954,6 +2025,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 				printf("%s: read groups len %d total_len %d\n", __GMRFLib_FuncName, len, total_len);
 			}
 			int *buffer = Calloc(total_len, int);
+
 			ret = fread((void *) buffer, sizeof(int), (size_t) total_len, fp);
 			assert(ret == total_len);
 
@@ -1966,6 +2038,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 				if (mb->gcpo_param->verbose) {
 					if (mb->gcpo_param->groups[i]->n > 0) {
 						char *msg = NULL;
+
 						GMRFLib_sprintf(&msg, "group %d", i);
 						GMRFLib_idxval_printf(stdout, mb->gcpo_param->groups[i], msg);
 					}
@@ -1983,12 +2056,14 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			if (sfile) {
 				FILE *fp = fopen(sfile, "rb");
 				int len;
+
 				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
 				assert(ret == 1);
 				if (mb->gcpo_param->verbose) {
 					printf("%s: read selection len %d\n", __GMRFLib_FuncName, len);
 				}
 				int *buffer = Calloc(len, int);
+
 				ret = fread((void *) buffer, sizeof(int), (size_t) len, fp);
 				assert(ret == len);
 				GMRFLib_idx_create_x(&(mb->gcpo_param->selection), len);
@@ -1997,6 +2072,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 						printf("%s: add idx %d\n", __GMRFLib_FuncName, buffer[i]);
 					}
 					int idx = IABS(buffer[i]) - 1;	/* to C indexing */
+
 					GMRFLib_idx_add(&(mb->gcpo_param->selection), idx);
 				}
 				fclose(fp);
@@ -2006,12 +2082,14 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			if (gsfile) {
 				FILE *fp = fopen(gsfile, "rb");
 				int len;
+
 				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
 				assert(ret == 1);
 				if (mb->gcpo_param->verbose) {
 					printf("%s: read group.selection len %d\n", __GMRFLib_FuncName, len);
 				}
 				int *buffer = Calloc(len, int);
+
 				ret = fread((void *) buffer, sizeof(int), (size_t) len, fp);
 				assert(ret == len);
 				for (i = 0; i < len; i++) {
@@ -2027,6 +2105,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			if (wfile) {
 				FILE *fp = fopen(wfile, "rb");
 				int len;
+
 				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
 				assert(ret == 1);
 				assert(len >= 0);
@@ -2034,6 +2113,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 					printf("%s: read weights len %d\n", __GMRFLib_FuncName, len);
 				}
 				double *buffer = Calloc(len, double);
+
 				ret = fread((void *) buffer, sizeof(double), (size_t) len, fp);
 				assert(ret == len);
 				mb->gcpo_param->len_weights = len;	/* need to validate later that len >= Npred */
@@ -2044,6 +2124,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			if (ffile) {
 				FILE *fp = fopen(ffile, "rb");
 				int len;
+
 				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
 				assert(ret == 1);
 				mb->gcpo_param->friends_n = len;
@@ -2054,6 +2135,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 
 				int len_buffer = 64;
 				int *buffer = Calloc(len_buffer, int);
+
 				if (len) {
 					mb->gcpo_param->friends = GMRFLib_idx_ncreate_x(len, 4);
 					for (i = 0; i < len; i++) {
@@ -2061,6 +2143,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 							printf("%s: add friends for i=[%1d]: ", __GMRFLib_FuncName, i);
 						}
 						int local_len;
+
 						ret = fread((void *) &local_len, sizeof(int), (size_t) 1, fp);
 						assert(ret == 1);
 						if (local_len > 0) {
@@ -2110,6 +2193,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 
 	// make it backward compatible. remove later
 	int dummy = iniparser_getboolean(ini, inla_string_join(secname, "LIKELIHOOD.INFO"), 0);
+
 	assert(dummy >= 0);
 
 	tmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "QUANTILES"), NULL));

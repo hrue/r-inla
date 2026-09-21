@@ -35,6 +35,7 @@ DESC=$ROOT/rinla/DESCRIPTION
 CHECK=0
 NOW=0
 BINARY=0
+RELEASE=0
 for a in "$@"; do
     case "$a" in
         --check) CHECK=1 ;;
@@ -100,9 +101,10 @@ if [ "$RELEASE" = 1 ]; then
     ## release branch can claim a number and be merged without ever tagging,
     ## which is exactly how 26.09.08-1 and -2 came to exist with no tag.
     _base=$(date +%y.%m.%d)
+    ## No entry for today is normal; without || true, set -e kills the script.
     _used=$( { git -C "$ROOT" tag --list "Version_${_base}*" | sed 's/^Version_//'
                grep -oE "^# INLA ${_base}(-[0-9]+)?" "$ROOT/rinla/NEWS.md" 2>/dev/null \
-                   | sed 's/^# INLA //'; } | sort -u )
+                   | sed 's/^# INLA //' || true; } | sort -u )
     if ! printf '%s\n' "$_used" | grep -qx "$_base"; then
         WANT="$_base"
     else

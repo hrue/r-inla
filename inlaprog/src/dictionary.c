@@ -289,6 +289,7 @@ void dictionary_set(dictionary *d, char *key, char *val)
 		}
 
 		int j;
+
 		for (j = -1; (j = (int) map_ii_next(&(d->iihash), j)) != -1;) {
 			i = d->iihash.contents[j].key;
 			break;
@@ -430,6 +431,7 @@ void dictionary_dump(dictionary *d, FILE *out)
 	}
 	return;
 }
+
 char *dictionary_replace_variables(dictionary *d, char *str)
 {
 	/*
@@ -476,6 +478,7 @@ char *dictionary_replace_variables(dictionary *d, char *str)
 	}
 
 	int *ip;
+
 	ip = map_stri_ptr(&(d->strihash), var);
 	if (ip) {
 		i = *ip;
@@ -517,6 +520,7 @@ char *dictionary_replace_variables(dictionary *d, char *str)
 
 	return str;
 }
+
 int dictionary_dump_unused(dictionary *d, FILE *out)
 {
 	/*

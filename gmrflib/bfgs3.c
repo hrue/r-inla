@@ -17,6 +17,7 @@ static int bfgs3_dofit(const gsl_multifit_robust_type *T, const gsl_matrix *X, c
 {
 	gsl_multifit_robust_workspace *work = gsl_multifit_robust_alloc(T, X->size1, X->size2);
 	int s = gsl_multifit_robust(X, y, c, cov, work);
+
 	gsl_multifit_robust_free(work);
 	return s;
 }
@@ -41,6 +42,7 @@ int bfgs3_robust_eval(double x_eval, double *y_eval, int nn, double *x, double *
 	for (i = 0; i < n; ++i) {
 		gsl_vector_set(yy, i, y[i]);
 		double xi = x[i], xxi = xi;
+
 		gsl_matrix_set(X, i, 0, 1.0);
 		for (j = 1; j < p; j++) {
 			gsl_matrix_set(X, i, j, xxi);
@@ -49,13 +51,16 @@ int bfgs3_robust_eval(double x_eval, double *y_eval, int nn, double *x, double *
 	}
 
 	int err = bfgs3_dofit(gsl_multifit_robust_bisquare, X, yy, c, cov);
+
 	if (err == GSL_EMAXITER) {
 		assert(!err);
 	}
 
 	gsl_vector *xx = gsl_vector_alloc(order);
+
 	gsl_vector_set(xx, 0, 1.0);
 	double xev = x_eval;
+
 	for (i = 1; i < (size_t) order; i++) {
 		gsl_vector_set(xx, i, xev);
 		xev *= x_eval;
@@ -94,8 +99,10 @@ static double interp_quad(double f0, double fp0, double f1, double zl, double zh
 
 	if (c > 0) {					       /* positive curvature required for a minimum */
 		double z = -fp0 / c;			       /* location of minimum */
+
 		if (z > zl && z < zh) {
 			double f = f0 + z * (fp0 + z * (f1 - f0 - fp0));
+
 			if (f < fminn) {
 				zmin = z;
 				fminn = f;
@@ -176,6 +183,7 @@ static double interpolate(double a, double fa, double fpa, double b, double fb, 
 
 	if (zmin > zmax) {
 		double tmp = zmin;
+
 		zmin = zmax;
 		zmax = tmp;
 	};
@@ -224,6 +232,7 @@ static int minimize(gsl_function_fdf *fn, double rho, double sigma, double tau1,
 		GMRFLib_sprintf(&name, "./line-%.5d.txt", count++);
 		printf("Open file %s\n", name);
 		FILE *fpp = fopen(name, "w");
+
 		assert(fpp);
 	}
 
@@ -262,6 +271,7 @@ static int minimize(gsl_function_fdf *fn, double rho, double sigma, double tau1,
 	 */
 
 	size_t i = 0;
+
 	while (i++ < bracket_iters) {
 		if (debug)
 			printf("...begin bracketing\n");
@@ -372,6 +382,7 @@ static int minimize(gsl_function_fdf *fn, double rho, double sigma, double tau1,
 			 * roundoff prevents progress 
 			 */
 			int ldebug = (0 || debug);
+
 			if (ldebug)
 				printf("BFGS3: minimizer: abort search. do a robust fit and update\n");
 
@@ -386,6 +397,7 @@ static int minimize(gsl_function_fdf *fn, double rho, double sigma, double tau1,
 			}
 
 			int new_n = 0;
+
 			for (int ii = 0, jj = 0; ii < hold_n; ii++) {
 				if (!(ISNAN(hold_func[ii]) || ISINF(hold_func[ii]))) {
 					hold_alpha[jj] = hold_alpha[ii];
@@ -409,10 +421,12 @@ static int minimize(gsl_function_fdf *fn, double rho, double sigma, double tau1,
 
 			double amin, fmin;
 			int robust_regression = 1, oorder = 2;
+
 			bfgs4_robust_minimize(&amin, &fmin, hold_n, hold_alpha, hold_func, hold_dn, hold_dalpha, hold_dfunc, oorder);
 
 			if (amin < GMRFLib_min_value(hold_alpha, hold_n, NULL) || amin > GMRFLib_max_value(hold_alpha, hold_n, NULL)) {
 				int idx_min = 0;
+
 				GMRFLib_min_value(hold_func, hold_n, &idx_min);
 				amin = hold_alpha[idx_min];
 				robust_regression = 0;
@@ -496,6 +510,7 @@ static void moveto(double alpha, bfgs3_wrapper_t *w)
 static double slope(bfgs3_wrapper_t *w)
 {							       /* compute gradient . direction */
 	double df;
+
 	gsl_blas_ddot(w->g_alpha, w->p, &df);
 	return df;
 }
@@ -503,6 +518,7 @@ static double slope(bfgs3_wrapper_t *w)
 static double wrap_f(double alpha, void *params)
 {
 	bfgs3_wrapper_t *w = (bfgs3_wrapper_t *) params;
+
 	if (alpha == w->f_cache_key) {			       /* using previously cached f(alpha) */
 		return w->f_alpha;
 	}
@@ -518,6 +534,7 @@ static double wrap_f(double alpha, void *params)
 static double wrap_df(double alpha, void *params)
 {
 	bfgs3_wrapper_t *w = (bfgs3_wrapper_t *) params;
+
 	if (alpha == w->df_cache_key) {			       /* using previously cached df(alpha) */
 		return w->df_alpha;
 	}
@@ -605,6 +622,7 @@ static void update_position(bfgs3_wrapper_t *w, double alpha, gsl_vector *x, dou
 	 */
 	{
 		double f_alpha, df_alpha;
+
 		wrap_fdf(alpha, w, &f_alpha, &df_alpha);
 	};
 
@@ -810,6 +828,7 @@ static int vector_bfgs3_iterate(void *vstate, gsl_multimin_function_fdf *UNUSED(
 
 	if (delta_f < 0) {
 		double del = GSL_MAX_DBL(-delta_f, 10 * GSL_DBL_EPSILON * fabs(f0));
+
 		alpha1 = GSL_MIN_DBL(1.0, 2.0 * del / (-state->fp0));
 	} else {
 		alpha1 = fabs(state->step);

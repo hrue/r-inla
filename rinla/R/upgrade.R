@@ -5,19 +5,39 @@
 #' Function to upgrade the `INLA`-package to the most recent version
 #' 
 #' @aliases inla.upgrade inla.update
-#' @param ... Arguments not used
+#' @param ... `testing=TRUE` installs the newest release of any kind,
+#'   prereleases included, instead of the one marked "Latest" on GitHub.
+#'   The default installs the stable release.
 #' @return `inla.upgrade` returns nothing
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @seealso `update.packages`
 #' @rdname upgrade
 #' @export
-`inla.update` <- function(channel = c("stable", "testing"), ...) {
+`inla.update` <- function(...) {
     ## Same two channels as inla.stiles.install(), so the R package and the
-    ## binary can be kept on the same one. They are separate downloads: the
-    ## channel here chooses which RELEASE's R tarball to install, and the
-    ## channel there chooses which release's binary. Mixing them is allowed
-    ## (Config/INLA/BinaryVersion then reports the mismatch) but rarely wanted.
-    channel <- match.arg(channel)
+    ## binary can be kept on the same one. They are separate downloads: this
+    ## chooses which RELEASE's R tarball to install, the tag there chooses
+    ## which release's binary. Mixing them is allowed (the version check then
+    ## reports the mismatch) but rarely wanted.
+    args <- list(...)
+    ## Reject unknown names rather than drop them. A value read out of `...`
+    ## is invisible when misspelled, so inla.update(testng = TRUE) would
+    ## quietly install stable and look like it had worked. That already
+    ## happened once here, with an argument that was accepted and ignored.
+    nms <- if (is.null(names(args))) rep("", length(args)) else names(args)
+    if (length(args) && any(!nzchar(nms))) {
+        stop("arguments must be named: inla.update(testing = TRUE).", call. = FALSE)
+    }
+    unknown <- setdiff(nms, "testing")
+    if (length(unknown)) {
+        stop("unknown argument", if (length(unknown) > 1L) "s" else "", ": ",
+             paste(unknown, collapse = ", "), ". Only `testing` is used.",
+             call. = FALSE)
+    }
+    testing <- if (is.null(args$testing)) FALSE else args$testing
+    if (!is.logical(testing) || length(testing) != 1L || is.na(testing)) {
+        stop("`testing` must be TRUE or FALSE.", call. = FALSE)
+    }
     ## Install the RELEASE TARBALL, not the repository.
     ##
     ## remotes::install_github() unpacks the raw repository, which carries ~211
@@ -36,10 +56,10 @@
         ##           prereleases and can be pointed at any older build.
         ## testing = the newest release of any kind. /releases is ordered
         ##           newest first and does not skip prereleases.
-        api <- if (channel == "stable") {
-            paste0("https://api.github.com/repos/", repo, "/releases/latest")
-        } else {
+        api <- if (testing) {
             paste0("https://api.github.com/repos/", repo, "/releases?per_page=1")
+        } else {
+            paste0("https://api.github.com/repos/", repo, "/releases/latest")
         }
         js <- paste(readLines(api, warn = FALSE), collapse = "")
         m <- regmatches(js, gregexpr('"browser_download_url"[^"]*"[^"]+"', js))[[1]]

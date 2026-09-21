@@ -54,6 +54,7 @@ __END_DECLS
 #       include <ltdl.h>
 typedef void *SEXP;
 typedef ptrdiff_t R_xlen_t;
+
 #       define REALSXP 14				       /* SEXPTYPE values are fixed in R's ABI */
 #       define STRSXP  16
 #       ifndef TRUE
@@ -103,6 +104,7 @@ static uintptr_t *p_R_CStackLimit;
 static void *inla_R_dlsym_(const char *name, const char *alt)
 {
 	void *p = (void *) lt_dlsym(R_dlhandle, name);
+
 	if (!p && alt) {
 		p = (void *) lt_dlsym(R_dlhandle, alt);
 	}
@@ -126,6 +128,7 @@ static void inla_R_dlopen_(void)
 	// Global loading: shared objects that R loads later (packages)
 	// resolve their R symbols from the global namespace.
 	lt_dladvise advise;
+
 	lt_dladvise_init(&advise);
 	lt_dladvise_global(&advise);
 	// let libltdl append the platform's own extension: .so, .dylib, .dll
@@ -134,8 +137,10 @@ static void inla_R_dlopen_(void)
 	// where R keeps its library, per platform layout
 	static const char *rel[] = { "lib/libR", "bin/x64/R", "bin/R", NULL };
 	char *rhome = getenv((const char *) "R_HOME");
+
 	for (int i = 0; rhome && rel[i] && !R_dlhandle; i++) {
 		char *path = NULL;
+
 		GMRFLib_sprintf(&path, "%s/%s", rhome, rel[i]);
 		R_dlhandle = lt_dlopenadvise(path, advise);
 	}
@@ -191,6 +196,7 @@ double Rf_bessel_k(double x, double alpha, double expo)
 void Rf_error(const char *fmt, ...)
 {
 	va_list ap;
+
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
@@ -222,6 +228,7 @@ int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *
 	}
 
 	int ret = 0;
+
 #       pragma omp critical (Name_95227b3fc78ae25be9b977b6385cae68f179f781)
 	{
 		R_rgeneric_cputime -= GMRFLib_timer();
@@ -333,6 +340,7 @@ int inla_R_init_(void)
 
 			// Check if R_HOME is set. If not, try to guess it, otherwise fail.
 			char *rhome = (R_home ? R_home : getenv((const char *) "R_HOME"));
+
 			if (!rhome || (rhome && (my_dir_exists(rhome) != INLA_OK))) {
 				if (my_dir_exists("/Library/Frameworks/R.framework/Resources") == INLA_OK) {
 					GMRFLib_sprintf(&rhome, "R_HOME=/Library/Frameworks/R.framework/Resources");
@@ -359,6 +367,7 @@ int inla_R_init_(void)
 				my_setenv(rhome, 0);
 			} else {
 				char *rrhome = NULL;
+
 				GMRFLib_sprintf(&rrhome, "R_HOME=%s", rhome);
 				my_setenv(rrhome, 0);
 			}
@@ -368,6 +377,7 @@ int inla_R_init_(void)
 			inla_R_dlopen_();
 #       endif
 			char *Rargv[4];
+
 			Rargv[0] = Strdup("REmbeddedPostgres");
 			Rargv[1] = Strdup("--gui=none");
 			Rargv[2] = Strdup("--vanilla");
@@ -383,10 +393,13 @@ int inla_R_init_(void)
 			R_CStackLimit = (uintptr_t) (-1);
 
 			char *filename = NULL;
+
 			GMRFLib_sprintf(&filename, "%s/inla_rgeneric_wrapper_XXXXXX", GMRFLib_tmpdir);
 			int fd = mkstemp(filename);
+
 			close(fd);
 			FILE *fp = fopen(filename, "w");
+
 			if (R_debug) {
 				fprintf(fp, "base::searchpaths()\n");
 				fprintf(fp, "utils::sessionInfo()\n");
@@ -576,6 +589,7 @@ int inla_R_funcall2_(int *n_out, double **x_out, const char *function, const cha
 	}
 	if (tag) {
 		SEXP yy = PROTECT(mkString(tag));
+
 		e = PROTECT(lang3(install(function), yy, xx));
 	} else {
 		e = PROTECT(lang2(install(function), xx));
@@ -793,8 +807,10 @@ void *inla_R_vector_of_strings(int n, char **s)
 	}
 
 	SEXP sexp = PROTECT(allocVector(STRSXP, n));
+
 	for (int i = 0; i < n; i++) {
 		SEXP str = PROTECT(mkChar(s[i]));
+
 		SET_STRING_ELT(sexp, i, str);
 	}
 

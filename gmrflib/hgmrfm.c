@@ -126,8 +126,10 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 		 * make the weights for the computation, taken into account that the default weight is 1.0 
 		 */
 		ww = Calloc(nf, double *);
+
 		for (k = 0; k < nf; k++) {
 			ww[k] = Calloc(n, double);
+
 			if (w && w[k]) {
 				Memcpy(ww[k], w[k], n * sizeof(double));
 			} else {
@@ -143,6 +145,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 	 */
 	if (Aext_fnm) {
 		double **lprec_omp = NULL;
+
 		HYPER_NEW_LOCAL(lprec_omp, log(Aext_precision));
 		GMRFLib_tabulate_Qfunc_from_file(&(arg->eta_ext_Q), &(arg->eta_ext_graph), Aext_fnm, -1, lprec_omp);
 		GMRFLib_ASSERT(arg->eta_ext_graph->n == n + n_ext, GMRFLib_EPARAMETER);	/* this is required!!!!! */
@@ -163,6 +166,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 
 	if (nf) {
 		idx_map_f = Calloc(nf + 1, int);
+
 		for (i = 0; i < nf; i++) {
 			idx_map_f[i] = offset;
 			offset += f_graph[i]->n;
@@ -171,6 +175,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 	}
 	if (nbeta) {
 		idx_map_beta = Calloc(nbeta + 1, int);
+
 		for (i = 0; i < nbeta; i++) {
 			idx_map_beta[i] = offset;
 			offset++;
@@ -204,6 +209,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 		assert(arg->eta_ext_graph);
 
 		GMRFLib_graph_tp *g = arg->eta_ext_graph;
+
 		for (i = 0; i < g->n; i++) {
 			SET_ELEMENT_FORCE(i, i, 0.0, 0);
 			for (j = 0; j < g->nnbs[i]; j++) {
@@ -238,10 +244,12 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 		fidx = Calloc(nf, int **);
 		nfidx = Calloc(nf, int *);
 		lfidx = Calloc(nf, int *);
+
 		for (k = 0; k < nf; k++) {
 			fidx[k] = Calloc(f_graph[k]->n, int *);
 			nfidx[k] = Calloc(f_graph[k]->n, int);
 			lfidx[k] = Calloc(f_graph[k]->n, int);
+
 			for (m = 0; m < f_graph[k]->n; m++) {
 				nfidx[k][m] = 0;
 				lfidx[k][m] = 0;	       /* initalise to zero length to minimise storage */
@@ -250,6 +258,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 		}
 		for (k = 0; k < nf; k++) {
 			int lenf = f_graph[k]->n;
+
 			for (i = 0; i < n; i++) {
 				m = c[k][i];
 				if (LEGAL(m, lenf)) {
@@ -265,6 +274,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 	}
 
 	int max_threads = IMIN(5, GMRFLib_openmp->max_threads_outer);
+
 #pragma omp parallel sections num_threads(max_threads)
 	{
 #pragma omp section
@@ -403,6 +413,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 #pragma omp parallel for private(k, l, value, ii, i) num_threads(GMRFLib_openmp->max_threads_outer)
 				for (k = 0; k < f_graph[j]->n; k++) {
 					int thread = omp_get_thread_num();
+
 					for (l = 0; l < f_graph[m]->n; l++) {
 						value = 0.0;
 						if (nfidx[j][k] < nfidx[m][l]) {
@@ -531,6 +542,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 	 * now it is time to create the full graph by inserting the ones from the ffields.
 	 */
 	GMRFLib_ged_tp *ged = NULL;
+
 	GMRFLib_ged_init(&ged, arg->eta_graph);
 	if (nf) {
 		for (j = 0; j < nf; j++) {
@@ -546,6 +558,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 	 * build the constraint, if any. Only simple sum-to-zero constraints are supported.
 	 */
 	int nconstr = 0;
+
 	if (nf && f_sumzero) {
 		for (k = 0; k < nf; k++) {
 			nconstr += (f_sumzero[k] ? 1 : 0);
@@ -566,9 +579,11 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 	if (nconstr) {
 		GMRFLib_constr_tp *constr = NULL;
 		int constr_no;
+
 		GMRFLib_make_empty_constr(&constr);
 		constr->a_matrix = Calloc((*hgmrfm)->graph->n * nconstr, double);
 		constr->e_vector = Calloc(nconstr, double);
+
 		constr->nc = nconstr;
 		constr_no = 0;
 		if (nf && f_sumzero) {
@@ -656,6 +671,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 		GMRFLib_printf_graph(stdout, h->graph);
 
 		int nn = h->graph->n;
+
 		if (h->constr && h->constr->nc) {
 			for (j = 0; j < h->constr->nc; j++) {
 				printf("constr %d\n", j);
@@ -668,6 +684,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 		}
 
 		int thread_id = 0;
+
 		assert(omp_get_thread_num() == 0);
 		GMRFLib_printf_Qfunc(thread_id, stdout, h->graph, h->Qfunc, h->Qfunc_arg);
 	}
@@ -676,6 +693,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp *a)

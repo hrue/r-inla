@@ -77,12 +77,14 @@ static int POSSIBLY_UNUSED(IPOW3) (int ix) {
 #       pragma omp declare simd
 static double POSSIBLY_UNUSED(POW4) (double x) {
 	double xx = x * x;
+
 	return (xx * xx);
 }
 
 #       pragma omp declare simd
 static int POSSIBLY_UNUSED(IPOW4) (int ix) {
 	int ixx = ix * ix;
+
 	return (ixx * ixx);
 }
 
@@ -306,7 +308,6 @@ typedef enum {
 #              define GMRFLib_CACHE_HITMISS_INIT()
 #              define GMRFLib_CACHE_HITMISS_CHECK(val_, idx_, ptr_) val_ = 0
 #       endif
-
 
 #       if defined(INLA_WITH_DEVEL)
 #              define GMRFLib_DEBUG_IF_TRUE() (debug_)
@@ -620,7 +621,6 @@ typedef enum {
 		}							\
 	}
 
-
 #       define GMRFLib_CACHE_LEN() GMRFLib_CACHE_LEN_NUMA()
 #       define GMRFLib_CACHE_SET_IDX(__id) GMRFLib_CACHE_SET_IDX_NUMA(__id)
 
@@ -700,7 +700,6 @@ typedef enum {
 		}							\
 		Free(work__);						\
         }
-
 
 #       define RUN_CODE_BLOCK_GUIDED(thread_max_, n_work_, len_work_)		\
 	if (1) {							\
@@ -839,7 +838,6 @@ typedef enum {
 		Free(work__);						\
         }
 
-
 #       define GMRFLib_INT_NUM_POINTS   (45)		       /* number of points for integration,... */
 #       define GMRFLib_INT_NUM_INTERPOL  (3)		       /* ...which are then interpolated: use 2 or 3 */
 #       define GMRFLib_INT_GHQ_POINTS   (15)		       /* MUST BE ODD!!!! for the quadrature */
@@ -905,17 +903,17 @@ typedef enum {
 
 // from https://en.wikipedia.org/wiki/Inline_function
 #       ifdef _MSC_VER
-#              define forceinline __forceinline
+#              define FORCEINLINE __forceinline
 #       elif defined(__GNUC__)
-#              define forceinline inline __attribute__((__always_inline__))
+#              define FORCEINLINE inline __attribute__((__always_inline__))
 #       elif defined(__CLANG__)
 #              if __has_attribute(__always_inline__)
-#                     define forceinline inline __attribute__((__always_inline__))
+#                     define FORCEINLINE inline __attribute__((__always_inline__))
 #              else
-#                     define forceinline inline
+#                     define FORCEINLINE inline
 #              endif
 #       else
-#              define forceinline inline
+#              define FORCEINLINE inline
 #       endif
 
 /* 

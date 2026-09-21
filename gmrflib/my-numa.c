@@ -19,6 +19,7 @@
 static int POSSIBLY_UNUSED(NUMA_have) = -1;		       // we have (=1) NUMA support or not (=0)
 static int POSSIBLY_UNUSED(NUMA_nodes) = -1;		       // number of NUMA nodes. =1 if no NUMA */
 static int NUMA_enable = 1;				       // if not enabled, then all NUMA support is disabled (and we return
+
 							       // to the behaviour as if INLA_WITH_NUMA was not defined)
 #include "my-numa.h"
 
@@ -83,6 +84,7 @@ int GMRFLib_numa_have(void)
 int GMRFLib_numa_get_node(void)
 {
 	int nnode = 0;
+
 	GMRFLib_numa_get(NULL, &nnode);
 	return nnode;
 }
@@ -90,8 +92,10 @@ int GMRFLib_numa_get_node(void)
 void GMRFLib_numa_get(int *cpu, int *numa_node)
 {
 	unsigned int unode;
+
 	if (cpu) {
 		unsigned int ucpu;
+
 		getcpu(&ucpu, &unode);
 		*cpu = (int) ucpu;
 	} else {
@@ -116,6 +120,7 @@ int GMRFLib_numa_node_of_ptr(void *ptr)
 {
 	if (NUMA_enable) {
 		int numa_node = -1;
+
 		if (NUMA_have == 1) {
 			get_mempolicy(&numa_node, NULL, 0, (void *) ptr, MPOL_F_NODE | MPOL_F_ADDR);
 		}
@@ -130,8 +135,10 @@ int GMRFLib_numa_cache_hitmiss_core(void *ptr, int numa, const char *filename, i
 	// return -1 if not in use, 0=hit, 1=miss
 	if (NUMA_enable) {
 		int numa_ptr = GMRFLib_numa_node_of_ptr(ptr);
+
 		if (numa_ptr >= 0) {
 			char *nm = NULL;
+
 			GMRFLib_sprintf(&nm, "%s:%1d", filename, lineno);
 			if (GMRFLib_trace_cache_hitmiss((const char *) nm)) {
 				return (numa == numa_ptr ? 0 : 1);
@@ -174,10 +181,10 @@ void GMRFLib_numa_set_ctl(int UNUSED(enable))
 	NUMA_enable = 0;
 }
 
-
 int GMRFLib_numa_get_node(void)
 {
 	int nnode = 0;
+
 	GMRFLib_numa_get(NULL, &nnode);
 	return nnode;
 }
@@ -235,7 +242,6 @@ int GMRFLib_numa_cache_hitmiss_core(void *UNUSED(ptr), int UNUSED(numa), const c
 
 #endif
 
-
 #if defined(INLA_WITH_HWLOC)
 #       include <hwloc.h>
 
@@ -250,10 +256,13 @@ size_t GMRFLib_get_L3_cache(void)
 	hwloc_topology_load(topology);
 
 	int depth = hwloc_topology_get_depth(topology);
+
 	for (int i = 0; i < depth; i++) {
 		int num_objs = hwloc_get_nbobjs_by_depth(topology, i);
+
 		for (int j = 0; j < num_objs && l3 == 0; j++) {
 			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology, i, j);
+
 			if (obj->type == HWLOC_OBJ_L3CACHE &&
 			    (obj->attr->cache.type == HWLOC_OBJ_CACHE_UNIFIED || obj->attr->cache.type == HWLOC_OBJ_CACHE_DATA)) {
 				l3 = (size_t) (obj->attr->cache.size / ISQR(1024));

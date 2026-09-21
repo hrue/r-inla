@@ -80,6 +80,7 @@ int GMRFLib_bitmap_graph(const char *filename_body, int *remap, GMRFLib_graph_tp
 	char *filename = NULL;
 
 	mapping = Calloc(graph->n, int);
+
 	for (i = 0; i < graph->n; i++) {
 		mapping[i] = i;
 	}

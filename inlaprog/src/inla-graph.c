@@ -242,6 +242,7 @@ int inla_make_group_graph(GMRFLib_graph_tp **new_graph, GMRFLib_graph_tp *graph,
 		assert(group_graph);
 		for (i = 0; i < group_graph->n; i++) {
 			int jj;
+
 			for (jj = 0; jj < group_graph->lnnbs[i]; jj++) {
 				j = group_graph->lnbs[i][jj];
 				GMRFLib_ged_insert_graph2(ged, graph, i * n, j * n);
@@ -266,6 +267,7 @@ int inla_make_group_graph(GMRFLib_graph_tp **new_graph, GMRFLib_graph_tp *graph,
 
 	if (0) {
 		FILE *fp = fopen("g.dat", "w");
+
 		GMRFLib_printf_graph(fp, new_graph[0]);
 		fclose(fp);
 	}

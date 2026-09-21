@@ -449,6 +449,7 @@ char *iniparser_getline(FILE *fp)
 
 	len_buf = BUFSIZ;
 	buf = Calloc(len_buf, char);
+
 	buf[0] = '\0';
 
 	do {
@@ -479,6 +480,7 @@ char *iniparser_getline(FILE *fp)
 
 	return buf;
 }
+
 dictionary *iniparser_load(const char *ininame)
 {
 	dictionary *d = NULL;
@@ -507,6 +509,7 @@ dictionary *iniparser_load(const char *ininame)
 			sec = Calloc(strlen(lin) + 1, char);
 			key = Calloc(strlen(lin) + 1, char);
 			val = Calloc(strlen(lin) + 1, char);
+
 			len_str = strlen(lin) + 1;
 		} else {
 			if (strlen(lin) + 1 > len_str) {

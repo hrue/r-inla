@@ -24,7 +24,6 @@ extern "C" {
 
 	static const char *sTiles_VERSION_STRING = "No sTiles version";
 
-
 	const char *sTiles_get_version(void) EMPTY_FUNCTION_RETURN(sTiles_VERSION_STRING);
 	double sTiles_GetGroupMemoryUsage(int) EMPTY_FUNCTION_ERROR;
 	double sTiles_GetGroupsMemoryUsage(void) EMPTY_FUNCTION_ERROR;

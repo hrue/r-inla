@@ -55,22 +55,24 @@ LIBOBJ = problem-setup.o lapack-interface.o graph.o error-handler.o acm582.o \
 	distributions.o globals.o random.o timer.o hash.o density.o \
 	smtp-band.o smtp-taucs.o smtp-stiles.o sparse-interface.o rw.o \
 	bitmap.o tabulate-Qfunc.o io.o approx-inference.o ghq.o \
-	utils.o simd.o idxval.o dot.o graph-edit.o domin-interface.o \
+	utils.o idxval.o dot.o graph-edit.o domin-interface.o \
 	design.o version.o integrator.o openmp.o hgmrfm.o seasonal.o matern.o \
 	bfgs3.o bfgs4.o fmesher-io.o interpol.o pre-opt.o cores.o \
 	approx-inference--classic.o high-prec-timer.o fsort.o mingw.o moments.o sn-g.o \
 	cacheline.o my-numa.o no-stiles.o alloc.o fit-sn.o sha.o
+LIBOBJFM = fast-math/fm.o
 HEADERS = blockupdate.h GMRFLib.h  optimize.h hash.h \
 	distributions.h GMRFLibP.h lapack-interface.h timer.h \
 	problem-setup.h error-handler.h globals.h graph.h random.h \
 	smtp-band.h smtp-taucs.h smtp-stiles.h sparse-interface.h rw.h \
 	bitmap.h hashP.h taucsP.h taucs_privateP.h ghq.h no-stiles.h \
 	tabulate-Qfunc.h io.h moments.h amdP.h remap-cache.h sha.h \
-	approx-inference.h density.h utils.h simd.h idxval.h dot.h graph-edit.h \
+	approx-inference.h density.h utils.h idxval.h dot.h graph-edit.h \
 	domin-interface.h design.h version.h integrator.h openmp.h \
 	init.h hgmrfm.h seasonal.h matern.h bfgs3.h bfgs4.h fmesher-io.h \
 	interpol.h pre-opt.h cores.h fsort.h sn-g.h sn-g-tables.h my-numa.h alloc.h fit-sn.h
 
+HEADERSFM = fast-math/fm.h
 HEADERS1 = fsort/fluxsort.c fsort/fluxsort.h fsort/quadsort.c fsort/quadsort.h 
 
 EXAMPLES = examples/Makefile examples/Makefile.in \
@@ -88,24 +90,54 @@ EXAMPLES = examples/Makefile examples/Makefile.in \
 	examples/example-hgmrfm-2.c
 MAKEFILESIN = examples/Makefile.in tutorial/Makefile.in
 
-ALL = $(LIBNAME) $(MAKEFILESIN)
+ALL = $(LIBNAME) 
 
 all : $(ALL)
 
 ## in the case we use g++ for gcc
-$(LIBNAME) : $(LIBOBJ)
+$(LIBNAME) : $(LIBOBJ) $(LIBOBJFM)
 ifeq ($(CC), $(CXX))
 	$(MAKE) -C taucs CC="gcc" FC="$(FC)" CFLAGS="$(CFLAGS)" FFLAGS="$(FFLAGS)" libtaucs.a
 else
 	$(MAKE) -C taucs CC="$(CC)" FC="$(FC)" CFLAGS="$(CFLAGS)" FFLAGS="$(FFLAGS)" libtaucs.a
 endif
-	$(AR) cr $(LIBNAME) $(LIBOBJ)
+	$(AR) cr $(LIBNAME) $(LIBOBJ) $(LIBOBJFM)
 ##	ranlib $@
+
+## -iquote, not -I: these sources live one directory down, so they need a
+## path to reach "GMRFLib/GMRFLib.h", but this directory also holds io.h,
+## and mingw's unistd.h does #include <io.h> expecting the SYSTEM one. As -I
+## that shadows it and ftruncate loses _chsize. -iquote is searched only for
+## "quoted" includes, which is exactly what these files use.
+FMFLAGS := -DINLA_WITH_CLONE_TARGETS -iquote . -fopenmp-simd -O3 -ffast-math
+ifneq ($(filter -DINLA_WITH_MKL,$(FFLAGS)),)
+FMFLAGS := -DINLA_WITH_MKL $(FMFLAGS)
+endif
+ifneq ($(filter -DINLA_WITH_FRAMEWORK_ACCELERATE,$(FFLAGS)),)
+FMFLAGS := -DINLA_WITH_FRAMEWORK_ACCELERATE $(FMFLAGS)
+endif
+ifneq ($(filter -DINLA_WITH_ARMPL,$(FFLAGS)),)
+FMFLAGS := -DINLA_WITH_ARMPL $(FMFLAGS)
+endif
+ifneq ($(filter -DINLA_WITH_OPENBLAS,$(FFLAGS)),)
+FMFLAGS := -DINLA_WITH_OPENBLAS $(FMFLAGS)
+endif
+## Each -DINLA_WITH_<backend> above has a matching -I that arrives in the same
+## variable (ci/build.sh sets BLAS_INC="-DINLA_WITH_ARMPL -I$ARMPL_DIR/include"),
+## so copying the define without the include path gives these files a backend
+## they cannot find the headers for. MKL and OpenBLAS hide the bug by living on
+## the default search path; ARMPL does not, and idxval.h then fails on
+## armpl_sparse.h. Carry every -I across, and nothing else: the point of this
+## rule is that -ffast-math applies HERE and nowhere else.
+FMFLAGS := $(FMFLAGS) $(filter -I%,$(FFLAGS))
+fast-math/%.o: fast-math/%.c
+	$(CC) -c $(FMFLAGS) -o $@ $<
+
 
 # !!! Do not change! /FL
 DEPDIR = .deps/.dummy
 $(DEPDIR):
-	-mkdir $(dir $(DEPDIR))
+	test -d $(dir $(DEPDIR)) || mkdir -p $(dir $(DEPDIR))
 	touch $(DEPDIR)
 
 %.o: %.c $(DEPDIR)
@@ -174,6 +206,10 @@ install: $(ALL)
 	 for header in $(HEADERS1); do \
 		$(INSTALL) -m$$mode $$header $(PREFIX)/include/GMRFLib/fsort; \
 	 done; \
+	 mkdir -p $(PREFIX)/include/GMRFLib/fast-math; \
+	 for header in $(HEADERSFM); do \
+		$(INSTALL) -m$$mode $$header $(PREFIX)/include/GMRFLib/fast-math; \
+	 done; \
 	 for ex in $(EXAMPLES); do \
 	    $(INSTALL) -m$$mode $$ex $(PREFIX)/doc/GMRFLib/examples; \
 	 done;\
@@ -194,7 +230,7 @@ uninstall:
 	-for ex     in $(EXAMPLES); do $(RM) $(PREFIX)/doc/GMRFLib/$$ex; done
 	-$(RMDIR) $(PREFIX)/include/GMRFLib
 
-clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(MAKEFILESIN); $(MAKE) -C taucs clean
+clean:; -$(RM) $(LIBOBJ) $(LIBOBJFM) $(LIBOBJG) $(LIBNAME) $(MAKEFILESIN); $(MAKE) -C taucs clean
 clean-doc:
 	-$(RMR) doc/
 	-$(RM) example-doxygen-*.txt
@@ -205,7 +241,7 @@ depend: $(dir $(DEPDIR))dependencies.d
 $(dir $(DEPDIR))dependencies.d: Makefile $(DEPDIR) $(wildcard *.c)
 	-$(RM) $(dir $(DEPDIR))dependencies.d
 	touch $(dir $(DEPDIR))dependencies.d
-	for file in *.c *.h ; do \
+	for file in *.c *.h; do \
           if [ -n "`grep GITCOMMIT $$file`" ]; then \
 	    echo $$file | \
 	      $(SED) 's/\(.*\)\(\.[hc]\)$$/\1\.o: gitstamp/' \

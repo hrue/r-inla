@@ -57,11 +57,13 @@ typedef int64_t S64;
 typedef unsigned char BYTE;
 typedef unsigned char U8;
 typedef signed char S8;
+
 #              if USHRT_MAX != 65535
 #                     error "this implementation requires short to be exactly 16-bit type"
 #              endif
 typedef unsigned short U16;
 typedef signed short S16;
+
 #              if UINT_MAX != 4294967295
 #                     error "this implementation requires int to be exactly 32-bit type"
 #              endif

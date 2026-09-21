@@ -106,6 +106,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 		// s->spline = gsl_spline_alloc((nn <= 2 ? gsl_interp_linear : gsl_interp_akima), (unsigned int) nn);
 	}
 	int ecode = gsl_spline_init(s->spline, xx, yy, (unsigned int) nn);
+
 	assert(ecode == GSL_SUCCESS);
 	Malloc_free();
 
@@ -145,6 +146,7 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp *s)
 	xx = TRUNCATE(xx_raw, s->xmin, s->xmax);
 
 	int tnum = 0;
+
 	switch (s->cache) {
 	case GMRFLib_INTPOL_CACHE_LEVEL12:
 		GMRFLib_CACHE_SET_IDX(tnum);
@@ -160,12 +162,14 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp *s)
 	}
 
 	gsl_interp_accel *acc = NULL;
+
 	if (s->accel) {
 		if (tnum >= 0 && tnum < s->cache_len) {
 			if (!(s->accel[tnum])) {
 #pragma omp critical (Name_4ebacac2070ee6e249766cf77276653b9f3b684d)
 				if (!(s->accel[tnum])) {
 					gsl_interp_accel *ac = gsl_interp_accel_alloc();
+
 					s->accel[tnum] = ac;
 				}
 			}
@@ -232,6 +236,7 @@ int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp *s, double *values
 	}
 
 	int tnum = 0;
+
 	switch (s->cache) {
 	case GMRFLib_INTPOL_CACHE_LEVEL12:
 		GMRFLib_CACHE_SET_IDX(tnum);
@@ -247,12 +252,14 @@ int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp *s, double *values
 	}
 
 	gsl_interp_accel *acc = NULL;
+
 	if (s->accel) {
 		if (tnum >= 0 && tnum < s->cache_len) {
 			if (!(s->accel[tnum])) {
 #pragma omp critical (Name_ab9a02f89e7e7b03314b34ac0715d9a6a335e0e2)
 				if (!(s->accel[tnum])) {
 					gsl_interp_accel *ac = gsl_interp_accel_alloc();
+
 					s->accel[tnum] = ac;
 				}
 			}
@@ -285,6 +292,7 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 	double val = 0.0;
 
 	int tnum = 0;
+
 	switch (s->cache) {
 	case GMRFLib_INTPOL_CACHE_LEVEL12:
 		GMRFLib_CACHE_SET_IDX(tnum);
@@ -300,12 +308,14 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 	}
 
 	gsl_interp_accel *acc = NULL;
+
 	if (s->accel) {
 		if (tnum >= 0 && tnum < s->cache_len) {
 			if (!(s->accel[tnum])) {
 #pragma omp critical (Name_bcc8a7f7a416bde91e4459c229fc294985c3674c)
 				if (!(s->accel[tnum])) {
 					gsl_interp_accel *ac = gsl_interp_accel_alloc();
+
 					s->accel[tnum] = ac;
 				}
 			}
@@ -317,8 +327,10 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 		val = gsl_spline_eval_deriv(s->spline, TRUNCATE(x, s->xmin, s->xmax), acc);
 	} else if (s->trans == GMRFLib_INTPOL_TRANS_Pinv) {
 		double xx = GMRFLib_logit(x);
+
 		val = gsl_spline_eval_deriv(s->spline, TRUNCATE(xx, s->xmin, s->xmax), acc);
 		double em = exp(-xx);
+
 		val *= (em + 2.0 + 1.0 / em);
 	} else {
 		assert(0 == 1);
@@ -335,10 +347,12 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp *s)
 	// not yet implemented, I'm not sure I need this for P and Pinv
 	assert(s->trans == GMRFLib_INTPOL_TRANS_NONE);
 	double val;
+
 	if (x < s->xmin || x > s->xmax) {
 		val = NAN;
 	} else {
 		int tnum = 0;
+
 		switch (s->cache) {
 		case GMRFLib_INTPOL_CACHE_LEVEL12:
 			GMRFLib_CACHE_SET_IDX(tnum);
@@ -354,12 +368,14 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp *s)
 		}
 
 		gsl_interp_accel *acc = NULL;
+
 		if (s->accel) {
 			if (tnum >= 0 && tnum < s->cache_len) {
 				if (!(s->accel[tnum])) {
 #pragma omp critical (Name_7db308fb16056e07320f9aa74e5445c74a6f298f)
 					if (!(s->accel[tnum])) {
 						gsl_interp_accel *ac = gsl_interp_accel_alloc();
+
 						s->accel[tnum] = ac;
 					}
 				}
@@ -376,10 +392,12 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp *s)
 {
 	// this expert version do not check for 's->trans'
 	double val;
+
 	if (x < s->xmin || x > s->xmax) {
 		val = NAN;
 	} else {
 		int tnum = 0;
+
 		switch (s->cache) {
 		case GMRFLib_INTPOL_CACHE_LEVEL12:
 			GMRFLib_CACHE_SET_IDX(tnum);
@@ -395,12 +413,14 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp *s)
 		}
 
 		gsl_interp_accel *acc = NULL;
+
 		if (s->accel) {
 			if (tnum >= 0 && tnum < s->cache_len) {
 				if (!(s->accel[tnum])) {
 #pragma omp critical (Name_8c1f6a9b1676b904f0235f5d9f3817343bf0b5d3)
 					if (!(s->accel[tnum])) {
 						gsl_interp_accel *ac = gsl_interp_accel_alloc();
+
 						s->accel[tnum] = ac;
 					}
 				}
@@ -416,10 +436,12 @@ double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp *s)
 {
 	// this expert version do not check for 's->trans'
 	double val;
+
 	if (x < s->xmin || x > s->xmax) {
 		val = NAN;
 	} else {
 		int tnum = 0;
+
 		switch (s->cache) {
 		case GMRFLib_INTPOL_CACHE_LEVEL12:
 			GMRFLib_CACHE_SET_IDX(tnum);
@@ -435,12 +457,14 @@ double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp *s)
 		}
 
 		gsl_interp_accel *acc = NULL;
+
 		if (s->accel) {
 			if (tnum >= 0 && tnum < s->cache_len) {
 				if (!(s->accel[tnum])) {
 #pragma omp critical (Name_6c1aed3d698e547929f98757e8a8e32e2adc4b68)
 					if (!(s->accel[tnum])) {
 						gsl_interp_accel *ac = gsl_interp_accel_alloc();
+
 						s->accel[tnum] = ac;
 					}
 				}

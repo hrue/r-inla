@@ -19,10 +19,12 @@ int GMRFLib_set_blas_num_threads(int threads)
 	blas_num_threads = IMAX(1, threads);
 #if defined(INLA_WITH_MKL)
 	void MKL_Set_Num_Threads(int);
+
 	MKL_Set_Num_Threads(threads);
 #endif
 #if defined(INLA_WITH_OPENBLAS)
 	void openblas_set_num_threads(int);
+
 	openblas_set_num_threads(threads);
 #endif
 #if defined(INLA_WITH_ARMPL)
@@ -60,6 +62,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	}
 
 	static GMRFLib_smtp_tp smtp_store = GMRFLib_SMTP_DEFAULT;
+
 	if (smtp) {
 		smtp_store = *smtp;
 	}
@@ -439,7 +442,6 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	}
 	}
 
-
 	if (0) {
 		P(place);
 		if (place > GMRFLib_OPENMP_PLACES_NONE)
@@ -450,6 +452,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	}
 
 	int nested = (GMRFLib_openmp->max_threads_outer > 1 && GMRFLib_openmp->max_threads_inner > 1);
+
 	// P(nested);
 
 	// only set if changed
@@ -459,6 +462,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 	omp_sched_t kind;
 	int chunk_size;
+
 	omp_get_schedule(&kind, &chunk_size);
 	if (kind != GMRFLib_openmp->schedule || chunk_size != GMRFLib_openmp->chunk_size) {
 		omp_set_schedule(GMRFLib_openmp->schedule, GMRFLib_openmp->chunk_size);
@@ -472,6 +476,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	}
 
 	static char init_adapt_nt = 1;
+
 	if (init_adapt_nt) {
 		GMRFLib_adapt_nt_init(omp_max_max_nested());
 		init_adapt_nt = 0;
@@ -491,15 +496,18 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 void GMRFLib_openmp_chunk(int n, double *A_vec, double *b_vec)
 {
 	double *AA = Malloc(ISQR(n), double);
+
 	Memcpy(AA, A_vec, ISQR(n) * sizeof(double));
 	gsl_matrix_view m = gsl_matrix_view_array(AA, n, n);
 	gsl_vector_view b = gsl_vector_view_array(b_vec, n);
 	gsl_vector *x = gsl_vector_alloc(n);
 	int s;
+
 	for (int i = 0; i < n; i++) {
 		gsl_matrix_set(&m.matrix, i, i, n);
 	}
 	gsl_permutation *p = gsl_permutation_alloc(n);
+
 	gsl_linalg_LU_decomp(&m.matrix, p, &s);
 	gsl_linalg_LU_solve(&m.matrix, p, &b.vector, x);
 	gsl_permutation_free(p);
@@ -511,10 +519,12 @@ void GMRFLib_openmp_timing(void)
 {
 	int nmax = 18;
 	int m = 50;
+
 	// double s = 1.0E6;
 
 	double *A = Malloc(ISQR(nmax), double);
 	double *b = Malloc(nmax, double);
+
 	for (int i = 0; i < ISQR(nmax); i++) {
 		A[i] = GMRFLib_stdnormal();
 	}
@@ -524,9 +534,11 @@ void GMRFLib_openmp_timing(void)
 
 	int nt_def = GMRFLib_MAX_THREADS();
 	char *tag = Strdup("8117db4e4a6ae84f37bb33bd6760734bcf122e0b");
+
 	while (1) {
 		int nt = GMRFLib_adapt_nt_get(tag, 0, 0, nt_def);
 		double tref = -GMRFLib_timer();
+
 #pragma omp parallel for num_threads(nt) schedule(static)
 		for (int k = 0; k < m; k++) {
 			GMRFLib_openmp_chunk(nmax, A, b);
@@ -556,6 +568,7 @@ int GMRFLib_adapt_nt_get(char *tag, int thread_num, int level, int default_num_t
 {
 	void **p = map_strvp_ptr(adapt_nt[level][thread_num], tag);
 	GMRFLib_adapt_nt_tp *obj = NULL;
+
 	if (!p) {
 		obj = Calloc(1, GMRFLib_adapt_nt_tp);
 		obj->tag = Strdup(tag);
@@ -564,6 +577,7 @@ int GMRFLib_adapt_nt_get(char *tag, int thread_num, int level, int default_num_t
 		obj->max_nt = obj->best_nt = obj->try_nt = default_num_threads;
 		obj->ntimes = Calloc(1 + GMRFLib_MAX_THREADS(), double);
 		obj->acc_wtime = Calloc(1 + GMRFLib_MAX_THREADS(), double);
+
 		obj->done = (default_num_threads == 1 ? 1 : 0);
 		obj->step = (obj->max_nt >= 24 ? 8 : (obj->max_nt > 8 ? 4 : 2));
 		map_strvp_set(adapt_nt[level][thread_num], obj->tag, (void *) obj);
@@ -581,6 +595,7 @@ void GMRFLib_adapt_nt_update(char *tag, int thread_num, int level, double wtime)
 	if (GMRFLib_opt_num_threads) {
 		double fac = 1.0E6;
 		void **p = map_strvp_ptr(adapt_nt[level][thread_num], tag);
+
 		assert(p);
 		GMRFLib_adapt_nt_tp *obj = *((GMRFLib_adapt_nt_tp **) p);
 
@@ -608,6 +623,7 @@ void GMRFLib_adapt_nt_update(char *tag, int thread_num, int level, double wtime)
 		}
 
 		int allow_early_stop = 1;
+
 		if (allow_early_stop && (obj->ntimes[obj->try_nt] < obj->min_num_try) && (time_try > time_best)) {
 			// no point of trying more, abort early
 			if (debug) {
@@ -626,6 +642,7 @@ void GMRFLib_adapt_nt_update(char *tag, int thread_num, int level, double wtime)
 			} else {
 				if (time_try < time_best) {
 					int itmp = obj->try_nt;
+
 					obj->try_nt = IMAX(1, IMIN(obj->max_nt, itmp - obj->step));
 					obj->best_nt = itmp;
 					obj->step = (obj->best_nt >= 24 ? 8 : (obj->best_nt > 8 ? 4 : 2));
@@ -652,20 +669,25 @@ void GMRFLib_adapt_nt_print(FILE *fp)
 		fp = (fp ? fp : stdout);
 		fprintf(fp, "\nDump of adapt_nt\n");
 		double tot_save = 0.0;
+
 		for (int i = 0; i < adapt_nt_max_levels; i++) {
 			for (int j = 0; j <= GMRFLib_MAX_THREADS(); j++) {
 				if (adapt_nt[i][j]) {
 					map_strvp_storage *ptr = NULL;
+
 					for (ptr = NULL; (ptr = map_strvp_nextptr(adapt_nt[i][j], ptr)) != NULL;) {
 						GMRFLib_adapt_nt_tp *r = ((GMRFLib_adapt_nt_tp *) ptr->value);
+
 						if (r) {
 							double wtime = 0.0;
 							int ntimes = 0.0;
+
 							for (int k = 0; k <= r->max_nt; k++) {
 								wtime += r->acc_wtime[k];
 								ntimes += r->ntimes[k];
 							}
 							double tsave = (r->acc_wtime[r->max_nt] / r->ntimes[r->max_nt]) * ntimes - wtime;
+
 							fprintf(fp, "\t[%s][lev=%1d][th=%1d] best=%1d max=%1d wtime=%.3fs n=%1d (save=%.3fs)\n",
 								r->tag, i, j, r->best_nt, r->max_nt, wtime, ntimes, tsave);
 

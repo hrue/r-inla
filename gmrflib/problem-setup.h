@@ -95,7 +95,6 @@ __BEGIN_DECLS
 	int *jfirst;
 	int *jlen;
 
-
 	GMRFLib_idxval_tp **idxval;
 
 } GMRFLib_constr_tp;
@@ -318,7 +317,6 @@ struct GMRFLib_problem_struct {
 	 */
 	GMRFLib_Qinv_tp *sub_inverse;
 };
-
 
 /*!
   \brief To flag that the proposal was accepted

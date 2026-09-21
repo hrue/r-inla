@@ -11,7 +11,6 @@
 #              define __END_DECLS			       /* empty */
 #       endif
 
-
 #       if !defined(_GNU_SOURCE)
 #              define _GNU_SOURCE 1
 #       endif
@@ -67,6 +66,27 @@
 #              else
 #                     undef INLA_WITH_SIMDE_AVX512F_
 #              endif
+#       endif
+
+#       if defined(__cplusplus) || defined(__GNUC__) || defined(_MSC_VER)
+    // Use the compiler-extended version for C++ or flexible C compilers
+#              define RESTRICT __restrict
+#       elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+    // Use the standard keyword for C99+ compliant C compilers
+#              define RESTRICT restrict
+#       else
+    // Fall back to nothing for ancient compilers
+#              define RESTRICT
+#       endif
+
+#       if defined(__GNUC__) || defined(__clang__)
+    // Works on all versions of GCC/Clang and all standard levels (C89, C99, etc.)
+#              define NOINLINE __attribute__((noinline))
+#       elif defined(_MSC_VER)
+    // Works on all versions of MSVC
+#              define NOINLINE __declspec(noinline)
+#       else
+#              define NOINLINE
 #       endif
 
 /* ... */
@@ -130,7 +150,7 @@
 #       include "GMRFLib/fsort.h"
 #       include "GMRFLib/error-handler.h"
 #       include "GMRFLib/utils.h"
-#       include "GMRFLib/simd.h"
+#       include "GMRFLib/fast-math/fm.h"
 #       include "GMRFLib/idxval.h"
 #       include "GMRFLib/lapack-interface.h"
 #       include "GMRFLib/dot.h"

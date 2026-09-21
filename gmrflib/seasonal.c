@@ -60,6 +60,7 @@ int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp *def)
 
 	if (def->s == 1) {
 		def->prec_scale = Calloc(1, double);
+
 		def->prec_scale[0] = 1.0;
 		return GMRFLib_SUCCESS;
 	}
@@ -72,9 +73,11 @@ int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp *def)
 	assert(m > 0);
 
 	GMRFLib_graph_tp *graph = NULL;
+
 	GMRFLib_make_seasonal_graph(&graph, sdef);
 
 	GMRFLib_constr_tp *constr = NULL;
+
 	GMRFLib_make_empty_constr(&constr);
 
 	nc = constr->nc = s - 1;
@@ -93,6 +96,7 @@ int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp *def)
 	}
 
 	constr->e_vector = Calloc(nc, double);
+
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
 	double *c = Calloc(n, double), eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
@@ -139,10 +143,12 @@ int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp *def)
 	GMRFLib_Qinv(problem);
 
 	double sum = 0.0;
+
 	for (i = 0; i < n; i++) {
 		sum += log(*(GMRFLib_Qinv_get(problem, i, i)));
 	}
 	def->prec_scale = Calloc(1, double);
+
 	def->prec_scale[0] = exp(sum / n);
 
 	Free(c);
@@ -153,6 +159,7 @@ int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp *def)
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_make_seasonal_graph(GMRFLib_graph_tp **graph, GMRFLib_seasonaldef_tp *def)

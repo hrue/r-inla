@@ -14,6 +14,7 @@ void *mi_malloc(size_t size);
 void *mi_realloc(void *ptr, size_t size);
 void *mi_reallocarray(void *ptr, size_t n, size_t size);
 void mi_free(void *ptr);
+
 #       include <mimalloc-override.h>
 #endif
 
@@ -28,11 +29,10 @@ int GMRFLib_memory_alignment_enabled = 1;
 int GMRFLib_memory_alignment_enabled = 1;
 #endif
 
-
-
 void *malloc_intern(size_t size)
 {
 	void *p = malloc(size);
+
 	assert(p);
 	return p;
 }
@@ -40,8 +40,10 @@ void *malloc_intern(size_t size)
 void *amalloc_intern(size_t size)
 {
 	void *p = NULL;
+
 	if (GMRFLib_memory_alignment_enabled) {
 		size_t new_size = GMRFLib_align_len(size, 1);
+
 		p = aligned_alloc(GMRFLib_memory_alignment, new_size);
 	} else {
 		p = malloc(size);
@@ -53,6 +55,7 @@ void *amalloc_intern(size_t size)
 void *calloc_intern(size_t nmemb, size_t size)
 {
 	void *p = calloc(nmemb, size);
+
 	assert(p);
 	return p;
 }
@@ -60,9 +63,11 @@ void *calloc_intern(size_t nmemb, size_t size)
 void *acalloc_intern(size_t nmemb, size_t size)
 {
 	void *p = NULL;
+
 	if (GMRFLib_memory_alignment_enabled) {
 		size_t n = nmemb * size;
 		size_t nn = GMRFLib_align_len(n, 1);
+
 		p = aligned_alloc(GMRFLib_memory_alignment, nn);
 		assert(p);
 		Memset(p, 0, nn);
@@ -76,6 +81,7 @@ void *acalloc_intern(size_t nmemb, size_t size)
 void *realloc_intern(void *ptr, size_t size)
 {
 	void *p = NULL;
+
 	if (ptr) {
 		p = realloc(ptr, size);
 	} else {
@@ -88,6 +94,7 @@ void *realloc_intern(void *ptr, size_t size)
 void *arealloc_intern(void *ptr, size_t size)
 {
 	void *p = NULL;
+
 	if (!ptr) {
 		p = malloc_intern(size);
 	} else {
@@ -98,6 +105,7 @@ void *arealloc_intern(void *ptr, size_t size)
 			if (!GMRFLib_is_aligned(p)) {
 				size_t new_size = GMRFLib_align_len(size, 1);
 				void *pp = malloc_intern(new_size);
+
 				assert(pp);
 				Memcpy(pp, p, size);
 				Free(p);

@@ -35,14 +35,17 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	int thread_id = 0;
+
 	assert(omp_get_thread_num() == 0);
 
 	GMRFLib_stiles_idx_tp *stiles_idx = NULL;
+
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		stiles_idx = Calloc(1, GMRFLib_stiles_idx_tp);
 		stiles_idx->in_group = 0;
 		stiles_idx->within_group = 0;
 		GMRFLib_ptr_tp *graphs = NULL;
+
 		GMRFLib_ptr_add(&graphs, (void *) graph);
 		GMRFLib_stiles_setup_tp setup = { graphs, NULL };
 		GMRFLib_stiles_setup(&setup);
@@ -104,6 +107,7 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	 * I need B to be dense 
 	 */
 	GMRFLib_matrix_tp *B = GMRFLib_read_fmesher_file(Bfilename, (long int) 0, -1);
+
 	assert(B->i == NULL);				       /* I want B as dense matrix */
 
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL);
@@ -120,14 +124,17 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	}
 
 	int thread_id = 0;
+
 	assert(omp_get_thread_num() == 0);
 
 	GMRFLib_stiles_idx_tp *stiles_idx = NULL;
+
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		stiles_idx = Calloc(1, GMRFLib_stiles_idx_tp);
 		stiles_idx->in_group = 0;
 		stiles_idx->within_group = 0;
 		GMRFLib_ptr_tp *graphs = NULL;
+
 		GMRFLib_ptr_add(&graphs, (void *) graph);
 		GMRFLib_stiles_setup_tp setup = { graphs, NULL };
 		GMRFLib_stiles_setup(&setup);
@@ -171,6 +178,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		siz = ftell(fp) + 1;
 		rewind(fp);
 		state = Calloc(siz, char);
+
 		ret = fread((void *) state, (size_t) 1, siz, fp);
 		if (ret > 0) {
 			GMRFLib_uniform_setstate((void *) state);
@@ -245,14 +253,17 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	int thread_id = 0;
+
 	assert(omp_get_thread_num() == 0);
 
 	GMRFLib_stiles_idx_tp *stiles_idx = NULL;
+
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		stiles_idx = Calloc(1, GMRFLib_stiles_idx_tp);
 		stiles_idx->in_group = 0;
 		stiles_idx->within_group = 0;
 		GMRFLib_ptr_tp *graphs = NULL;
+
 		GMRFLib_ptr_add(&graphs, (void *) graph);
 		GMRFLib_stiles_setup_tp setup = { graphs, NULL };
 		GMRFLib_stiles_setup(&setup);
@@ -304,9 +315,11 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		}
 	} else {
 		GMRFLib_problem_tp **problems = Calloc(GMRFLib_openmp->max_threads_outer, GMRFLib_problem_tp *);
+
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < ns; i++) {
 			int thread = omp_get_thread_num();
+
 			if (problems[thread] == NULL) {
 				problems[thread] = GMRFLib_duplicate_problem(problem, 0, 1);
 			}
@@ -340,10 +353,12 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
 
 	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp);
+
 	CM->nrow = M->nrow - 1;
 	CM->ncol = 1;
 	CM->elems = CM->ncol * CM->nrow;
 	CM->A = Calloc(CM->nrow * CM->ncol, double);
+
 	if (!selection) {
 		Memcpy(CM->A, problem->mean_constr, graph->n * sizeof(double));
 	} else {
@@ -381,6 +396,7 @@ int inla_qreordering(const char *filename)
 
 	if (GMRFLib_is_fmesher_file(filename, (long int) 0, -1) == GMRFLib_SUCCESS) {
 		GMRFLib_tabulate_Qfunc_tp *qtab = NULL;
+
 		GMRFLib_tabulate_Qfunc_from_file(&qtab, &graph, filename, -1, NULL);
 		GMRFLib_free_tabulate_Qfunc(qtab);
 	} else {
@@ -391,6 +407,7 @@ int inla_qreordering(const char *filename)
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_sm_fact_tp sm_fact;
+
 	sm_fact.smtp = GMRFLib_SMTP_TAUCS;
 	GMRFLib_compute_reordering(&sm_fact, graph, NULL);
 
@@ -410,18 +427,21 @@ int inla_fgn(char *infile, char *outfile)
 	int i, k, len, K, nH;
 
 	GMRFLib_matrix_tp *Hm = GMRFLib_read_fmesher_file(infile, 0, -1);
+
 	assert(Hm->ncol == 1);
 	nH = Hm->nrow - 1;
 	assert(nH >= 1);
 	K = (int) GMRFLib_matrix_get(0, 0, Hm);		       // first element is K, then H's.
 	len = 2 * K + 1;
 	res = Calloc(nH * len, double);
+
 	for (i = k = 0; i < nH; i++, k += len) {
 		H = res[k] = GMRFLib_matrix_get(i + 1, 0, Hm);
 		H_intern = map_H(H, MAP_BACKWARD, NULL);
 		inla_fgn_get(&res[k + 1], &res[k + 1 + K], H_intern, K);
 	}
 	GMRFLib_matrix_tp *M = Calloc(1, GMRFLib_matrix_tp), *M_t = NULL;
+
 	M->ncol = nH;
 	M->nrow = len;
 	M->elems = M->nrow * M->ncol;

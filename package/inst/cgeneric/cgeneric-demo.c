@@ -17,6 +17,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	assert(!strcasecmp(data->ints[0]->name, "n"));	       // this will always be the case
 	int N = data->ints[0]->ints[0];			       // this will always be the case
+
 	assert(N > 0);
 
 	switch (cmd) {
@@ -33,6 +34,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 		int M = N;
 		ret = Malloc(2 + 2 * N, double);
+
 		assert(ret);
 		ret[0] = N;				       /* dimension */
 		ret[1] = M;				       /* number of (i <= j) */
@@ -48,6 +50,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// return c(-1, M, Qij) in the same order as defined in INLA_CGENERIC_GRAPH
 		int M = N;
 		ret = Malloc(2 + N, double);
+
 		assert(ret);
 		ret[0] = -1;				       /* REQUIRED! */
 		ret[1] = M;				       /* number of (i <= j) */
@@ -62,6 +65,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// return (N, mu)
 		// if N==0 then mu is not needed as its taken to be mu[]==0
 		ret = Malloc(1, double);
+
 		assert(ret);
 		ret[0] = 0;
 	}
@@ -72,6 +76,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// return c(M, initials)
 		// where M is the number of hyperparameters
 		ret = Malloc(2, double);
+
 		assert(ret);
 		ret[0] = 1;
 		ret[1] = 4.0;
@@ -82,6 +87,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	{
 		// return c(NORM_CONST) or a NULL-pointer if INLA should compute it by itself
 		ret = Malloc(1, double);
+
 		assert(ret);
 		ret[0] = N * (-0.9189385332 + 0.5 * lprec);
 	}
@@ -91,6 +97,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	{
 		// return c(LOG_PRIOR)
 		ret = Malloc(1, double);
+
 		assert(ret);
 		ret[0] = -prec + lprec;			       // prec ~ gamma(1,1)
 	}
@@ -122,6 +129,7 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	assert(!strcasecmp(data->ints[0]->name, "n"));	       // this will always be the case
 	int N = data->ints[0]->ints[0];			       // this will always be the case
+
 	assert(N > 0);
 
 	switch (cmd) {
@@ -138,6 +146,7 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 		int M = N + N - 1, offset, i, k;
 		ret = Malloc(2 + 2 * M, double);
+
 		assert(ret);
 		offset = 2;
 		ret[0] = N;				       /* dimension */
@@ -163,6 +172,7 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		int M = N + N - 1;
 		int offset, i, k;
 		ret = Malloc(2 + M, double);
+
 		assert(ret);
 		offset = 2;
 		ret[0] = -1;				       /* REQUIRED */
@@ -182,6 +192,7 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// if N==0 then mu is not needed as its taken to be mu[]==0
 
 		ret = Malloc(1, double);
+
 		assert(ret);
 		ret[0] = 0;
 	}
@@ -193,6 +204,7 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// where M is the number of hyperparameters
 
 		ret = Malloc(3, double);
+
 		assert(ret);
 		ret[0] = 2;
 		ret[1] = 1.0;
@@ -206,6 +218,7 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 		double prec_innovation = prec / (1.0 - SQR(rho));
 		ret = Malloc(1, double);
+
 		assert(ret);
 		ret[0] = N * (-0.5 * log(2.0 * M_PI) + 0.5 * log(prec_innovation)) + 0.5 * log(1.0 - SQR(rho));
 	}
@@ -216,6 +229,7 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// return c(LOG_PRIOR)
 
 		ret = Malloc(1, double);
+
 		assert(ret);
 		ret[0] = -prec + lprec - 0.5 * log(2.0 * M_PI) - 0.5 * SQR(rho_intern);
 	}
@@ -244,6 +258,7 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 	assert(data->n_ints > 0);
 	assert(!strcasecmp(data->ints[0]->name, "n"));	       // this will always be the case
 	int N = data->ints[0]->ints[0];			       // this will always be the case
+
 	assert(N > 0);
 
 	/*
@@ -257,6 +272,7 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 	assert(data->n_smats > 0);
 	assert(!strcasecmp(data->smats[0]->name, "Cmatrix"));
 	inla_cgeneric_smat_tp *Cmatrix = data->smats[0];
+
 	assert(N == Cmatrix->nrow);
 	assert(N == Cmatrix->ncol);
 
@@ -274,6 +290,7 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 
 		int M = Cmatrix->n, offset;
 		ret = Malloc(2 + 2 * M, double);
+
 		assert(ret);
 		offset = 2;
 		ret[0] = N;				       /* dimension */
@@ -294,6 +311,7 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 		int M = Cmatrix->n;
 		int offset;
 		ret = Malloc(2 + M, double);
+
 		assert(ret);
 		offset = 2;
 		ret[0] = -1;				       /* REQUIRED */
@@ -310,6 +328,7 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 		// if N==0 then mu is not needed as its taken to be mu[]==0
 
 		ret = Malloc(1, double);
+
 		assert(ret);
 		ret[0] = 0;
 	}
@@ -321,6 +340,7 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 		// where M is the number of hyperparameters
 
 		ret = Malloc(2, double);
+
 		assert(ret);
 		ret[0] = 1;
 		ret[1] = 4.0;
@@ -332,6 +352,7 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 		// return c(NORM_CONST) or a NULL-pointer if INLA should compute it by itself. here we ignore the part that comes from the
 		// 1/2*log(det(Q)), which could be added if needed later. this is how the 'generic0' model is implemented.
 		ret = Malloc(1, double);
+
 		assert(ret);
 		ret[0] = N / 2.0 * (lprec - log(2.0 * M_PI));
 	}
@@ -341,6 +362,7 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 	{
 		// return c(LOG_PRIOR). with a Gamma(1,1) for precision, this is the log prior for the log(precision).
 		ret = Malloc(1, double);
+
 		assert(ret);
 		ret[0] = -prec + lprec;
 	}

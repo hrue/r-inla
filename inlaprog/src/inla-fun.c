@@ -1,35 +1,6 @@
-double inla_cdf_normal(double x)
-{
-	/*
-	 * the un-log version of inla_logcdf_normal 
-	 */
-	if (ABS(x) < 7.0) {
-		return GMRFLib_cdfnorm(x);
-	} else {
-		return exp(inla_logcdf_normal(x));
-	}
-}
-
-double inla_logitcdf_normal(double x)
-{
-	// return log(Phi(x)/(1-Phi(x)))
-
-	if (ABS(x) < 7.0) {
-		double y = inla_cdf_normal(x);
-		return (log(y / (1.0 - y)));
-	} else {
-		// > asympt(log(Phi(x)/(1-Phi(x))), x, 16); 
-		// 2
-		// x 1/2 1/2 1
-		// ---- + ln(x) + ln(2 Pi ) + O(----)
-		// 2 2
-		// 
-
-		double val = (SQR(x) / 2.0 + log(x) + M_LN_SQRT_2PI);
-		return (x > 0.0 ? val : -val);
-	}
-}
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double inla_logcdf_normal(double x)
 {
 	// return the log of the cummulative distribution function for a standard normal.
@@ -57,6 +28,7 @@ double inla_logcdf_normal(double x)
 		} else {
 			// x < -7.0
 			double xx = -x, cg1;
+
 			cg1 =
 			    -(pow(xx, 0.6e1) + log(0.2e1) * pow(xx, 0.4e1) + log(0.3141592653589793e1) * pow(xx, 0.4e1) +
 			      0.2e1 * log(xx) * pow(xx, 0.4e1)
@@ -66,6 +38,20 @@ double inla_logcdf_normal(double x)
 	}
 	abort();
 	return 0;
+}
+
+#pragma GCC diagnostic pop
+
+double inla_cdf_normal(double x)
+{
+	/*
+	 * the un-log version of inla_logcdf_normal 
+	 */
+	if (ABS(x) < 7.0) {
+		return GMRFLib_cdfnorm(x);
+	} else {
+		return exp(inla_logcdf_normal(x));
+	}
 }
 
 double inla_cdf_normal_fast(double x)
@@ -86,6 +72,29 @@ double inla_cdf_normal_fast(double x)
 	}
 }
 
+double inla_logitcdf_normal(double x)
+{
+	// return log(Phi(x)/(1-Phi(x)))
+#define M_LN_SQRT_2PI       0.918938533204672741780329736406
+
+	if (ABS(x) < 7.0) {
+		double y = inla_cdf_normal(x);
+
+		return (log(y / (1.0 - y)));
+	} else {
+		// > asympt(log(Phi(x)/(1-Phi(x))), x, 16); 
+		// 2
+		// x 1/2 1/2 1
+		// ---- + ln(x) + ln(2 Pi ) + O(----)
+		// 2 2
+		// 
+		double val = (SQR(x) / 2.0 + log(x) + M_LN_SQRT_2PI);
+
+		return (x > 0.0 ? val : -val);
+	}
+#undef M_LN_SQRT_2PI
+}
+
 double inla_logcdf_normal_fast(double x)
 {
 	// a faster approximation, see misc/doc/doc/approximate-cdf-normal.pdf
@@ -103,67 +112,7 @@ double inla_logcdf_normal_fast(double x)
 	}
 }
 
-double inla_lgamma_fast1(double x)
-{
-	// this is the G.Nemes (2007) approximation from https://en.wikipedia.org/wiki/Stirling's_approximation
-
-	if (round(x) == x) {
-		return gsl_sf_lnfact((int)x - 1);
-	}
-
-	double val;
-	if (x < 1.0) {
-		val = LGAMMAfn(x);
-	} else {
-		double lx = log(x);
-		val = 0.5 * (LOG2PI - lx) + x * (log(x + 1.0 / (12.0 * x - 0.1 / x)) - 1.0);
-	}
-	return (val);
-}
-
-double inla_gamma_fast1(double x) 
-{
-	return (exp(inla_lgamma_fast1(x)));
-}
-
-double inla_lgamma_fast2(double x)
-{
-	if (unlikely(x <= 0.0)) {
-		return lgamma(x);
-	}
-
-#define G 5
-#define N 7
-	static const double p[N] =  {
-		1.0000000001900148240,
-		76.180091729471463483,
-		-86.505320329416767652,
-		24.014098240830910490,
-		-1.2317395724501553875,
-		0.0012086509738661785061,
-		-5.3952393849531283785e-6
-	};
-	
-	double tmp = x + G + 0.5;
-	tmp -= (x + 0.5) * log(tmp);
-    
-	double ser = p[0];
-	for (int i = 1; i < N; ++i) {
-		ser += p[i] / (x+i);
-	}
-    
-#undef G
-#undef N	
-	return -tmp + log(2.5066282746310005 * ser / x);
-}
-
-double inla_gamma_fast2(double x) 
-{
-	return (exp(inla_lgamma_fast2(x)));
-}
-
-
-double inla_ipow(double x, int k)
+FORCEINLINE double inla_ipow(double x, int k)
 {
 	// x^k
 	return gsl_sf_pow_int(x, k);

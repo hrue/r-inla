@@ -17,4 +17,8 @@ all : $(PDFs) $(HTMLs)
 
 .PHONY : install
 
+compress :; ./compress-pdf
+
 install :; cp -v $(PDFs) $(HTMLs) ../../r-inla.org/doc/vignettes
+
+.PHONY : compress

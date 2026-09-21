@@ -110,6 +110,7 @@ double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	}
 
 	div_t ii, jj;
+
 	ii = div(IMIN(i, j), a->n);
 	jj = div(IMAX(i, j), a->n);
 
@@ -122,6 +123,7 @@ double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 			// this is the AR1
 			double prec_cond = 1.0 / (1.0 - SQR(phi[ii.quot - 1L]));
 			double scale = prec / w[ii.quot - 1L];
+
 			if (ii.rem != jj.rem) {
 				// off-diagonal
 				val = -scale * prec_cond * phi[ii.quot - 1L];
@@ -141,6 +143,7 @@ double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 double inla_fgn2_helper(int i, int j, int n, double phi)
 {
 	double phi2 = SQR(phi);
+
 	return ((i != j ? -phi : ((i == 0 || i == n - 1) ? 1.0 : (1.0 + phi2))) / (1.0 - phi2));
 
 	if (0) {
@@ -244,16 +247,20 @@ double priorfunc_fgn_priorH(double *H_intern, double *param)
 {
 	// return the log-prior for H_intern
 	double lprior;
+
 #include "fgn-prior-tables.h"
 
 	static GMRFLib_spline_tp *dist_spline = NULL;
+
 #pragma omp critical (Name_f88269b9720b21345f72723d8de2fc329de96a39)
 	if (!dist_spline) {
 		GMRFLib_spline_tp *tspline = GMRFLib_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
+
 		dist_spline = tspline;
 	}
 
 	double U_intern, lambda;
+
 	U_intern = map_H(param[0], MAP_BACKWARD, NULL);
 	lambda = -log(param[1]) / GMRFLib_spline_eval(U_intern, dist_spline);
 	lprior = log(lambda) - lambda * GMRFLib_spline_eval(*H_intern, dist_spline) + log(fabs(GMRFLib_spline_eval_deriv(*H_intern, dist_spline)));
@@ -267,14 +274,17 @@ void priorfunc_fgn_priorH_extract(void)
 #include "fgn-prior-tables.h"
 
 	static GMRFLib_spline_tp *dist_spline = NULL;
+
 #pragma omp critical (Name_1083cc49be9497f3e0b14820ba227f6584988f41)
 	if (!dist_spline) {
 		GMRFLib_spline_tp *tspline = GMRFLib_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
+
 		dist_spline = tspline;
 	}
 
 	for (double H_intern = -10.0, dH = 0.05; H_intern <= 10.0 + dH / 2.0; H_intern += dH) {
 		double dist = GMRFLib_spline_eval(H_intern, dist_spline);
+
 		printf("%.12f %.12f\n", H_intern, dist);
 	}
 

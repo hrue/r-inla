@@ -31,7 +31,6 @@ void sha256_init(SHA256_CTX * ctx);
 void sha256_update(SHA256_CTX * ctx, const uint8_t * data, size_t len);
 void sha256_final(SHA256_CTX * ctx, uint8_t * hash);
 
-
 #       define GMRFLib_SHA_TP         SHA256_CTX
 #       define GMRFLib_SHA_DIGEST_LEN 32L
 #       define GMRFLib_SHA_Init       sha256_init

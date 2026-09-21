@@ -41,7 +41,6 @@ __BEGIN_DECLS
 	double *band;
 } inla_bm_tp;
 
-
 typedef struct {
 	double range;
 	inla_bm_tp *Q;
@@ -63,7 +62,6 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 	inla_prw2_cache_tp **cache;
 } inla_prw2_arg_tp;
-
 
 double inla_Qfunc_prw2(int thread_id, int i, int j, double *values, void *arg);
 double priorfunc_prw2_pcprior_range(double *x, double *parameters);
@@ -90,7 +88,6 @@ void inla_prw2_pcprior_cdf_range(double *range, int n, double lambda, double h_s
 void inla_prw2_pcprior_dist(double *rho, int n, double *d);
 void inla_prw2_pcprior_range2rho(double *range, int n, double h_size, double *rho);
 void inla_prw2_test(void);
-
 
 __END_DECLS
 #endif

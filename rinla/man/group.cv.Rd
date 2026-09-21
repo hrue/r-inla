@@ -8,6 +8,7 @@ inla.group.cv(
   result,
   group.cv = NULL,
   num.level.sets = -1,
+  min.overlap = 0,
   strategy = c("posterior", "prior"),
   size.max = 32,
   groups = NULL,
@@ -35,6 +36,13 @@ inla.group.cv(
 \item{num.level.sets}{Number of level.sets to use. The default value
 \code{-1} corresponds to leave-one-out cross-validation. If argument \code{weights} is
 used, then this is threshold for the sum of the weights defining a group.}
+
+\item{min.overlap}{The minimum number of overlapping latent nodes bewteen two
+linear predictors (lp) in the same group: If lp.j is to be in group of lp.i,
+then lp.j need to share at least 'min.overlap' latent nodes (except fixed
+effects and short random effects), with the latent nodes (and its neigbours)
+of lp.i. If set to \code{0},  then this option is not in effect.
+A reasonable value is \code{1}. Using this option will reduce running time.}
 
 \item{strategy}{One of \code{"posterior"} or \code{"prior"}. See the
 vignette for details.}

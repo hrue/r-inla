@@ -55,6 +55,32 @@
     ## inla.call.builtin() found it; those builds moved to inst/obsolete/ and
     ## this function replaced it, so an unset inla.call means no binary at all.
     path <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
+
+    ## Nothing set? Look where inla.stiles.install() puts it.
+    ##
+    ## The option is normally set at attach time, or from the block the
+    ## installer writes into ~/.Rprofile. Neither happens in a VANILLA session,
+    ## and R CMD build runs vignettes with --vanilla: no profile is read at all,
+    ## and .onAttach returns early because R_CMD is set. So every vignette that
+    ## fits a model failed with "No inla binary is installed" even though one
+    ## was installed and working, which is why releases shipped without them.
+    ##
+    ## The binary lives at a known path, so look there rather than depend on a
+    ## profile having run. Same layouts the installer searches: <root>/bin/inla*
+    ## on unix, and the flat Windows bundle where inla.exe sits at the top.
+    if (is.null(path) || !is.character(path) || !nzchar(path[1])) {
+        exe <- if (.Platform$OS.type == "windows") "inla.exe" else "inla*"
+        d <- file.path(inla.cache.dir(), "stiles-binary", "latest")
+        cand <- c(Sys.glob(file.path(d, "bin", exe)),
+                  Sys.glob(file.path(d, exe)))
+        cand <- cand[file.exists(cand) & !dir.exists(cand)]
+        if (length(cand)) {
+            path <- cand[1]
+            ## Remember it, so the search happens once per session.
+            try(inla.setOption(inla.call = path), silent = TRUE)
+        }
+    }
+
     if (is.null(path) || !is.character(path) || !nzchar(path[1])) {
         if (isTRUE(must)) {
             stop("No inla binary is installed. Run 'inla.stiles.install()' to install one.",

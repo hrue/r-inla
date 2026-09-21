@@ -559,8 +559,8 @@
     ## names the command that fixes it. Without this the NULL reaches
     ## inla.strcasecmp() below and fails as "argument is of length zero".
     if (!is.function(inla.call) &&
-        (is.null(inla.call) || length(inla.call) != 1L ||
-         is.na(inla.call) || !nzchar(inla.call))) {
+        (is.null(inla.call) || is.na(inla.call) ||
+         (nzchar(inla.call) && !file.exists(inla.call)))) {
         stop("No inla binary is installed. Run 'inla.stiles.install()' to install one.",
              call. = FALSE)
     }

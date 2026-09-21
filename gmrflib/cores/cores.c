@@ -49,9 +49,6 @@
 #       define chmod _chmod
 #endif
 
-
-
-
 /*-****************************************
 *  count the number of cores
 ******************************************/
@@ -79,6 +76,7 @@ DWORD CountSetBits(ULONG_PTR bitMask)
 int UTIL_countCores(int logical)
 {
 	static int numCores = 0;
+
 	if (numCores != 0)
 		return numCores;
 
@@ -104,6 +102,7 @@ int UTIL_countCores(int logical)
 
 		while (!done) {
 			DWORD rc = glpi(buffer, &returnLength);
+
 			if (FALSE == rc) {
 				if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
 					if (buffer)
@@ -151,6 +150,7 @@ int UTIL_countCores(int logical)
 	 */
 	{
 		SYSTEM_INFO sysinfo;
+
 		GetSystemInfo(&sysinfo);
 		numCores = sysinfo.dwNumberOfProcessors;
 		if (numCores == 0)
@@ -168,12 +168,14 @@ int UTIL_countCores(int logical)
 int UTIL_countCores(int logical)
 {
 	static S32 numCores = 0;			       /* apple specifies int32_t */
+
 	if (numCores != 0)
 		return numCores;
 
 	{
 		size_t size = sizeof(S32);
 		int const ret = sysctlbyname(logical ? "hw.logicalcpu" : "hw.physicalcpu", &numCores, &size, NULL, 0);
+
 		if (ret != 0) {
 			if (errno == ENOENT) {
 				/*
@@ -213,6 +215,7 @@ int UTIL_countCores(int logical)
 	 * try to determine if there's hyperthreading 
 	 */  {
 		FILE *const cpuinfo = fopen("/proc/cpuinfo", "r");
+
 #       define BUF_SIZE 80
 		char buff[BUF_SIZE];
 
@@ -234,6 +237,7 @@ int UTIL_countCores(int logical)
 			if (fgets(buff, BUF_SIZE, cpuinfo) != NULL) {
 				if (strncmp(buff, "siblings", 8) == 0) {
 					const char *const sep = strchr(buff, ':');
+
 					if (sep == NULL || *sep == '\0') {
 						/*
 						 * formatting was broken? 
@@ -245,6 +249,7 @@ int UTIL_countCores(int logical)
 				}
 				if (strncmp(buff, "cpu cores", 9) == 0) {
 					const char *const sep = strchr(buff, ':');
+
 					if (sep == NULL || *sep == '\0') {
 						/*
 						 * formatting was broken? 
@@ -285,6 +290,7 @@ int UTIL_countCores(int logical)
 int UTIL_countCores(int logical)
 {
 	static int numCores = 0;			       /* freebsd sysctl is native int sized */
+
 #       if __FreeBSD_version >= 1300008
 	static int perCore = 1;
 #       endif
@@ -295,6 +301,7 @@ int UTIL_countCores(int logical)
 	{
 		size_t size = sizeof(numCores);
 		int ret = sysctlbyname("kern.smp.cores", &numCores, &size, NULL, 0);
+
 		if (ret == 0) {
 			if (logical) {
 				ret = sysctlbyname("kern.smp.threads_per_core", &perCore, &size, NULL, 0);

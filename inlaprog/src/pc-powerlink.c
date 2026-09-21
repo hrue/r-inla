@@ -9,7 +9,6 @@
 #include "inla.h"
 #include "pc-powerlink.h"
 
-
 // have to add the pc-prior for the log(power) later....
 
 // we can use this code to make a generic function for any power-link
@@ -29,6 +28,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 #define Probit_P(_x, _power) exp(-(_power) * log1p(exp(-(_x))))
 
 	int id = -1;
+
 	GMRFLib_CACHE_SET_IDX(id);
 
 	static inla_powerlink_table_tp **table = NULL;
@@ -93,6 +93,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 			1.0 - 1.0E-10
 		};
 		int x_len_extra = sizeof(pp) / sizeof(double);
+
 		len = x_len + x_len_extra;
 
 		Calloc_init(2 * len, 2);
@@ -170,6 +171,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 
 	if (debug) {
 		static double intercept_save = 0.0;
+
 		if (intercept != intercept_save) {
 			P(intercept);
 			P(intercept_intern);
@@ -233,4 +235,5 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 #undef diMAP
 	return 0.0;
 }
+
 #pragma GCC diagnostic pop

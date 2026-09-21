@@ -90,6 +90,5 @@ taucs_crs_matrix *GMRFLib_ccs2crs(taucs_ccs_matrix * L);
 void GMRFLib_taucs_set_ctl(int min_block_size, int block_size);
 void taucs_crs_free(taucs_crs_matrix * L);
 
-
 __END_DECLS
 #endif

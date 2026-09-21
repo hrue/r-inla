@@ -8,7 +8,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/density.h"
 #include "quantile-regression.h"
-#include "inla-special-functions.h"
+#include "fast-math/special-functions.h"
 
 double inla_pcontpois(double y, double lambda)
 {
@@ -25,6 +25,7 @@ double inla_pcontpois_deriv(double y, double lambda)
 double inla_qcontpois(double quantile, double alpha, double *initial_guess)
 {
 	double eta;
+
 	if (initial_guess) {
 		eta = log(*initial_guess);
 	}
@@ -75,6 +76,7 @@ GMRFLib_spline_tp **inla_qcontpois_func(double alpha, int num)
 
 	eta = Calloc(n, double);
 	lquantile = Calloc(n, double);
+
 	for (int i = 0; i < n; i++) {
 		lquantile[i] = lq_min + i * lq_delta;
 		eta[i] = inla_qcontpois_eta(exp(lquantile[i]), alpha, (i ? &eta[i - 1] : NULL));
@@ -108,8 +110,10 @@ double inla_qgamma_cache(double shape, double quantile)
 		if (!cache) {
 			cache_len = GMRFLib_CACHE_LEN();
 			struct inla_qgamma_cache_tp **ctmp = Calloc(cache_len, struct inla_qgamma_cache_tp *);
+
 			for (int i = 0; i < cache_len; i++) {
 				ctmp[i] = Calloc(1, struct inla_qgamma_cache_tp);
+
 				ctmp[i]->quantile = -1.0;
 				ctmp[i]->s = NULL;
 			}
@@ -118,12 +122,14 @@ double inla_qgamma_cache(double shape, double quantile)
 	}
 
 	int id = 0;
+
 	GMRFLib_CACHE_SET_IDX(id);
 
 	if ((cache[id]->quantile == quantile) && cache[id]->s) {
 		return (exp(GMRFLib_spline_eval(log(shape), cache[id]->s)));
 	} else {
 		double log_shape_min = -7.0, log_shape_max = 10.0, by = 0.25;
+
 #pragma omp critical (Name_15e02d7de5104d84f3ca91b6ee3ecef7d22e60f6)
 		{
 			int n = (int) ((log_shape_max - log_shape_min) / by + 0.5) + 1;
@@ -133,6 +139,7 @@ double inla_qgamma_cache(double shape, double quantile)
 			double *y = Calloc_get(n);
 
 			int nn = 0;
+
 			for (int i = 0; i < n; i++) {
 				x[i] = log_shape_min + by * i;
 				y[i] = log(MATHLIB_FUN(qgamma) (quantile, exp(x[i]), 1.0, 1, 0));

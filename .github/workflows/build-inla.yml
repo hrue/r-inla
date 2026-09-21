@@ -1286,11 +1286,101 @@ jobs:
       ## FOLLOWS symlinks and stores real files, so this tarball contains none
       ## and installs anywhere with no special privileges:
       ##     install.packages("INLA_<version>.tar.gz", repos = NULL, type = "source")
+      ## The vignettes are rendered HERE, because THIS is the tarball users
+      ## download. r-package.yml also builds one, with vignettes, and asserts
+      ## them, but that copy is only ever a CI artifact: the release shipped
+      ## --no-build-vignettes for months while a green board reported "built
+      ## vignettes ... 19" about a file nobody receives.
+      - name: System libraries for the vignettes
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+              libgdal-dev libgeos-dev libproj-dev libudunits2-dev libssl-dev
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - name: R packages and the inla binary
+        run: |
+          set -e
+          Rscript -e 'install.packages(c(
+            "knitr","rmarkdown","formatR","tinytex",
+            "Matrix","fmesher","lifecycle","rlang","withr","MatrixModels","sp","sn","numDeriv",
+            "ggplot2","gridExtra","ggpubr","lattice","scales","dplyr","tidyr","DOYPAColors",
+            "sf","s2","terra","tidyterra","deldir","fields","maps","spatstat","splancs",
+            "rnaturalearth","ggOceanMaps","mvtnorm","evd","fastGHQuad","pracma","mgcv",
+            "mlogit","Ecdat","pixmap","compositions","inlabru","INLAspacetime"))'
+          Rscript -e 'if (!tinytex::is_tinytex()) tinytex::install_tinytex()'
+          R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
+          ## The vignettes FIT MODELS, so the R side alone is not enough, and the
+          ## binary has to be THE ONE THIS RUN BUILT. inla.stiles.install() cannot
+          ## supply it: on a new tag that release does not exist yet, so it falls
+          ## back to the PREVIOUS one and the vignettes are rendered by a binary
+          ## older than the package driving it. That mismatch is what made
+          ## multinomial.Rmd fail while the other 18 passed.
+          ## dist/ already holds this run's bundles, so unpack one where a
+          ## --vanilla render looks: inla.binary.path() falls back to this cache
+          ## path when no option and no profile can reach it.
+          CACHE=$(Rscript -e 'cat(tools::R_user_dir("INLA", "cache"))')
+          rm -rf "$CACHE/stiles-binary/latest"
+          mkdir -p "$CACHE/stiles-binary/latest"
+          tar xzf dist/inla-linux-x86_64-portable.tar.gz -C "$CACHE/stiles-binary/latest"
+          "$CACHE/stiles-binary/latest/bin/inla" -V
+
       - name: Build the R package tarball
         run: |
-          R CMD build --no-build-vignettes rinla
+          R CMD build rinla
           cp INLA_*.tar.gz dist/
           ls -lh dist/INLA_*.tar.gz
+
+      ## Assert on the file that is about to be uploaded, not on a sibling.
+      - name: Vignettes are in the release tarball
+        run: |
+          set -e
+          TB=$(ls -1 dist/INLA_*.tar.gz)
+          N=$(tar tzf "$TB" | grep -cE '/inst/doc/.*\.(html|pdf)$' || true)
+          echo "vignettes in the RELEASE tarball $TB: $N"
+          if [ "${N:-0}" -lt 15 ]; then
+            echo "::error::only $N vignettes in the tarball being released."
+            exit 1
+          fi
+
+      ## remotes::install_github() installs the REPOSITORY, which has no
+      ## inst/doc, so that route delivered no vignettes however well the release
+      ## tarball was built. Rendering them on the user's machine is not an
+      ## option either: it fits every model, so it needs the binary that is not
+      ## installed yet. So put the rendered copies in the repository.
+      ## The commit lands AFTER the tag, so the tagged tree does not contain the
+      ## vignettes it shipped; the release asset is still the authority.
+      - name: Commit the rendered vignettes to the branch
+        run: |
+          set -e
+          TB=$(ls -1 dist/INLA_*.tar.gz)
+          tmp=$(mktemp -d)
+          tar xzf "$TB" -C "$tmp" 'INLA/inst/doc'
+          ## a tag build is a detached checkout: move to the branch first
+          git fetch --quiet origin feature/ci
+          git checkout --quiet -B feature/ci origin/feature/ci
+          rm -rf rinla/inst/doc
+          mkdir -p rinla/inst/doc
+          cp -a "$tmp"/INLA/inst/doc/. rinla/inst/doc/
+          ## STAGE FIRST: sync-package.sh mirrors the files git TRACKS, so
+          ## running it before the add leaves package/inst/doc empty and the
+          ## install_github route still ships no vignettes.
+          git add -A rinla/inst/doc
+          bash ci/sync-package.sh
+          git add -A rinla/inst/doc package
+          if git diff --cached --quiet; then
+            echo "rendered vignettes unchanged"
+            exit 0
+          fi
+          ## [skip ci]: this touches no source, and without it every release
+          ## would start a second full board for a directory of PDFs.
+          git -c user.name="r-inla release" -c user.email="noreply@github.com" \
+              commit -q -m "rendered vignettes for ${GITHUB_REF_NAME} [skip ci]"
+          ## Never fail a published release over this: a concurrent push to the
+          ## branch is a retry, not a broken release.
+          git push --quiet origin feature/ci \
+            || echo "::warning::could not push the rendered vignettes; re-run this step or copy them by hand"
 
       - name: Build the release notes table
         run: |

@@ -19,8 +19,10 @@ int GMRFLib_design_eb(GMRFLib_design_tp **design, int nhyper)
 	(*design)->nexperiments = 1;
 	(*design)->experiment = Calloc(1, double *);
 	(*design)->int_weight = Calloc(1, double);
+
 	(*design)->std_scale = GMRFLib_TRUE;
 	(*design)->experiment[0] = Calloc(nhyper, double);
+
 	(*design)->int_weight[0] = 1.0;
 
 	return GMRFLib_SUCCESS;
@@ -167,12 +169,14 @@ int GMRFLib_design_grid(GMRFLib_design_tp **design, int nhyper)
 	(*design)->nexperiments = len;
 	(*design)->experiment = Calloc(len, double *);
 	(*design)->int_weight = Calloc(len, double);
+
 	(*design)->std_scale = GMRFLib_TRUE;
 
 	switch (nhyper) {
 	case 1:
 		for (int j = 0; j < len; j++) {
 			(*design)->experiment[j] = Calloc(nhyper, double);
+
 			Memcpy((*design)->experiment[j], x1 + j, nhyper * sizeof(double));
 			(*design)->int_weight[j] = w1[j];
 		}
@@ -180,6 +184,7 @@ int GMRFLib_design_grid(GMRFLib_design_tp **design, int nhyper)
 	case 2:
 		for (int j = 0; j < len; j++) {
 			(*design)->experiment[j] = Calloc(nhyper, double);
+
 			Memcpy((*design)->experiment[j], x2 + 2 * j, nhyper * sizeof(double));
 			(*design)->int_weight[j] = w2[j];
 		}
@@ -219,10 +224,12 @@ int GMRFLib_design_ccd(GMRFLib_design_tp **design, int nfactors)
 	(*design)->nexperiments = nexp[nfactors];
 	(*design)->experiment = Calloc(nexp[nfactors], double *);
 	(*design)->int_weight = Calloc(nexp[nfactors], double);
+
 	(*design)->std_scale = GMRFLib_TRUE;
 
 	for (j = 0; j < nexp[nfactors]; j++) {
 		(*design)->experiment[j] = Calloc(nfactors, double);
+
 		(*design)->int_weight[j] = NAN;		       /* meaning that its undefined at this stage */
 		scale = 0.0;
 		for (k = 0; k < nfactors; k++) {
@@ -237,6 +244,7 @@ int GMRFLib_design_ccd(GMRFLib_design_tp **design, int nfactors)
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -256,10 +264,12 @@ int GMRFLib_design_read(GMRFLib_design_tp **design, GMRFLib_matrix_tp *D, int st
 	assert(nex > 0);
 	(*design)->experiment = Calloc(nex, double *);
 	(*design)->int_weight = Calloc(nex, double);
+
 	(*design)->std_scale = (std_scale ? GMRFLib_TRUE : GMRFLib_FALSE);
 
 	for (j = 0; j < nex; j++) {
 		(*design)->experiment[j] = Calloc(nfac, double);
+
 		for (k = 0; k < nfac; k++) {
 			(*design)->experiment[j][k] = GMRFLib_matrix_get(j, k, D);
 		}
@@ -273,6 +283,7 @@ int GMRFLib_design_read(GMRFLib_design_tp **design, GMRFLib_matrix_tp *D, int st
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_design_free(GMRFLib_design_tp *design)
@@ -366,6 +377,7 @@ int GMRFLib_design_prune(GMRFLib_design_tp *design, double prob)
 
 	for (i = 0; i < m; i++) {
 		ex[i] = Calloc(design->nfactors, double);
+
 		Memcpy(ex[i], design->experiment[idx[i]], design->nfactors * sizeof(double));
 		ww[i] = design->int_weight[idx[i]];
 	}
@@ -383,4 +395,5 @@ int GMRFLib_design_prune(GMRFLib_design_tp *design, double prob)
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop

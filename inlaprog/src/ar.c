@@ -60,6 +60,7 @@ int ar_pacf2phi(int p, double *pacf, double *phi)
 	Free(work);
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -97,6 +98,7 @@ int ar_phi2pacf(int p, double *phi, double *pacf)
 	Free(work);
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
@@ -113,6 +115,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 	assert(p > 0);
 	pdim = (size_t) p;
 	phi = Calloc(pdim, double);
+
 	ar_pacf2phi(pdim, pacf, phi);
 
 	/*
@@ -245,6 +248,7 @@ double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 
 	const int debug = 0;
 	int eq, dimQ, id = 0;
+
 	assert(def->n >= 2 * def->p);
 
 	dimQ = 2 * def->p + 1;
@@ -314,6 +318,7 @@ double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 		 */
 		for (int ii = def->p; ii < dimQ; ii++) {
 			double *Lii = L + ii;
+
 			Lii[ii * dimQ] = 1.0;
 			for (int jj = ii - def->p, k = def->p - 1; jj < ii; jj++, k--) {
 				Lii[jj * dimQ] = -phi[k];
@@ -326,8 +331,10 @@ double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 		 */
 		for (int ii = 0; ii < dimQ; ii++) {
 			double *Lii = L + ii * dimQ;
+
 			for (int jj = 0; jj < dimQ; jj++) {
 				double *Ljj = L + jj * dimQ;
+
 				Q[ii + jj * dimQ] = GMRFLib_ddot(dimQ, Lii, Ljj);
 			}
 		}
@@ -368,8 +375,10 @@ int ar_test1()
 
 		HYPER_NEW(def.log_prec, 0.0);
 		def.pacf_intern = Calloc(def.p, double **);
+
 		for (i = 0; i < def.p; i++) {
 			double val = pacf[i];
+
 			HYPER_NEW(def.pacf_intern[i], ar_map_pacf(val, MAP_BACKWARD, NULL));
 		}
 
@@ -379,8 +388,10 @@ int ar_test1()
 		def.hold_pacf_intern = Calloc(GMRFLib_CACHE_LEN(), double *);
 		def.hold_Q = Calloc(GMRFLib_CACHE_LEN(), double *);
 		def.hold_Qmarg = Calloc(GMRFLib_CACHE_LEN(), double *);
+
 		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
 			def.hold_pacf_intern[i] = Calloc(def.p, double);
+
 			for (j = 0; j < def.p; j++) {
 				def.hold_pacf_intern[i][j] = GMRFLib_uniform();
 			}
@@ -391,6 +402,7 @@ int ar_test1()
 
 		if (0) {
 			FILE *fp = fopen("Q.dat", "w");
+
 			for (i = 0; i < def.n; i++)
 				for (j = 0; j < def.n; j++)
 					fprintf(fp, "%.12g\n", Qfunc_ar(thread_id, i, j, NULL, &def));
@@ -398,6 +410,7 @@ int ar_test1()
 		}
 
 		double val = 0.0;
+
 		for (k = 0; k < 1000; k++) {
 			for (i = 0; i < def.n; i++)
 				for (j = 0; j < def.n; j++) {

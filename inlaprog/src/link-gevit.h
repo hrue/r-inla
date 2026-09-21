@@ -28,6 +28,5 @@ double link_gev_core(int thread_id, double arg, map_arg_tp typ, void *param, int
 double link_gev_bound(double xi, double *l_xi);
 void link_gev_test(double xi, double intercept);
 
-
 __END_DECLS
 #endif

@@ -33,6 +33,7 @@ void __chkstk(size_t size)
 	if (size == 0)
 		return;
 	size_t pages = (size + 4095) / 4096;
+
 	*probe_ptr = (volatile char *) &probe_ptr - size;
 	for (size_t i = 0; i < pages; ++i) {
 		*probe_ptr = 0;

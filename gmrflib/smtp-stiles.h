@@ -7,7 +7,6 @@
 #ifndef __GMRFLib_SMTP_STILES_H__
 #       define __GMRFLib_SMTP_STILES_H__
 
-
 #       undef __BEGIN_DECLS
 #       undef __END_DECLS
 #       ifdef __cplusplus
@@ -67,7 +66,6 @@ typedef struct {
 	double wtime;
 } GMRFLib_stiles_store_tp;
 
-
 typedef struct {
 	GMRFLib_ptr_tp *graphs;
 	GMRFLib_idx_tp *nrhss;
@@ -107,7 +105,6 @@ void GMRFLib_stiles_unbind_all(void);
 void GMRFLib_stiles_unbind_group(int in_group);
 
 #       define GMRFLib_stiles_print_idx(a1_, a2_) GMRFLib_stiles_print_idx_(a1_, a2_ , __FILE__, __LINE__)
-
 
 __END_DECLS
 #endif

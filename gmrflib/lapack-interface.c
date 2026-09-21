@@ -23,12 +23,14 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 #define SIZE 128
 	int n = (int) A->size1;
 	int m = (int) A->size2;
+
 	assert((int) A->tda == m);
 	assert((int) B->tda == n);
 	assert((int) C->tda == n);
 	gsl_matrix_set_zero(C);
 
 	int block_m;
+
 	if (m >= 2 * SIZE) {
 		block_m = SIZE;
 	} else if (m > SIZE) {
@@ -38,6 +40,7 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 	}
 
 	int block_n;
+
 	if (n >= 2 * SIZE) {
 		block_n = SIZE;
 	} else if (n > SIZE) {
@@ -52,6 +55,7 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 	} iijj_tp;
 	iijj_tp *xx = Calloc(ISQR(n / block_n + 1), iijj_tp);
 	int num_k = 0;
+
 	for (int ii = 0; ii < n; ii += block_n) {
 		for (int jj = ii; jj < n; jj += block_n) {
 			xx[num_k].ii = ii;
@@ -64,6 +68,7 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 	for (int k = 0; k < num_k; k++) {
 		int ii = xx[k].ii;
 		int jj = xx[k].jj;
+
 		// printf("%d %d in thread %d\n", ii, jj, omp_get_thread_num());
 
 		int ni = (ii + block_n < n) ? block_n : n - ii;
@@ -71,6 +76,7 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 
 		for (int kk = 0; kk < m; kk += block_m) {
 			int nk = (kk + block_m < m) ? block_m : m - kk;
+
 			cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, ni, nj, nk, 1.0,
 				    &A->data[ii * m + kk], m, &B->data[kk * n + jj], n, 1.0, &C->data[ii * n + jj], n);
 		}
@@ -89,6 +95,7 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 	Free(xx);
 #undef SIZE
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -98,12 +105,14 @@ __attribute__((optimize("O3")))
 double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 {
 	size_t n = Q->size1;
+
 	assert(n == Q->size2);
 	double sqr, sqr2;
 
 	sqr = 0.0;
 	for (size_t i = 0; i < n; i++) {
 		double xx = gsl_vector_get(x, i);
+
 		sqr += SQR(xx) * gsl_matrix_get(Q, i, i);
 		sqr2 = 0.0;
 		for (size_t j = i + 1; j < n; j++) {
@@ -113,15 +122,18 @@ double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 	}
 	return sqr;
 }
+
 #pragma GCC diagnostic pop
 
 GMRFLib_gsl_ldnorm_store_tp *GMRFLib_gsl_ldnorm_store_alloc(int n)
 {
 	GMRFLib_gsl_ldnorm_store_tp *S = Calloc(1, GMRFLib_gsl_ldnorm_store_tp);
+
 	S->L = gsl_matrix_alloc(n, n);
 	S->xx = gsl_vector_alloc(n);
 	return S;
 }
+
 int GMRFLib_gsl_ldnorm_store_free(GMRFLib_gsl_ldnorm_store_tp *store)
 {
 	if (store) {
@@ -197,6 +209,7 @@ double GMRFLib_gsl_ldnorm_x(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_
 	}
 
 	gsl_vector *xx = NULL;
+
 	if (store) {
 		store->xx->size = n;
 		xx = store->xx;
@@ -221,6 +234,7 @@ double GMRFLib_gsl_ldnorm_x(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_
 	}
 
 	double sqr = 0.0;
+
 	if (identity) {
 		gsl_blas_ddot(xx, xx, &sqr);
 	} else {
@@ -252,6 +266,7 @@ double GMRFLib_gsl_ldnorm_x(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_
 
 	return ((-(double) n * 1.83787706640934548356065947281 + log_det_Q - sqr) * 0.5);
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix *S, double epsilon)
@@ -272,9 +287,11 @@ int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix *S, 
 	}
 
 	gsl_matrix *C = GMRFLib_gsl_duplicate_matrix(S);
+
 	for (size_t i = 0; i < S->size1; i++) {
 		for (size_t j = i + 1; j < S->size1; j++) {
 			double val = gsl_matrix_get(C, i, j) / sqrt(gsl_matrix_get(C, i, i) * gsl_matrix_get(C, j, j));
+
 			val = TRUNCATE(ABS(val), 0.0, 1.0);
 			val = (ISEQUAL_x(val, 1.0, epsilon) ? 1.0 : 0.0);
 			MAT_SYM_SET(C, i, j, val);
@@ -348,6 +365,7 @@ int GMRFLib_gsl_mmm(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, gsl_matrix *D)
 {
 	// D = A B C
 	gsl_matrix *T = gsl_matrix_alloc(A->size1, B->size2);
+
 	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, (const gsl_matrix *) A, (const gsl_matrix *) B, 0.0, (gsl_matrix *) T);
 	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, (const gsl_matrix *) T, (const gsl_matrix *) C, 0.0, (gsl_matrix *) D);
 	gsl_matrix_free(T);
@@ -395,6 +413,7 @@ int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matri
 	cchol = Calloc(ISQR(dim), double);
 	*map = Calloc(dim, int);
 	work = Calloc(dim, double);
+
 	Memcpy(cchol, matrix, ISQR(dim) * sizeof(double));
 
 	dchdc_(cchol, &dim, &dim, work, *map, &job, &info, &eps);
@@ -405,6 +424,7 @@ int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matri
 	}
 	if (logdet) {
 		double ldet = 0.0;
+
 		for (int i = 0; i < *rank; i++) {
 			ldet += log(cchol[i + i * dim]);
 		}
@@ -444,6 +464,7 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 	}
 
 	a = Calloc(ISQR(dim), double);
+
 	Memcpy(a, matrix, ISQR(dim) * sizeof(double));
 
 	// dpotf2_("L", &dim, a, &dim, &info, F_ONE);
@@ -458,6 +479,7 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 
 	if (logdet) {
 		double ldet = 0.0;
+
 		for (int i = 0; i < dim; i++) {
 			ldet += log(a[i + i * dim]);
 		}
@@ -483,6 +505,7 @@ int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int n
 		Memcpy(sol, b, dim * nrhs * sizeof(double));
 	}
 	int info;
+
 	dpotrs_("L", &dim, &nrhs, chol, &dim, sol, &dim, &info, F_ONE);
 	if (info) {
 		GMRFLib_ERROR(GMRFLib_EPOSDEF);
@@ -497,6 +520,7 @@ gsl_matrix *GMRFLib_gsl_duplicate_matrix(gsl_matrix *A)
 	 * return a new (alloced) copy of matrix A 
 	 */
 	gsl_matrix *B = NULL;
+
 	if (A) {
 		B = gsl_matrix_alloc(A->size1, A->size2);
 		gsl_matrix_memcpy(B, A);
@@ -510,6 +534,7 @@ gsl_vector *GMRFLib_gsl_duplicate_vector(gsl_vector *a)
 	 * return a new (alloced) copy of vector 'a'
 	 */
 	gsl_vector *b = NULL;
+
 	if (a) {
 		b = gsl_vector_alloc(a->size);
 		gsl_vector_memcpy(b, a);
@@ -542,6 +567,7 @@ double GMRFLib_gsl_rms(gsl_vector *a, gsl_vector *b)
 	}
 	return sqrt(rms / a->size);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -573,6 +599,7 @@ gsl_matrix *GMRFLib_gsl_transpose_matrix(gsl_matrix *A)
 
 	return At;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -587,6 +614,7 @@ gsl_matrix *GMRFLib_gsl_transpose_matrix_x(gsl_matrix *A, gsl_matrix *At)
 	}
 
 	gsl_matrix *AAt = (At ? At : NULL);
+
 	if (!AAt) {
 		AAt = gsl_matrix_alloc(A->size2, A->size1);
 	} else {
@@ -601,6 +629,7 @@ gsl_matrix *GMRFLib_gsl_transpose_matrix_x(gsl_matrix *A, gsl_matrix *At)
 
 	return (At ? NULL : At);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -629,6 +658,7 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix *A)
 
 	return logdet;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_gsl_force_symmetric(gsl_matrix *A)
@@ -639,6 +669,7 @@ int GMRFLib_gsl_force_symmetric(gsl_matrix *A)
 			double a = gsl_matrix_get(A, i, j);
 			double aa = gsl_matrix_get(A, j, i);
 			double val = (a + aa) / 2.0;
+
 			gsl_matrix_set(A, i, j, val);
 			gsl_matrix_set(A, j, i, val);
 		}
@@ -656,11 +687,13 @@ int GMRFLib_gsl_add_diag(gsl_matrix *A, double value)
 	if (!ISZERO(value)) {
 		for (size_t i = 0; i < A->size1; i++) {
 			double a = gsl_matrix_get(A, i, i) + value;
+
 			gsl_matrix_set(A, i, i, a);
 		}
 	}
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -681,6 +714,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 
 	L = GMRFLib_gsl_duplicate_matrix(A);
 	int ecode = gsl_linalg_cholesky_decomp(L);
+
 	if (ecode != GSL_SUCCESS) {
 		gsl_matrix_free(L);
 		return !GMRFLib_SUCCESS;
@@ -698,6 +732,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -780,6 +815,7 @@ int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_ensure_spd(double *A, int dim, double tol, char **msg)
@@ -824,6 +860,7 @@ int GMRFLib_ensure_spd_x(double *A, int dim, double tol, char **msg, GMRFLib_gsl
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_gsl_ensure_spd(gsl_matrix *A, double tol, char **msg)
@@ -849,6 +886,7 @@ int GMRFLib_gsl_ensure_spd_inverse_x(gsl_matrix *A, double tol, char **msg, GMRF
 GMRFLib_gsl_ensure_spd_store_tp *GMRFLib_gsl_ensure_spd_store_alloc(int n)
 {
 	GMRFLib_gsl_ensure_spd_store_tp *S = Calloc(1, GMRFLib_gsl_ensure_spd_store_tp);
+
 	S->U = gsl_matrix_alloc(n, n);
 	S->M1 = gsl_matrix_alloc(n, n);
 	S->M2 = gsl_matrix_alloc(n, n);
@@ -911,12 +949,14 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 	size_t i;
 	const double one = 1.0, zero = 0.0;
 	double s, s_min, s_max = gsl_vector_max(S);
+
 	if (s_max <= 0.0) {
 		s_max = 0.0;				       /* then the whole matrix is zero or INF, as all is wrong... */
 	}
 
 	if (tol < 0.0 && s_max > 0.0) {
 		int n_neg = 0;
+
 		s_min = s_max;
 		for (i = 0; i < A->size1; i++) {
 			s = gsl_vector_get(S, i);
@@ -979,11 +1019,13 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 GMRFLib_gsl_spd_solve_store_tp *GMRFLib_gsl_spd_solve_store_alloc(int n)
 {
 	GMRFLib_gsl_spd_solve_store_tp *S = Calloc(1, GMRFLib_gsl_spd_solve_store_tp);
+
 	S->L = gsl_matrix_alloc(n, n);
 	S->S = gsl_vector_alloc(n);
 	return S;
@@ -1023,6 +1065,7 @@ int GMRFLib_gsl_spd_solve_x(gsl_matrix *A, gsl_vector *b, gsl_vector *x, GMRFLib
 	}
 
 	int ecode = gsl_linalg_cholesky_decomp2(L, S);
+
 	if (ecode != GSL_SUCCESS) {
 		if (!store) {
 			gsl_matrix_free(L);
@@ -1052,6 +1095,7 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 	assert(A && (A->size1 == A->size2));
 	if (try_first && *try_first) {
 		int ecode = GMRFLib_gsl_spd_solve_x(A, b, x, NULL);
+
 		if (ecode == GMRFLib_SUCCESS) {
 			return GMRFLib_SUCCESS;
 		}
@@ -1062,12 +1106,14 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 	}
 
 	const int debug = 0;
+
 	assert(tol >= 0.0);
 
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
 	gsl_vector *S = gsl_vector_alloc(A->size1);
 
 	gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(A->size1);
+
 	gsl_eigen_symmv(A, S, U, work);
 
 	size_t i;
@@ -1081,6 +1127,7 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 	gsl_matrix_set_zero(M2);
 
 	double s_min = tol * s_max;
+
 	if (debug && !(s_max > 0.0)) {
 		FIXME("s_max > 0 FAILED");
 		P(s_max);
@@ -1102,6 +1149,7 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 
 	if (x == b) {
 		gsl_vector *xx = gsl_vector_alloc(A->size1);
+
 		gsl_blas_dgemv(CblasNoTrans, one, M2, b, zero, xx);
 		gsl_vector_memcpy(x, xx);
 		gsl_vector_free(xx);
@@ -1129,6 +1177,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 	assert(A && (A->size1 == A->size2));
 	if (try_first && *try_first) {
 		int ecode = GMRFLib_gsl_spd_inverse(A);
+
 		if (ecode == GMRFLib_SUCCESS) {
 			return GMRFLib_SUCCESS;
 		}
@@ -1139,12 +1188,14 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 	}
 
 	const int debug = 0;
+
 	assert(tol >= 0.0);
 
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
 	gsl_vector *S = gsl_vector_alloc(A->size1);
 
 	gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(A->size1);
+
 	gsl_eigen_symmv(A, S, U, work);
 
 	size_t i;
@@ -1153,10 +1204,12 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 	double s_max = ABS(gsl_vector_max(S));
 	gsl_matrix *M1 = gsl_matrix_alloc(A->size1, A->size2);
 	gsl_matrix *M2 = gsl_matrix_alloc(A->size1, A->size2);
+
 	gsl_matrix_set_zero(M1);
 	gsl_matrix_set_zero(M2);
 
 	double s_min = tol * s_max;
+
 	if (debug && !(s_max > 0.0)) {
 		FIXME("s_max > 0 FAILED");
 		P(s_max);
@@ -1204,6 +1257,7 @@ int GMRFLib_gsl_mgs(gsl_matrix *A)
 
 		for (size_t j = 0; j < n1; j++) {
 			double elm = gsl_matrix_get(A, j, i);
+
 			r += SQR(elm);
 			aij_amax = (ABS(elm) > ABS(aij_amax) ? elm : aij_amax);
 		}
@@ -1234,11 +1288,13 @@ int GMRFLib_gsl_mgs(gsl_matrix *A)
 
 	return (GMRFLib_SUCCESS);
 }
+
 #pragma GCC diagnostic pop
 
 GMRFLib_gsl_low_rank_store_tp *GMRFLib_gsl_low_rank_store_alloc(int n)
 {
 	GMRFLib_gsl_low_rank_store_tp *S = Calloc(1, GMRFLib_gsl_low_rank_store_tp);
+
 	S->U = gsl_matrix_alloc(n, n);
 	S->D = gsl_matrix_alloc(n, n);
 	S->S = gsl_vector_alloc(n);
@@ -1307,11 +1363,13 @@ gsl_matrix *GMRFLib_gsl_low_rank_x(gsl_matrix *Cov, double tol, gsl_matrix *B, G
 	gsl_eigen_symmv_sort(S, U, GSL_EIGEN_SORT_VAL_DESC);
 
 	double s_max = gsl_vector_max(S);
+
 	assert(s_max > 0.0);
 	assert(s_max == gsl_vector_get(S, 0));
 
 	size_t m = 0;
 	double s_min = tol * s_max;
+
 	for (size_t i = 0; i < n; i++) {
 		if (gsl_vector_get(S, i) >= s_min) {
 			m++;
@@ -1327,6 +1385,7 @@ gsl_matrix *GMRFLib_gsl_low_rank_x(gsl_matrix *Cov, double tol, gsl_matrix *B, G
 	}
 
 	gsl_matrix *BB = NULL;
+
 	if (B) {
 		B->size1 = n;
 		B->size2 = m;
@@ -1358,6 +1417,7 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 	FIXME("gsl_kld is not tested");
 
 	size_t n = Q_base->size1;
+
 	assert(n == Q_base->size2);
 	assert(n == Q->size2);
 	assert(n == Q->size2);
@@ -1380,6 +1440,7 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 
 	size_t i;
 	double s = 0.0, s_min_base = 0.0, s_max_base = gsl_vector_max(S_base);
+
 	s_max_base = DMAX(0.0, s_max_base);
 
 	if (s_max_base > 0.0) {
@@ -1394,6 +1455,7 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 	}
 
 	double s_min = 0.0, s_max = gsl_vector_max(S);
+
 	s_max = DMAX(0.0, s_max);
 
 	if (s_max > 0.0) {
@@ -1431,6 +1493,7 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 
 	double ldet_base = 0.0;
 	double ldet = 0.0;
+
 	for (i = 0; i < n - rdef; i++) {
 		ldet_base += log(gsl_vector_get(S_base, i));
 		ldet += log(gsl_vector_get(S, i));
@@ -1439,6 +1502,7 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 	gsl_matrix *Cov_base = GMRFLib_gsl_duplicate_matrix(Q_base);
 	gsl_matrix *M1 = gsl_matrix_alloc(n, n);
 	gsl_matrix *M2 = gsl_matrix_alloc(n, n);
+
 	gsl_matrix_set_zero(M1);
 	gsl_matrix_set_zero(M2);
 
@@ -1450,6 +1514,7 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 	gsl_matrix_memcpy(Cov_base, M2);
 
 	gsl_matrix *Q_corr = GMRFLib_gsl_duplicate_matrix(Q);
+
 	gsl_matrix_set_zero(M1);
 	gsl_matrix_set_zero(M2);
 	for (i = 0; i < n - rdef; i++) {
@@ -1474,6 +1539,7 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 	// quadratic term
 	gsl_vector *v1 = gsl_vector_alloc(n);
 	gsl_vector *v2 = gsl_vector_alloc(n);
+
 	gsl_vector_set_zero(v1);
 	gsl_vector_set_zero(v2);
 
@@ -1482,6 +1548,7 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 	}
 	GMRFLib_gsl_mv(Cov_base, v1, v2);
 	double quadratic = 0.0;
+
 	gsl_blas_ddot(v1, v2, &quadratic);
 	kld += quadratic;
 
@@ -1504,6 +1571,7 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 
 	return kld;
 }
+
 #pragma GCC diagnostic pop
 
 double GMRFLib_dssqr(int n, double *x)
@@ -1511,6 +1579,7 @@ double GMRFLib_dssqr(int n, double *x)
 	// sum_i x_i^2
 	int one = 1;
 	double ret = dnrm2_(&n, x, &one);
+
 	return SQR(ret);
 }
 
@@ -1528,12 +1597,14 @@ void GMRFLib_dscale(int n, double a, double *x)
 		}
 	} else {
 		int one = 1;
+
 		dscal_(&n, &a, x, &one);
 	}
 }
+
 #pragma GCC diagnostic pop
 
-forceinline void GMRFLib_dscale_INLINE(int n, double a, double *x)
+FORCEINLINE void GMRFLib_dscale_INLINE(int n, double a, double *x)
 {
 	// x[i] *= a
 	if (n <= GMRFLib_dscale_cutoff) {
@@ -1543,6 +1614,7 @@ forceinline void GMRFLib_dscale_INLINE(int n, double a, double *x)
 		}
 	} else {
 		int one = 1;
+
 		dscal_(&n, &a, x, &one);
 	}
 }
@@ -1563,7 +1635,7 @@ int GMRFLib_dscale_tune(FILE *fp)
 	int found = 0;
 
 	for (int n = nmin; n <= nmax; n += nadd) {
-		double tref[2] = { 0 };
+		double tref[2] = { 0, 0 };
 
 		a = GMRFLib_uniform();
 		aa = 1.0 / a;
@@ -1612,8 +1684,8 @@ int GMRFLib_dscale_tune(FILE *fp)
 	Free(x);
 	return GMRFLib_dscale_cutoff;
 }
-#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic pop
 
 #define DSCALE2_CORE()				\
 	_Pragma("omp simd")			\
@@ -1625,7 +1697,7 @@ int GMRFLib_dscale_tune(FILE *fp)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_dscale2(int n, double a, double *__restrict x, double *__restrict y)
+void GMRFLib_dscale2(int n, double a, double *RESTRICT x, double *RESTRICT y)
 {
 	// y[i] = a * x[i]
 #if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
@@ -1638,6 +1710,7 @@ void GMRFLib_dscale2(int n, double a, double *__restrict x, double *__restrict y
 	DSCALE2_CORE();
 #endif
 }
+
 #pragma GCC diagnostic pop
 #undef DSCALE2_CORE
 
@@ -1646,9 +1719,11 @@ void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 	// y = a * x + b * y
 #if defined(INLA_WITH_MKL)
 	int inc = 1;
+
 	daxpby_(&n, &a, x, &inc, &b, y, &inc);
 #elif defined(INLA_WITH_ARMPL)
 	int inc = 1;
+
 	daxpby_(&n, &a, x, &inc, &b, y, &inc);
 #else
 	GMRFLib_dscale_INLINE(n, b, y);
@@ -1661,6 +1736,7 @@ void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z)
 	// z = a * x + b * y
 #if defined(INLA_WITH_ARMPL)
 	int inc = 1;
+
 	dwaxpby_(&n, &a, x, &inc, &b, y, &inc, z, &inc);
 #else
 	Memcpy(z, y, n * sizeof(double));
@@ -1687,6 +1763,7 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 		y[i] = a * x[i] + b;
 	}
 }
+
 #pragma GCC diagnostic pop
 
 // y = a * x + y
@@ -1701,7 +1778,7 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 		daxpy_(&n, &a, x, &inc, y, &inc);	\
 	}
 
-forceinline void GMRFLib_daxpy_INLINE(int n, double a, double *x, double *y)
+FORCEINLINE void GMRFLib_daxpy_INLINE(int n, double a, double *x, double *y)
 {
 	DAXPY_CORE();
 }
@@ -1715,6 +1792,7 @@ void GMRFLib_daxpy(int n, double a, double *x, double *y)
 	// y = a * x + y
 	DAXPY_CORE();
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -1734,7 +1812,7 @@ int GMRFLib_daxpy_tune(FILE *fp)
 	int found = 0;
 
 	for (int n = nmin; n <= nmax; n += nadd) {
-		double tref[2] = { 0 };
+		double tref[2] = { 0, 0 };
 
 		a = GMRFLib_uniform();
 		aa = 1.0 / a;
@@ -1786,6 +1864,7 @@ int GMRFLib_daxpy_tune(FILE *fp)
 
 	return GMRFLib_daxpy_cutoff;
 }
+
 #pragma GCC diagnostic pop
 
 #define DDOT_CORE(cutoff_)						\
@@ -1805,13 +1884,14 @@ int GMRFLib_daxpy_tune(FILE *fp)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
+double GMRFLib_ddot(int n, double *RESTRICT x, double *RESTRICT y)
 {
 	DDOT_CORE();
 }
+
 #pragma GCC diagnostic pop
 
-forceinline double GMRFLib_ddot_INLINE(int n, double *__restrict x, double *__restrict y)
+FORCEINLINE double GMRFLib_ddot_INLINE(int n, double *RESTRICT x, double *RESTRICT y)
 {
 	DDOT_CORE();
 }
@@ -1832,7 +1912,7 @@ int GMRFLib_ddot_tune(FILE *fp)
 	int found = 0;
 
 	for (int n = nmin; n <= nmax; n += nadd) {
-		double tref[2] = { 0 };
+		double tref[2] = { 0, 0 };
 
 		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
@@ -1842,6 +1922,7 @@ int GMRFLib_ddot_tune(FILE *fp)
 		for (int k = -5; k < m; k++) {
 			volatile double a;
 			volatile double aa;
+
 			if (k == 0) {
 				tref[0] = tref[1] = 0.0;
 			}
@@ -1886,6 +1967,7 @@ int GMRFLib_ddot_tune(FILE *fp)
 
 	return GMRFLib_ddot_cutoff;
 }
+
 #pragma GCC diagnostic pop
 
 #define DDOT2_CORE()					\
@@ -1902,7 +1984,7 @@ int GMRFLib_ddot_tune(FILE *fp)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_ddot2(double *__restrict a, double *__restrict b, int n, double *__restrict x, double *__restrict y, double *__restrict z)
+void GMRFLib_ddot2(double *RESTRICT a, double *RESTRICT b, int n, double *RESTRICT x, double *RESTRICT y, double *RESTRICT z)
 {
 	// a = ddot(x,y); b = ddot(x,z)
 	// this is a very particular function, only used for n=16
@@ -1920,8 +2002,8 @@ void GMRFLib_ddot2(double *__restrict a, double *__restrict b, int n, double *__
 		DDOT2_CORE();
 	}
 }
-#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic pop
 
 #define FILL_CORE(TYPE_, LEN_)						\
 	if (ISZERO(a)) {						\
@@ -1950,6 +2032,7 @@ void GMRFLib_dfill(int n, double a, double *x)
 {
 	FILL_CORE(double, 64);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -1960,6 +2043,7 @@ void GMRFLib_ifill(int n, int a, int *x)
 {
 	FILL_CORE(int, 128);
 }
+
 #pragma GCC diagnostic pop
 
 void GMRFLib_bfill(int n, bool a, bool *x)
@@ -1971,7 +2055,7 @@ void GMRFLib_bfill(int n, bool a, bool *x)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_pack(int n, double *__restrict a, int *__restrict ia, double *__restrict y)
+void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, double *RESTRICT y)
 {
 	// y[] = a[ia[]]
 #if 0 && defined(INLA_WITH_MKL)
@@ -1987,13 +2071,14 @@ void GMRFLib_pack(int n, double *__restrict a, int *__restrict ia, double *__res
 	}
 #endif
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_unpack(int n, double *__restrict a, double *__restrict y, int *__restrict iy)
+void GMRFLib_unpack(int n, double *RESTRICT a, double *RESTRICT y, int *RESTRICT iy)
 {
 	// y[iy[]] = a[]
 #if 0 && defined(INLA_WITH_MKL)
@@ -2005,6 +2090,7 @@ void GMRFLib_unpack(int n, double *__restrict a, double *__restrict y, int *__re
 	}
 #endif
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -2020,4 +2106,5 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 	}
 #endif
 }
+
 #pragma GCC diagnostic pop
