@@ -2064,10 +2064,8 @@ void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, double *RESTRICT 
 	// MKL does not run that well: vdPackV(n, a, ia, y);
 
 #if defined(INLA_WITH_SIMDE_AVX2_) && (defined(__x86_64__) && defined(__AVX2__))
-	FIXME1("RUN SIMDE CODE");
 #  include "intrinsics/simde/pack-avx2.h"
 #else
-	FIXME1("RUN OMP SIMD CODE");
 #       pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];

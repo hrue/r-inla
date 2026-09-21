@@ -6984,6 +6984,41 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 212:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double tref[2] = { 0.0 };
+		double *x = Malloc(n, double);
+		double *y = Malloc(n, double);
+		double *yy = Malloc(n, double);
+		for(int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		for (int j = 0; j < m; j++) {
+			double a = GMRFLib_uniform();
+			tref[0] -= GMRFLib_timer();
+#pragma omp simd
+			for(int i = 0; i < n; i++) {
+				y[i] = a * x[i];
+			}
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+			GMRFLib_dscale2(n, a, x, yy);
+			tref[1] += GMRFLib_timer();
+			assert(y[0] == yy[0]);
+		}
+
+		printf("simd %.3f dscale2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
 	default:
 	{
 		printf("\nNo such test: %d\n", test_no);
