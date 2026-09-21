@@ -15,6 +15,7 @@ double *inla_cloglike_beta(inla_cloglike_cmd_tp cmd, double *theta,
 	case INLA_CLOGLIKE_INITIAL:
 	{
 		ret = Malloc(3, double);
+
 		ret[0] = 2;
 		ret[1] = 1;
 		ret[2] = 1;
@@ -25,6 +26,7 @@ double *inla_cloglike_beta(inla_cloglike_cmd_tp cmd, double *theta,
 	{
 		double prec[2] = { 1, 1 };
 		ret = Malloc(1, double);
+
 		ret[0] = log(1.0 / sqrt(2.0 * M_PI)) + 0.5 * log(prec[0])
 		    - 0.5 * prec[0] * SQR(theta[0]);
 		ret[0] += log(1.0 / sqrt(2.0 * M_PI)) + 0.5 * log(prec[1])
@@ -40,6 +42,7 @@ double *inla_cloglike_beta(inla_cloglike_cmd_tp cmd, double *theta,
 			double phi = exp(theta[0] + theta[1] * y[1]);
 			double a = mu * phi;
 			double b = -mu * phi + phi;
+
 			result[i] = (a - 1.0) * log(y[0])
 			    + (b - 1.0) * log(1.0 - y[0])
 			    + (lgamma(a + b) - (lgamma(a) + lgamma(b)));
