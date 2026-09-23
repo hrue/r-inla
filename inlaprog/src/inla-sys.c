@@ -184,15 +184,67 @@ int inla_num_p_cores(void)
 
         if (hwloc_topology_init(&topology) < 0)
                 return NUM_P_CORES_DEFAULT();
+                
+        // Force reading of raw physical hardware topology
+        hwloc_topology_set_flags(topology, HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM);
         hwloc_topology_load(topology);
 
-        // Query different core types. hwloc sorts kinds automatically by efficiency.
-        // The highest-performance group (P-Cores) is always the LAST index.
-        int num_kinds = hwloc_cpukinds_get_nr(topology, 0);
         int total_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
+        int num_l2_caches = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_L2CACHE);
+        int num_kinds = hwloc_cpukinds_get_nr(topology, 0);
 
-        if (num_kinds > 1) {
-                // --- HYBRID ARCHITECTURE FOUND VIA OS (Intel P/E or AMD Zen/Zen-c) ---
+        // --------------------------------------------------------------------
+        // STEP 1: SCAN FOR PHYSICAL CACHE ASYMMETRY (Perfect for ARM/DGX Spark)
+        // --------------------------------------------------------------------
+        size_t max_l2_size = 0;
+        for (int i = 0; i < num_l2_caches; i++) {
+                hwloc_obj_t l2_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_L2CACHE, i);
+                if (l2_obj && l2_obj->attr && l2_obj->attr->cache.size > max_l2_size) {
+                        max_l2_size = l2_obj->attr->cache.size;
+                }
+        }
+
+        int is_heterogeneous_cache = 0;
+        if (max_l2_size > 0) {
+                for (int i = 0; i < num_l2_caches; i++) {
+                        hwloc_obj_t l2_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_L2CACHE, i);
+                        if (l2_obj && l2_obj->attr && l2_obj->attr->cache.size < max_l2_size) {
+                                is_heterogeneous_cache = 1; // Found lower-tier efficiency caches!
+                                break;
+                        }
+                }
+        }
+
+        if (is_heterogeneous_cache) {
+                // Isolate all physical cores linked to the highest cache size tier
+                for (int i = 0; i < total_cores && g_p_core_count < MAX_CORES; i++) {
+                        hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
+                        if (core_obj) {
+                                int matches_p_core = 0;
+                                for (int j = 0; j < num_l2_caches; j++) {
+                                        hwloc_obj_t l2_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_L2CACHE, j);
+                                        if (l2_obj && l2_obj->attr && l2_obj->attr->cache.size == max_l2_size) {
+                                                if (hwloc_bitmap_intersects(core_obj->cpuset, l2_obj->cpuset)) {
+                                                        matches_p_core = 1;
+                                                        break;
+                                                }
+                                        }
+                                        
+                                }
+                                if (matches_p_core) {
+                                        g_p_core_pu_ids[g_p_core_count] = hwloc_bitmap_first(core_obj->cpuset);
+                                        g_p_core_count++;
+                                }
+                        }
+                }
+                if (p_cores_verbose) {
+                        printf("[Linux Detected] Hybrid layout found via Cache inspection. Using %d performance cores.\n", g_p_core_count);
+                }
+        }
+        // --------------------------------------------------------------------
+        // STEP 2: FALLBACK TO OS SCHEDULER KINDS (Perfect for Intel/AMD x86)
+        // --------------------------------------------------------------------
+        else if (num_kinds > 1) {
                 hwloc_bitmap_t p_core_cpuset = hwloc_bitmap_alloc();
                 int best_kind_index = num_kinds - 1;
 
@@ -202,7 +254,6 @@ int inla_num_p_cores(void)
                         hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
 
                         if (core_obj && hwloc_bitmap_intersects(core_obj->cpuset, p_core_cpuset)) {
-                                // Harvest the lowest logical PU ID belonging to this physical core (skips hyperthreads)
                                 g_p_core_pu_ids[g_p_core_count] = hwloc_bitmap_first(core_obj->cpuset);
                                 g_p_core_count++;
                         }
@@ -211,76 +262,24 @@ int inla_num_p_cores(void)
                 if (p_cores_verbose) {
                         printf("[Linux Detected] Hybrid layout found via OS kinds. Using %d performance cores.\n", g_p_core_count);
                 }
-        } else {
-                // --- FALLBACK INTERMEDIATE STEP: DYNAMIC MAX L2 CACHE SCAN ---
-                size_t max_l2_size = 0;
-
-                // Step A: Find the absolute largest L2 cache size active on this chip
-                for (int i = 0; i < total_cores; i++) {
+        }
+        // --------------------------------------------------------------------
+        // STEP 3: FALLBACK TO STANDARD SYMMETRIC (EPYC Servers / Older CPUs)
+        // --------------------------------------------------------------------
+        else {
+                for (int i = 0; i < total_cores && g_p_core_count < MAX_CORES; i++) {
                         hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
+
                         if (core_obj) {
-                                hwloc_obj_t parent = core_obj->parent;
-                                while (parent && parent->type != HWLOC_OBJ_L2CACHE) {
-                                        parent = parent->parent;
-                                }
-                                if (parent && parent->attr && parent->attr->cache.size > max_l2_size) {
-                                        max_l2_size = parent->attr->cache.size;
-                                }
+                                g_p_core_pu_ids[g_p_core_count] = hwloc_bitmap_first(core_obj->cpuset);
+                                g_p_core_count++;
                         }
                 }
-
-                // Step B: Determine if there is an unequal/heterogeneous cache layout
-                int is_heterogeneous_cache = 0;
-                if (max_l2_size > 0) {
-                        for (int i = 0; i < total_cores; i++) {
-                                hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
-                                if (core_obj) {
-                                        hwloc_obj_t parent = core_obj->parent;
-                                        while (parent && parent->type != HWLOC_OBJ_L2CACHE) {
-                                                parent = parent->parent;
-                                        }
-                                        if (parent && parent->attr && parent->attr->cache.size < max_l2_size) {
-                                                is_heterogeneous_cache = 1; // Found an efficiency core with a smaller cache!
-                                                break;
-                                        }
-                                }
-                        }
-                }
-
-                if (is_heterogeneous_cache) {
-                        // Gather ONLY the cores attached to the maximum discovered L2 Cache tier (P-Cores)
-                        for (int i = 0; i < total_cores && g_p_core_count < MAX_CORES; i++) {
-                                hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
-                                if (core_obj) {
-                                        hwloc_obj_t parent = core_obj->parent;
-                                        while (parent && parent->type != HWLOC_OBJ_L2CACHE) {
-                                                parent = parent->parent;
-                                        }
-                                        if (parent && parent->attr && parent->attr->cache.size == max_l2_size) {
-                                                g_p_core_pu_ids[g_p_core_count] = hwloc_bitmap_first(core_obj->cpuset);
-                                                g_p_core_count++;
-                                        }
-                                }
-                        }
-                        if (p_cores_verbose) {
-                                printf("[Linux Detected] Hybrid layout found via Dynamic Cache inspection (Max L2: %zu KB). Using %d performance cores.\n", 
-                                       max_l2_size / 1024, g_p_core_count);
-                        }
-                } else {
-                        // --- STANDARD SYMMETRIC ARCHITECTURE FOUND (All caches are identical) ---
-                        for (int i = 0; i < total_cores && g_p_core_count < MAX_CORES; i++) {
-                                hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
-
-                                if (core_obj) {
-                                        g_p_core_pu_ids[g_p_core_count] = hwloc_bitmap_first(core_obj->cpuset);
-                                        g_p_core_count++;
-                                }
-                        }
-                        if (p_cores_verbose) {
-                                printf("[Linux Detected] Symmetric architecture found. Using all %d physical cores.\n", g_p_core_count);
-                        }
+                if (p_cores_verbose) {
+                        printf("[Linux Detected] Symmetric architecture found. Using all %d physical cores.\n", g_p_core_count);
                 }
         }
+        
         hwloc_topology_destroy(topology);
 
         if (p_cores_verbose) {
