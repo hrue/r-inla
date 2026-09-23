@@ -54,7 +54,7 @@ double GMRFLib_dsum(int n, double *x)
 	}
 #else
 	SUM_CORE_UNROLL(double, n);
-#endif	
+#endif
 }
 
 #pragma GCC diagnostic pop
@@ -90,19 +90,20 @@ double GMRFLib_dsum_ext(int n, double *x)
 	n -= k;
 #       include "intrinsics/simde/dsum-avx2.h"
 //#elif defined(INLA_WITH_SIMDE)
-//	double alignas(16) r0 = 0.0;
-//	int k = ((16 - ((uintptr_t) x & 15)) & 15) / sizeof(double);
+//      double alignas(16) r0 = 0.0;
+//      int k = ((16 - ((uintptr_t) x & 15)) & 15) / sizeof(double);
 //
-//	for (int i = 0; i < k; i++) {
-//		r0 += x[i];
-//	}
-//	x += k;
-//	n -= k;
+//      for (int i = 0; i < k; i++) {
+//              r0 += x[i];
+//      }
+//      x += k;
+//      n -= k;
 //#       include "intrinsics/simde/dsum-sse2.h"
 #else
 	SUM_CORE_UNROLL(double, n);
 #endif
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push

@@ -176,120 +176,127 @@ static int g_p_core_count = 0;
 
 int inla_num_p_cores(void)
 {
-        g_p_core_count = 0;
-        Free(g_p_core_pu_ids);
-        g_p_core_pu_ids = Calloc(MAX_CORES, int);
+	g_p_core_count = 0;
+	Free(g_p_core_pu_ids);
+	g_p_core_pu_ids = Calloc(MAX_CORES, int);
 
-        hwloc_topology_t topology;
+	hwloc_topology_t topology;
 
-        if (hwloc_topology_init(&topology) < 0)
-                return NUM_P_CORES_DEFAULT();
-                
-        // Force reading of raw physical hardware topology
-        hwloc_topology_set_flags(topology, HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM);
-        hwloc_topology_load(topology);
+	if (hwloc_topology_init(&topology) < 0)
+		return NUM_P_CORES_DEFAULT();
 
-        int total_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
-        int num_l2_caches = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_L2CACHE);
-        int num_kinds = hwloc_cpukinds_get_nr(topology, 0);
+	// Force reading of raw physical hardware topology
+	hwloc_topology_set_flags(topology, HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM);
+	hwloc_topology_load(topology);
 
-        // --------------------------------------------------------------------
-        // STEP 1: SCAN FOR PHYSICAL CACHE ASYMMETRY (Perfect for ARM/DGX Spark)
-        // --------------------------------------------------------------------
-        size_t max_l2_size = 0;
-        for (int i = 0; i < num_l2_caches; i++) {
-                hwloc_obj_t l2_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_L2CACHE, i);
-                if (l2_obj && l2_obj->attr && l2_obj->attr->cache.size > max_l2_size) {
-                        max_l2_size = l2_obj->attr->cache.size;
-                }
-        }
+	int total_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
+	int num_l2_caches = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_L2CACHE);
+	int num_kinds = hwloc_cpukinds_get_nr(topology, 0);
 
-        int is_heterogeneous_cache = 0;
-        if (max_l2_size > 0) {
-                for (int i = 0; i < num_l2_caches; i++) {
-                        hwloc_obj_t l2_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_L2CACHE, i);
-                        if (l2_obj && l2_obj->attr && l2_obj->attr->cache.size < max_l2_size) {
-                                is_heterogeneous_cache = 1; // Found lower-tier efficiency caches!
-                                break;
-                        }
-                }
-        }
+	// --------------------------------------------------------------------
+	// STEP 1: SCAN FOR PHYSICAL CACHE ASYMMETRY (Perfect for ARM/DGX Spark)
+	// --------------------------------------------------------------------
+	size_t max_l2_size = 0;
 
-        if (is_heterogeneous_cache) {
-                // Isolate all physical cores linked to the highest cache size tier
-                for (int i = 0; i < total_cores && g_p_core_count < MAX_CORES; i++) {
-                        hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
-                        if (core_obj) {
-                                int matches_p_core = 0;
-                                for (int j = 0; j < num_l2_caches; j++) {
-                                        hwloc_obj_t l2_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_L2CACHE, j);
-                                        if (l2_obj && l2_obj->attr && l2_obj->attr->cache.size == max_l2_size) {
-                                                if (hwloc_bitmap_intersects(core_obj->cpuset, l2_obj->cpuset)) {
-                                                        matches_p_core = 1;
-                                                        break;
-                                                }
-                                        }
-                                        
-                                }
-                                if (matches_p_core) {
-                                        g_p_core_pu_ids[g_p_core_count] = hwloc_bitmap_first(core_obj->cpuset);
-                                        g_p_core_count++;
-                                }
-                        }
-                }
-                if (p_cores_verbose) {
-                        printf("[Linux Detected] Hybrid layout found via Cache inspection. Using %d performance cores.\n", g_p_core_count);
-                }
-        }
-        // --------------------------------------------------------------------
-        // STEP 2: FALLBACK TO OS SCHEDULER KINDS (Perfect for Intel/AMD x86)
-        // --------------------------------------------------------------------
-        else if (num_kinds > 1) {
-                hwloc_bitmap_t p_core_cpuset = hwloc_bitmap_alloc();
-                int best_kind_index = num_kinds - 1;
+	for (int i = 0; i < num_l2_caches; i++) {
+		hwloc_obj_t l2_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_L2CACHE, i);
 
-                hwloc_cpukinds_get_info(topology, best_kind_index, p_core_cpuset, NULL, NULL, NULL, 0);
+		if (l2_obj && l2_obj->attr && l2_obj->attr->cache.size > max_l2_size) {
+			max_l2_size = l2_obj->attr->cache.size;
+		}
+	}
 
-                for (int i = 0; i < total_cores && g_p_core_count < MAX_CORES; i++) {
-                        hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
+	int is_heterogeneous_cache = 0;
 
-                        if (core_obj && hwloc_bitmap_intersects(core_obj->cpuset, p_core_cpuset)) {
-                                g_p_core_pu_ids[g_p_core_count] = hwloc_bitmap_first(core_obj->cpuset);
-                                g_p_core_count++;
-                        }
-                }
-                hwloc_bitmap_free(p_core_cpuset);
-                if (p_cores_verbose) {
-                        printf("[Linux Detected] Hybrid layout found via OS kinds. Using %d performance cores.\n", g_p_core_count);
-                }
-        }
-        // --------------------------------------------------------------------
-        // STEP 3: FALLBACK TO STANDARD SYMMETRIC (EPYC Servers / Older CPUs)
-        // --------------------------------------------------------------------
-        else {
-                for (int i = 0; i < total_cores && g_p_core_count < MAX_CORES; i++) {
-                        hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
+	if (max_l2_size > 0) {
+		for (int i = 0; i < num_l2_caches; i++) {
+			hwloc_obj_t l2_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_L2CACHE, i);
 
-                        if (core_obj) {
-                                g_p_core_pu_ids[g_p_core_count] = hwloc_bitmap_first(core_obj->cpuset);
-                                g_p_core_count++;
-                        }
-                }
-                if (p_cores_verbose) {
-                        printf("[Linux Detected] Symmetric architecture found. Using all %d physical cores.\n", g_p_core_count);
-                }
-        }
-        
-        hwloc_topology_destroy(topology);
+			if (l2_obj && l2_obj->attr && l2_obj->attr->cache.size < max_l2_size) {
+				is_heterogeneous_cache = 1;    // Found lower-tier efficiency caches!
+				break;
+			}
+		}
+	}
 
-        if (p_cores_verbose) {
-                printf("Target Logical OS PU IDs for pinning: ");
-                for (int i = 0; i < g_p_core_count; i++)
-                        printf("%d ", g_p_core_pu_ids[i]);
-                printf("\n\n");
-        }
+	if (is_heterogeneous_cache) {
+		// Isolate all physical cores linked to the highest cache size tier
+		for (int i = 0; i < total_cores && g_p_core_count < MAX_CORES; i++) {
+			hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
 
-        return g_p_core_count;
+			if (core_obj) {
+				int matches_p_core = 0;
+
+				for (int j = 0; j < num_l2_caches; j++) {
+					hwloc_obj_t l2_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_L2CACHE, j);
+
+					if (l2_obj && l2_obj->attr && l2_obj->attr->cache.size == max_l2_size) {
+						if (hwloc_bitmap_intersects(core_obj->cpuset, l2_obj->cpuset)) {
+							matches_p_core = 1;
+							break;
+						}
+					}
+
+				}
+				if (matches_p_core) {
+					g_p_core_pu_ids[g_p_core_count] = hwloc_bitmap_first(core_obj->cpuset);
+					g_p_core_count++;
+				}
+			}
+		}
+		if (p_cores_verbose) {
+			printf("[Linux Detected] Hybrid layout found via Cache inspection. Using %d performance cores.\n", g_p_core_count);
+		}
+	}
+	// --------------------------------------------------------------------
+	// STEP 2: FALLBACK TO OS SCHEDULER KINDS (Perfect for Intel/AMD x86)
+	// --------------------------------------------------------------------
+	else if (num_kinds > 1) {
+		hwloc_bitmap_t p_core_cpuset = hwloc_bitmap_alloc();
+		int best_kind_index = num_kinds - 1;
+
+		hwloc_cpukinds_get_info(topology, best_kind_index, p_core_cpuset, NULL, NULL, NULL, 0);
+
+		for (int i = 0; i < total_cores && g_p_core_count < MAX_CORES; i++) {
+			hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
+
+			if (core_obj && hwloc_bitmap_intersects(core_obj->cpuset, p_core_cpuset)) {
+				g_p_core_pu_ids[g_p_core_count] = hwloc_bitmap_first(core_obj->cpuset);
+				g_p_core_count++;
+			}
+		}
+		hwloc_bitmap_free(p_core_cpuset);
+		if (p_cores_verbose) {
+			printf("[Linux Detected] Hybrid layout found via OS kinds. Using %d performance cores.\n", g_p_core_count);
+		}
+	}
+	// --------------------------------------------------------------------
+	// STEP 3: FALLBACK TO STANDARD SYMMETRIC (EPYC Servers / Older CPUs)
+	// --------------------------------------------------------------------
+	else {
+		for (int i = 0; i < total_cores && g_p_core_count < MAX_CORES; i++) {
+			hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
+
+			if (core_obj) {
+				g_p_core_pu_ids[g_p_core_count] = hwloc_bitmap_first(core_obj->cpuset);
+				g_p_core_count++;
+			}
+		}
+		if (p_cores_verbose) {
+			printf("[Linux Detected] Symmetric architecture found. Using all %d physical cores.\n", g_p_core_count);
+		}
+	}
+
+	hwloc_topology_destroy(topology);
+
+	if (p_cores_verbose) {
+		printf("Target Logical OS PU IDs for pinning: ");
+		for (int i = 0; i < g_p_core_count; i++)
+			printf("%d ", g_p_core_pu_ids[i]);
+		printf("\n\n");
+	}
+
+	return g_p_core_count;
 }
 
 int inla_lock_to_p_cores(void)

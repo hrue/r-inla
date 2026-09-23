@@ -2195,7 +2195,7 @@ int my_sort2_dd_test_cutoff(int verbose)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_iinc(int n, int *a)
 {
 	// __x86_64__ only
@@ -2207,12 +2207,13 @@ int GMRFLib_is_sorted_iinc(int n, int *a)
 	SOURCE_INCLUDE(<);
 #endif
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_dinc(int n, double *a)
 {
 	// __x86_64__ only
@@ -2224,77 +2225,84 @@ int GMRFLib_is_sorted_dinc(int n, double *a)
 	SOURCE_INCLUDE(<);
 #endif
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_idec(int n, int *a)
 {
 	// decreasing int's
 	SOURCE_INCLUDE(>);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_ddec(int n, double *a)
 {
 	// decreasing double's
 	SOURCE_INCLUDE(>);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_iinc_plain(int n, int *a)
 {
 	SOURCE_INCLUDE(<);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_dinc_plain(int n, double *a)
 {
 	SOURCE_INCLUDE(<);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_idec_plain(int n, int *a)
 {
 	SOURCE_INCLUDE(>);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 {
 	SOURCE_INCLUDE(>);
 }
+
 #pragma GCC diagnostic pop
 
 #undef SOURCE_INCLUDE
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if ( (cmp == (void *) GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n,(int *) a);
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
 	} else if (cmp == (void *) GMRFLib_dcmp && size == sizeof(double)) {
 		// increasing doubles
 		return GMRFLib_is_sorted_dinc(n, (double *) a);
@@ -2336,8 +2344,8 @@ void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, cons
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if(!y) {
-		return(GMRFLib_qsort(x, nmemb, size_x, compar));
+	if (!y) {
+		return (GMRFLib_qsort(x, nmemb, size_x, compar));
 	}
 
 	if (nmemb == 0) {
@@ -2513,13 +2521,13 @@ void GMRFLib_sys_cache(GMRFLib_sys_cache_tp *l123)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
-__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_zero_small(int n, double eps, double *x)
 {
-#       pragma omp simd
+#pragma omp simd
 	for (int i = 0; i < n; i++) {
 		x[i] = (ABS(x[i]) <= eps ? 0.0 : x[i]);
 	}
 }
-#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic pop

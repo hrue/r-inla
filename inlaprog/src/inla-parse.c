@@ -21281,7 +21281,7 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\t\tOptimise storage         = [%s]\n", (GMRFLib_opt_storage ? "Yes" : "No"));
 		printf("\t\t\tOptimise num.threads     = [%s]\n", (GMRFLib_opt_num_threads ? "Yes" : "No"));
 		printf("\t\t\tMemory.alignment.enabled = [%s]\n", (GMRFLib_memory_alignment_enabled ? "Yes" : "No"));
-		//printf("\t\t\tPin.to.pcores            = [%1d]\n", GMRFLib_pin_to_p_cores);
+		// printf("\t\t\tPin.to.pcores = [%1d]\n", GMRFLib_pin_to_p_cores);
 		printf("\t\t\tMemory.alignment         = [%u] bytes\n", GMRFLib_memory_alignment);
 	}
 

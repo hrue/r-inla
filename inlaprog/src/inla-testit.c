@@ -6941,31 +6941,33 @@ int testit(int argc, char **argv)
 		double *x2 = Malloc(n, double);
 		double *x3 = Malloc(n, double);
 		int *ix = Malloc(n, int);
-		for(int i = 0; i < n; i++) {
+
+		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
 			x2[i] = GMRFLib_uniform();
 			x3[i] = x2[i];
 			ix[i] = i;
 		}
-		GMRFLib_qsort2((void *) x, (size_t) n, sizeof(double), (void *)ix, sizeof(int), GMRFLib_dcmp);
+		GMRFLib_qsort2((void *) x, (size_t) n, sizeof(double), (void *) ix, sizeof(int), GMRFLib_dcmp);
 
 		int *perm = ix;
 		int *iperm = Malloc(n, int);
-		for(int i = 0; i < n; i++) {
+
+		for (int i = 0; i < n; i++) {
 			iperm[perm[i]] = i;
 		}
-		
+
 		for (int j = 0; j < m; j++) {
 			tref[0] += -GMRFLib_timer();
-#pragma omp simd
-			for(int i = 0; i < n; i++) {
+#       pragma omp simd
+			for (int i = 0; i < n; i++) {
 				x1[perm[i]] = x[i];
 			}
 			tref[0] += GMRFLib_timer();
 
 			tref[1] += -GMRFLib_timer();
-#pragma omp simd
-			for(int i = 0; i < n; i++) {
+#       pragma omp simd
+			for (int i = 0; i < n; i++) {
 				x2[i] = x[iperm[i]];
 			}
 			tref[1] += GMRFLib_timer();
@@ -6978,9 +6980,7 @@ int testit(int argc, char **argv)
 		}
 
 		printf("perm %.3f iperm %.3f _pack %.3f\n",
-		       tref[0] / (tref[0] + tref[1] + tref[2]), 
-		       tref[1] / (tref[0] + tref[1] + tref[2]), 
-		       tref[2] / (tref[0] + tref[1] + tref[2]));
+		       tref[0] / (tref[0] + tref[1] + tref[2]), tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
 	}
 		break;
 
@@ -6996,15 +6996,17 @@ int testit(int argc, char **argv)
 		double *x = Malloc(n, double);
 		double *y = Malloc(n, double);
 		double *yy = Malloc(n, double);
-		for(int i = 0; i < n; i++) {
+
+		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
 		}
 
 		for (int j = 0; j < m; j++) {
 			double a = GMRFLib_uniform();
+
 			tref[0] -= GMRFLib_timer();
-#pragma omp simd
-			for(int i = 0; i < n; i++) {
+#       pragma omp simd
+			for (int i = 0; i < n; i++) {
 				y[i] = a * x[i];
 			}
 			tref[0] += GMRFLib_timer();
@@ -7031,7 +7033,8 @@ int testit(int argc, char **argv)
 		double *x = Malloc(n, double);
 		double *y = Malloc(n, double);
 		double *z = Malloc(n, double);
-		for(int i = 0; i < n; i++) {
+
+		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
 			y[i] = GMRFLib_uniform();
 			z[i] = GMRFLib_uniform();
@@ -7040,8 +7043,9 @@ int testit(int argc, char **argv)
 		for (int j = 0; j < m; j++) {
 			tref[0] -= GMRFLib_timer();
 			double s1 = 0.0, s2 = 0.0;
-#pragma omp simd reduction(+: s1, s2)
-			for(int i = 0; i < n; i++) {
+
+#       pragma omp simd reduction(+: s1, s2)
+			for (int i = 0; i < n; i++) {
 				s1 += x[i] * y[i];
 				s2 += x[i] * z[i];
 			}
@@ -7049,10 +7053,11 @@ int testit(int argc, char **argv)
 
 			tref[1] -= GMRFLib_timer();
 			double ss1 = 0.0, ss2 = 0.0;
+
 			GMRFLib_ddot2(&ss1, &ss2, n, x, y, z);
 			tref[1] += GMRFLib_timer();
-			assert(ABS(s1 -ss1) < FLT_EPSILON);
-			assert(ABS(s2 -ss2) < FLT_EPSILON);
+			assert(ABS(s1 - ss1) < FLT_EPSILON);
+			assert(ABS(s2 - ss2) < FLT_EPSILON);
 		}
 		printf("simd %.3f ddot2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
@@ -7068,36 +7073,38 @@ int testit(int argc, char **argv)
 
 		double tref[3] = { 0.0 };
 		double *x = Malloc(n, double);
-		for(int i = 0; i < n; i++) {
+
+		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
 		}
 
 		for (int j = 0; j < m; j++) {
 			tref[0] -= GMRFLib_timer();
 			double s = 0.0;
-#pragma omp simd reduction(+: s)
-			for(int i = 0; i < n; i++) {
+
+#       pragma omp simd reduction(+: s)
+			for (int i = 0; i < n; i++) {
 				s += x[i];
 			}
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
 			double ss = 0.0;
+
 			ss = GMRFLib_dsum_ext(n, x);
 			tref[1] += GMRFLib_timer();
 
 			tref[2] -= GMRFLib_timer();
 			double sss = 0.0;
+
 			sss = GMRFLib_dsum(n, x);
 			tref[2] += GMRFLib_timer();
 
-			assert(ABS(s -ss) < FLT_EPSILON);
-			assert(ABS(s -sss) < FLT_EPSILON);
+			assert(ABS(s - ss) < FLT_EPSILON);
+			assert(ABS(s - sss) < FLT_EPSILON);
 		}
 		printf("simd %.3f dsum_ext %.3f dsum %.3f\n",
-		       tref[0] / (tref[0] + tref[1] + tref[2]),
-		       tref[1] / (tref[0] + tref[1] + tref[2]), 
-		       tref[2] / (tref[0] + tref[1] + tref[2]));
+		       tref[0] / (tref[0] + tref[1] + tref[2]), tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
 	}
 		break;
 
@@ -7112,7 +7119,8 @@ int testit(int argc, char **argv)
 		double tref[4] = { 0.0 };
 		double *x = Malloc(n, double);
 		int *ix = Malloc(n, int);
-		for(int i = 0; i < n; i++) {
+
+		for (int i = 0; i < n; i++) {
 			x[i] = i;
 			ix[i] = i;
 		}
@@ -7120,18 +7128,22 @@ int testit(int argc, char **argv)
 		for (int j = 0; j < m; j++) {
 			tref[0] -= GMRFLib_timer();
 			volatile int r0 = GMRFLib_is_sorted_iinc(n, ix);
+
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
 			volatile int r1 = GMRFLib_is_sorted_iinc_plain(n, ix);
+
 			tref[1] += GMRFLib_timer();
 
 			tref[2] -= GMRFLib_timer();
 			volatile int r2 = GMRFLib_is_sorted_dinc(n, x);
+
 			tref[2] += GMRFLib_timer();
 
 			tref[3] -= GMRFLib_timer();
 			volatile int r3 = GMRFLib_is_sorted_dinc_plain(n, x);
+
 			tref[3] += GMRFLib_timer();
 
 			assert(r1 == r0);
@@ -7141,31 +7153,34 @@ int testit(int argc, char **argv)
 		printf("int_simd %.3f int_plain %.3f d_simd %.3f d_plain %.3f\n",
 		       tref[0] / (tref[0] + tref[1] + tref[2] + tref[3]),
 		       tref[1] / (tref[0] + tref[1] + tref[2] + tref[3]),
-		       tref[2] / (tref[0] + tref[1] + tref[2] + tref[3]),
-		       tref[3] / (tref[0] + tref[1] + tref[2] + tref[3]));
+		       tref[2] / (tref[0] + tref[1] + tref[2] + tref[3]), tref[3] / (tref[0] + tref[1] + tref[2] + tref[3]));
 	}
 		break;
 
-	case 216: 
+	case 216:
 	{
 		printf("Number of   cores %d\n", GMRFLib_MAX_THREADS());
 		int p_cores = inla_num_p_cores();
+
 		printf("Number of P-cores %d\n", p_cores);
 
 		omp_set_num_threads(p_cores);
 		double *xx = Calloc(p_cores, double);
-#pragma omp parallel for schedule(static)
-		for(int i = 0; i < p_cores; i++) {
+
+#       pragma omp parallel for schedule(static)
+		for (int i = 0; i < p_cores; i++) {
 			int tid = omp_get_thread_num();
+
 			inla_lock_thread_to_p_core(tid);
-			for(int j = 0; j < 10000; j++) {
+			for (int j = 0; j < 10000; j++) {
 				xx[tid] += i + j;
 			}
 		}
 		double sum = GMRFLib_dsum(p_cores, xx);
+
 		P(sum);
 	}
-	break;
+		break;
 
 	default:
 	{

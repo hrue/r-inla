@@ -6567,9 +6567,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *RESTRICT 
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *RESTRICT logll, double *RESTRICT x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 
 	if (m == 0) {
 		if (arg) {

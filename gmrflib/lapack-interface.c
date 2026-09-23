@@ -2062,7 +2062,7 @@ void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, double *RESTRICT 
 
 	// enable this for x86_64 & avx2 only
 #if defined(INLA_WITH_SIMDE_AVX2_) && (defined(__x86_64__) && defined(__AVX2__))
-#  include "intrinsics/simde/pack-avx2.h"
+#       include "intrinsics/simde/pack-avx2.h"
 #else
 #       pragma omp simd
 	for (int i = 0; i < n; i++) {

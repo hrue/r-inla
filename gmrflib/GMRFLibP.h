@@ -908,7 +908,7 @@ typedef enum {
 #              define FORCEINLINE __forceinline
 #       elif defined(__GNUC__)
 #              if defined(_WIN32) && defined(FORCEINLINE)
-#                      undef FORCEINLINE 
+#                     undef FORCEINLINE
 #              endif
 #              define FORCEINLINE inline __attribute__((__always_inline__))
 #       elif defined(__CLANG__)

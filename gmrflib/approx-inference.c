@@ -784,7 +784,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 		cc_is_negative = 0;
 
-
 #define CODE_BLOCK_WORK_TP_FREE(x_) Free(x_)
 #define CODE_BLOCK							\
 		for (int i_ = 0; i_ < d_idx->n; i_++) {			\
