@@ -905,7 +905,9 @@ typedef enum {
 
 // from https://en.wikipedia.org/wiki/Inline_function
 #       ifdef _MSC_VER
-#              define FORCEINLINE __forceinline
+#              if !defined(FORCEINLINE)
+#                     define FORCEINLINE __forceinline
+#              endif
 #       elif defined(__GNUC__)
 #              define FORCEINLINE inline __attribute__((__always_inline__))
 #       elif defined(__CLANG__)
