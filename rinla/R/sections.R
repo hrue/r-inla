@@ -1834,6 +1834,10 @@ inla.parse.Bmatrix.test <- function() {
     inla.write.boolean.field("opt.solve", args$opt.solve, file)
     inla.write.boolean.field("opt.storage", args$opt.storage, file)
     inla.write.boolean.field("opt.num.threads", args$opt.num.threads, file)
+
+## DISABLE THIS ONE FOR THE MOMENT
+##    inla.write.boolean.field("pin.to.pcores", args$pin.to.pcores, file)
+
     ma <- args$memory.alignment
     if (is.null(ma) || all(ma != c(0, 16, 32, 64))) {
         ma <- 0

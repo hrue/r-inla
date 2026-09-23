@@ -7146,6 +7146,27 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 216: 
+	{
+		printf("Number of   cores %d\n", GMRFLib_MAX_THREADS());
+		int p_cores = inla_num_p_cores();
+		printf("Number of P-cores %d\n", p_cores);
+
+		omp_set_num_threads(p_cores);
+		double *xx = Calloc(p_cores, double);
+#pragma omp parallel for schedule(static)
+		for(int i = 0; i < p_cores; i++) {
+			int tid = omp_get_thread_num();
+			inla_lock_thread_to_p_core(tid);
+			for(int j = 0; j < 10000; j++) {
+				xx[tid] += i + j;
+			}
+		}
+		double sum = GMRFLib_dsum(p_cores, xx);
+		P(sum);
+	}
+	break;
+
 	default:
 	{
 		printf("\nNo such test: %d\n", test_no);

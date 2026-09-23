@@ -2474,6 +2474,7 @@ void inla_theta_all_get_values(int thread_id, double *values);
 
 double testit_Qfunc(int thread_id, int i, int j, double *values, void *arg);
 
+int inla_lock_thread_to_p_core(int tid);
 int inla_lock_to_p_cores(void);
 int inla_num_p_cores(void);
 

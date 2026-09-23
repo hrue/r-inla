@@ -105,6 +105,8 @@ extern int GMRFLib_model_n;
 
 extern int GMRFLib_force_stiles;
 
+extern int GMRFLib_pin_to_p_cores;
+
 extern char *GMRFLib_tmpdir;
 
 extern double GMRFLib_overall_cpu[8];
