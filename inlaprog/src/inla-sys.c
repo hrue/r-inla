@@ -166,11 +166,11 @@ static int p_cores_verbose = 0;
 #       include <stdlib.h>
 #       include <unistd.h>
 #       include <sys/stat.h>
-# include <sched.h>
-# include <hwloc.h>
-# include <hwloc/cpukinds.h> // Handles modern Intel & AMD hybrid architectures
+#       include <sched.h>
+#       include <hwloc.h>
+#       include <hwloc/cpukinds.h>			       // Handles modern Intel & AMD hybrid architectures
 
-#define MAX_CORES (2*1024)
+#       define MAX_CORES (2*1024)
 static int *g_p_core_pu_ids = NULL;
 static int g_p_core_count = 0;
 
@@ -179,24 +179,28 @@ int inla_num_p_cores(void)
 	g_p_core_count = 0;
 	Free(g_p_core_pu_ids);
 	g_p_core_pu_ids = Calloc(MAX_CORES, int);
-	
-        hwloc_topology_t topology;
-        if (hwloc_topology_init(&topology) < 0) return NUM_P_CORES_DEFAULT();
-        hwloc_topology_load(topology);
 
-        // query different core types. hwloc sorts kinds automatically by efficiency. the highest-performance group (P-Cores) is
+	hwloc_topology_t topology;
+
+	if (hwloc_topology_init(&topology) < 0)
+		return NUM_P_CORES_DEFAULT();
+	hwloc_topology_load(topology);
+
+	// query different core types. hwloc sorts kinds automatically by efficiency. the highest-performance group (P-Cores) is
 	// always the LAST index.
-        int num_kinds = hwloc_cpukinds_get_nr(topology, 0);
-        int total_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
+	int num_kinds = hwloc_cpukinds_get_nr(topology, 0);
+	int total_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
 
-        if (num_kinds > 1) {
+	if (num_kinds > 1) {
 		// --- HYBRID ARCHITECTURE FOUND (Intel P/E or AMD Zen/Zen-c) ---
 		hwloc_bitmap_t p_core_cpuset = hwloc_bitmap_alloc();
 		int best_kind_index = num_kinds - 1;
+
 		hwloc_cpukinds_get_info(topology, best_kind_index, p_core_cpuset, NULL, NULL, NULL, 0);
 
 		for (int i = 0; i < total_cores && g_p_core_count < MAX_CORES; i++) {
 			hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
+
 			if (core_obj && hwloc_bitmap_intersects(core_obj->cpuset, p_core_cpuset)) {
 				// Harvest the lowest logical PU ID belonging to this physical core (skips hyperthreads)
 				g_p_core_pu_ids[g_p_core_count] = hwloc_bitmap_first(core_obj->cpuset);
@@ -207,10 +211,11 @@ int inla_num_p_cores(void)
 		if (p_cores_verbose) {
 			printf("[Linux Detected] Hybrid layout found. Using %d performance cores.\n", g_p_core_count);
 		}
-        } else {
+	} else {
 		// --- SYMMETRIC ARCHITECTURE FOUND (Standard / Servers) ---
 		for (int i = 0; i < total_cores && g_p_core_count < MAX_CORES; i++) {
 			hwloc_obj_t core_obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_CORE, i);
+
 			if (core_obj) {
 				g_p_core_pu_ids[g_p_core_count] = hwloc_bitmap_first(core_obj->cpuset);
 				g_p_core_count++;
@@ -219,12 +224,13 @@ int inla_num_p_cores(void)
 		if (p_cores_verbose) {
 			printf("[Linux Detected] Symmetric architecture found. Using all %d physical cores.\n", g_p_core_count);
 		}
-        }
-        hwloc_topology_destroy(topology);
+	}
+	hwloc_topology_destroy(topology);
 
 	if (p_cores_verbose) {
 		printf("Target Logical OS PU IDs for pinning: ");
-		for(int i = 0; i < g_p_core_count; i++) printf("%d ", g_p_core_pu_ids[i]);
+		for (int i = 0; i < g_p_core_count; i++)
+			printf("%d ", g_p_core_pu_ids[i]);
 		printf("\n\n");
 	}
 
@@ -236,27 +242,28 @@ int inla_lock_to_p_cores(void)
 	return 0;
 }
 
-int inla_lock_thread_to_p_core(int tid) 
+int inla_lock_thread_to_p_core(int tid)
 {
 	if (g_p_core_count == 0)
 		return 0;
 	if (LEGAL(tid, g_p_core_count)) {
 		int target_pu = g_p_core_pu_ids[tid];
 		cpu_set_t mask;
+
 		CPU_ZERO(&mask);
 		CPU_SET(target_pu, &mask);
 		if (pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mask) == 0) {
 			if (p_cores_verbose) {
 				int actual_pu = sched_getcpu();
-				printf("[Thread %d] Fixed to P-Core (PU %d). OS Verification: Active on PU %d\n", 
-				       tid, target_pu, actual_pu);
+
+				printf("[Thread %d] Fixed to P-Core (PU %d). OS Verification: Active on PU %d\n", tid, target_pu, actual_pu);
 			}
 			return 0;
 		} else {
 			perror("Linux pthread_setaffinity_np failed");
 			return 1;
 		}
-        }
+	}
 	return 0;
 }
 #endif
@@ -269,16 +276,18 @@ int inla_lock_thread_to_p_core(int tid)
 
 int inla_num_p_cores(void)
 {
-        // query macOS kernel attributes directly via sysctl
-        int64_t p_cores = 0;
-        size_t size = sizeof(p_cores);
-        if (sysctlbyname("hw.perflevel0.physicalcpu", &p_cores, &size, NULL, 0) != 0) {
+	// query macOS kernel attributes directly via sysctl
+	int64_t p_cores = 0;
+	size_t size = sizeof(p_cores);
+
+	if (sysctlbyname("hw.perflevel0.physicalcpu", &p_cores, &size, NULL, 0) != 0) {
 		// Fallback to total physical cores if the metric is missing
 		int64_t total_cores = 0;
 		size_t total_size = sizeof(total_cores);
+
 		sysctlbyname("hw.physicalcpu", &total_cores, &total_size, NULL, 0);
 		p_cores = total_cores;
-        }
+	}
 	return (p_cores > 0 ? p_cores : NUM_P_CORES_DEFAULT());
 }
 
@@ -287,7 +296,8 @@ int inla_lock_to_p_cores(void)
 	// lock == 'bind' here
 	// Elevate the current thread to the absolute highest performance tier.
 	// This strictly forces macOS to run your code on the P-Cores.
-        int result = pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIALIZED, 0);
+	int result = pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0);
+
 	if (result != 0) {
 		perror("Failed to set Mac QoS class");
 		return 1;
@@ -295,7 +305,7 @@ int inla_lock_to_p_cores(void)
 	return 0;
 }
 
-int inla_lock_thread_to_p_core(int tid) 
+int inla_lock_thread_to_p_core(int tid)
 {
 	return 0;
 }
@@ -309,7 +319,7 @@ int inla_lock_to_p_cores(void)
 	return 0;
 }
 
-int inla_lock_thread_to_p_core(int tid) 
+int inla_lock_thread_to_p_core(int tid)
 {
 	return 0;
 }
