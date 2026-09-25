@@ -3744,9 +3744,11 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				int m = 0;
 				int m_sub[NSUB] = { 0 };
 				int node = d_idx->idx[i];
+
 				for (int j = 0; j < BLOCK; j++) {
 					int nnode = d_idx->idx[i + j];
 					int sub_idx = j / BLOCK_SUB;	/* integer division */
+
 					m += A_idx(nnode)->n;
 					m_sub[sub_idx] += A_idx(nnode)->n;
 				}
@@ -3758,6 +3760,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				for (int j = 0; j < BLOCK; j++) {
 					int nnode = d_idx->idx[i + j];
 					int sub_idx = j / BLOCK_SUB;	/* integer division */
+
 					GMRFLib_idx_nadd(&(A_idx_block[node]), A_idx(nnode)->n, A_idx(nnode)->idx);
 					GMRFLib_idx_nadd(&(A_idx_block_sub[sub_idx][node]), A_idx(nnode)->n, A_idx(nnode)->idx);
 				}
@@ -3913,8 +3916,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							// BLOCK of idx's are not be a match, as if a block are then we have to check each
 							// one. there are way more non-match than match, so...
 							int knode = 0;
+
 							for (knode = 0; knode + BLOCK - 1 < dn; knode += BLOCK) {
 								int nnode = d_idx->idx[knode];
+
 								if (unlikely(GMRFLib_idx_ge_match(A_idx_block[nnode], bitmap, min_overlap)))
 									for (int sub = 0; sub < NSUB; sub++) {
 										if (likely
@@ -3924,6 +3929,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 											     kknode++) {
 												int offset = sub * BLOCK_SUB;
 												int nnode_local = d_idx->idx[kknode + offset];
+
 												if (likely
 												    (GMRFLib_idxval_ge_match
 												     (A_idx(nnode_local), bitmap, min_overlap))
@@ -3936,6 +3942,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							}
 							for (int kknode = knode; kknode < dn; kknode++) {
 								int nnode = d_idx->idx[kknode];
+
 								if (unlikely(node == nnode)
 								    || unlikely(GMRFLib_idxval_ge_match(A_idx(nnode), bitmap, min_overlap))) {
 									GMRFLib_idx_add(&d_idx_local, nnode);

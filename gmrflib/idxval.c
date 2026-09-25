@@ -1431,7 +1431,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
@@ -1775,55 +1775,61 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_idx_ge_match_core(const int n, const int *RESTRICT idx, const GMRFLib_idx_bitmap_tp *RESTRICT bm, const int nmatches)
 {
-        // return 1 if there is >= NMATCHES of IDX in BM
+	// return 1 if there is >= NMATCHES of IDX in BM
 
-        int low = bm->low;
-        if (idx[0] > bm->high || idx[n - 1] < low) {
-                return 0;
-        }
+	int low = bm->low;
 
-        size_t *bitmap = bm->bitmap;
-        size_t ulen = bm->ulen;
-        int total_matches = 0;
-        int i = 0;
+	if (idx[0] > bm->high || idx[n - 1] < low) {
+		return 0;
+	}
 
-        for (; i < n - 1; i += 2) {
-                size_t ix0 = (size_t) (idx[i] - low);
-                size_t ix1 = (size_t) (idx[i + 1] - low);
-                int bit0 = (ix0 < ulen) ? (int) ((bitmap[ix0 >> 6] >> (ix0 & 63)) & 1) : 0;
-                int bit1 = (ix1 < ulen) ? (int) ((bitmap[ix1 >> 6] >> (ix1 & 63)) & 1) : 0;
-                total_matches += bit0 + bit1;
-                if (total_matches >= nmatches) {
-                        return 1;
-                }
-        }
+	size_t *bitmap = bm->bitmap;
+	size_t ulen = bm->ulen;
+	int total_matches = 0;
+	int i = 0;
 
-        if (i < n && total_matches < nmatches) {
-                size_t ix0 = (size_t) (idx[i] - low);
-                total_matches += (ix0 < ulen) ? (int) ((bitmap[ix0 >> 6] >> (ix0 & 63)) & 1) : 0;
-        }
+	for (; i < n - 1; i += 2) {
+		size_t ix0 = (size_t) (idx[i] - low);
+		size_t ix1 = (size_t) (idx[i + 1] - low);
+		int bit0 = (ix0 < ulen) ? (int) ((bitmap[ix0 >> 6] >> (ix0 & 63)) & 1) : 0;
+		int bit1 = (ix1 < ulen) ? (int) ((bitmap[ix1 >> 6] >> (ix1 & 63)) & 1) : 0;
 
-        return (total_matches >= nmatches);
+		total_matches += bit0 + bit1;
+		if (total_matches >= nmatches) {
+			return 1;
+		}
+	}
+
+	if (i < n && total_matches < nmatches) {
+		size_t ix0 = (size_t) (idx[i] - low);
+
+		total_matches += (ix0 < ulen) ? (int) ((bitmap[ix0 >> 6] >> (ix0 & 63)) & 1) : 0;
+	}
+
+	return (total_matches >= nmatches);
 }
+
 #pragma GCC diagnostic pop
 
 #if 0
 int GMRFLib_idx_ge_match_core(const int n, const int *RESTRICT idx, const GMRFLib_idx_bitmap_tp *RESTRICT bm, const int nmatches)
 {
-	static double tref[2] = {0};
-	
+	static double tref[2] = { 0 };
+
 	tref[0] -= GMRFLib_timer();
 	int r1 = GMRFLib_idx_ge_match_core_OLD(n, idx, bm, nmatches);
+
 	tref[0] += GMRFLib_timer();
 	tref[1] -= GMRFLib_timer();
 	int r2 = GMRFLib_idx_ge_match_core_NEW(n, idx, bm, nmatches);
+
 	tref[1] += GMRFLib_timer();
 	assert(r1 == r2);
 
 	P(tref[1] / (tref[0] + tref[1]));
 	return r1;
 }
-#endif	
+#endif
 
 int GMRFLib_idx_ge_match(const GMRFLib_idx_tp *RESTRICT v, const GMRFLib_idx_bitmap_tp *RESTRICT bm, const int nmatches)
 {
