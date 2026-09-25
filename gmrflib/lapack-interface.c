@@ -2058,17 +2058,62 @@ void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, double *RESTRICT 
 {
 	// y[] = a[ia[]]
 
-// currently, the AVX512F code is the same as the AVX2 code
-#if defined(INLA_WITH_SIMDE_AVX512F_) && (defined(__x86_64__) && defined(__AVX512F__))
+// the unrolled plain loop runs better...
+	
+#if 0 && defined(INLA_WITH_SIMDE_AVX512F_) && (defined(__x86_64__) && defined(__AVX512F__))
+	// the AVX512F code is the same as the AVX2 code
 #       include "intrinsics/simde/pack-avx512f.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (defined(__x86_64__) && defined(__AVX2__))
+#elif 0 && defined(INLA_WITH_SIMDE_AVX2_) && (defined(__x86_64__) && defined(__AVX2__))
 #       include "intrinsics/simde/pack-avx2.h"
 #else
 	// MKL does not work very well: vdPackV(n, a, ia, y);
-#pragma omp simd
-	for (int i = 0; i < n; i++) {
-		y[i] = a[ia[i]];
+
+#if 0
+	static double tref[2] = {0};
+	static int trefc = 0;
+	tref[0] -= GMRFLib_timer();
+#endif
+
+//#       include "intrinsics/simde/pack-avx2.h"
+//	for (int i = 0; i < n; i++) {
+//		y[i] = a[ia[i]];
+//	}
+
+#if 0
+	tref[0] +=  GMRFLib_timer();
+	tref[1] -=  GMRFLib_timer();
+#endif
+	
+	int i = 0;
+	for (; i <= n - 4; i += 4) {
+		int idx0 = ia[i];
+		int idx1 = ia[i + 1];
+		int idx2 = ia[i + 2];
+		int idx3 = ia[i + 3];
+
+		// Prefetch the *future* random memory targets long before reading them. This fires all 4 cache line requests into
+		// the hardware concurrently.
+		__builtin_prefetch(&a[idx0], 0, 3);
+		__builtin_prefetch(&a[idx1], 0, 3);
+		__builtin_prefetch(&a[idx2], 0, 3);
+		__builtin_prefetch(&a[idx3], 0, 3);
+        
+		// Prefetch the linear index block too
+		__builtin_prefetch(&ia[i + 32], 0, 3);
+
+		// While the CPU evaluates the loop logic, the background cache lines are actively being populated by the prefetches
+		// above.
+		y[i]     = a[idx0];
+		y[i + 1] = a[idx1];
+		y[i + 2] = a[idx2];
+		y[i + 3] = a[idx3];
 	}
+	for (; i < n; i++) y[i] = a[ia[i]];
+#if 0
+	tref[1] +=  GMRFLib_timer();
+	trefc++;
+	if (trefc % 100 == 0) P(tref[1]/(tref[1] + tref[0]));
+#endif
 #endif
 }
 
