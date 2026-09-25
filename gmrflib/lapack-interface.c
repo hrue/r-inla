@@ -2058,13 +2058,14 @@ void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, double *RESTRICT 
 {
 	// y[] = a[ia[]]
 
-	// MKL does not run that well: vdPackV(n, a, ia, y);
-
-	// enable this for x86_64 & avx2 only
-#if defined(INLA_WITH_SIMDE_AVX2_) && (defined(__x86_64__) && defined(__AVX2__))
+// currently, the AVX512F code is the same as the AVX2 code
+#if defined(INLA_WITH_SIMDE_AVX512F_) && (defined(__x86_64__) && defined(__AVX512F__))
+#       include "intrinsics/simde/pack-avx512f.h"
+#elif defined(INLA_WITH_SIMDE_AVX2_) && (defined(__x86_64__) && defined(__AVX2__))
 #       include "intrinsics/simde/pack-avx2.h"
 #else
-#       pragma omp simd
+	// MKL does not work very well: vdPackV(n, a, ia, y);
+#pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];
 	}
@@ -2080,14 +2081,11 @@ __attribute__((optimize("O3")))
 void GMRFLib_unpack(int n, double *RESTRICT a, double *RESTRICT y, int *RESTRICT iy)
 {
 	// y[iy[]] = a[]
-#if 0 && defined(INLA_WITH_MKL)
-	vdUnpackV(n, a, y, iy);
-#else
+	// MKL does not work that well: vdUnpackV(n, a, y, iy);
 #       pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}
-#endif
 }
 
 #pragma GCC diagnostic pop
