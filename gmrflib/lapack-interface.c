@@ -2058,63 +2058,69 @@ void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, double *RESTRICT 
 {
 	// y[] = a[ia[]]
 
-// the unrolled plain loop runs better...
-	
-#if 0 && defined(INLA_WITH_SIMDE_AVX512F_) && (defined(__x86_64__) && defined(__AVX512F__))
-	// the AVX512F code is the same as the AVX2 code
-#       include "intrinsics/simde/pack-avx512f.h"
-#elif 0 && defined(INLA_WITH_SIMDE_AVX2_) && (defined(__x86_64__) && defined(__AVX2__))
-#       include "intrinsics/simde/pack-avx2.h"
-#else
-	// MKL does not work very well: vdPackV(n, a, ia, y);
+	// the unrolled plain loop runs best, also better than the SIMDE AVX2 code. the MKL function vdPackV(n, a, ia, y) does not
+	// do well either
 
-#if 0
-	static double tref[2] = {0};
+#define DO_TEST 0
+#define USE_PREFETCH 0
+
+#if DO_TEST
+	static double tref[2] = { 0 };
 	static int trefc = 0;
+
 	tref[0] -= GMRFLib_timer();
+
+	// plain code:
+#       pragma GCC unroll 4
+	for (int i = 0; i < n; i++)
+		y[i] = a[ia[i]];
+
+	tref[0] += GMRFLib_timer();
+	tref[1] -= GMRFLib_timer();
 #endif
 
-//#       include "intrinsics/simde/pack-avx2.h"
-//	for (int i = 0; i < n; i++) {
-//		y[i] = a[ia[i]];
-//	}
-
-#if 0
-	tref[0] +=  GMRFLib_timer();
-	tref[1] -=  GMRFLib_timer();
-#endif
-	
 	int i = 0;
+
 	for (; i <= n - 4; i += 4) {
-		int idx0 = ia[i];
+		int idx0 = ia[i + 0];
 		int idx1 = ia[i + 1];
 		int idx2 = ia[i + 2];
 		int idx3 = ia[i + 3];
 
+#if USE_PREFETCH
 		// Prefetch the *future* random memory targets long before reading them. This fires all 4 cache line requests into
 		// the hardware concurrently.
 		__builtin_prefetch(&a[idx0], 0, 3);
 		__builtin_prefetch(&a[idx1], 0, 3);
 		__builtin_prefetch(&a[idx2], 0, 3);
 		__builtin_prefetch(&a[idx3], 0, 3);
-        
 		// Prefetch the linear index block too
 		__builtin_prefetch(&ia[i + 32], 0, 3);
-
 		// While the CPU evaluates the loop logic, the background cache lines are actively being populated by the prefetches
 		// above.
-		y[i]     = a[idx0];
+#endif
+
+		y[i + 0] = a[idx0];
 		y[i + 1] = a[idx1];
 		y[i + 2] = a[idx2];
 		y[i + 3] = a[idx3];
 	}
-	for (; i < n; i++) y[i] = a[ia[i]];
-#if 0
-	tref[1] +=  GMRFLib_timer();
+	for (; i < n; i++) {
+		y[i] = a[ia[i]];
+	}
+#if DO_TEST
+	tref[1] += GMRFLib_timer();
 	trefc++;
-	if (trefc % 100 == 0) P(tref[1]/(tref[1] + tref[0]));
+	if (trefc % 1 == 0) {
+#       if USE_PREFETCH
+		printf("PREFETCH: unroll4 / (unroll4 + alternative) %.4f\n", tref[1] / (tref[1] + tref[0]));
+#       else
+		printf("NO PREFETCH: unroll4 / (unroll4 + alternative) %.4f\n", tref[1] / (tref[1] + tref[0]));
+#       endif
+	}
 #endif
-#endif
+#undef DO_TEST
+#undef USE_PREFETCH
 }
 
 #pragma GCC diagnostic pop
@@ -2127,7 +2133,7 @@ void GMRFLib_unpack(int n, double *RESTRICT a, double *RESTRICT y, int *RESTRICT
 {
 	// y[iy[]] = a[]
 	// MKL does not work that well: vdUnpackV(n, a, y, iy);
-#       pragma omp simd
+#pragma omp simd
 	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}
