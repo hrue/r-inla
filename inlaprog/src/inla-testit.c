@@ -7187,6 +7187,32 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 217: 
+	{
+		const char *text = "hello world";
+		uint8_t buf[GMRFLib_SHA_DIGEST_LEN];
+		GMRFLib_SHA_TP ctx;
+		
+		GMRFLib_SHA_Init(&ctx);
+		GMRFLib_SHA_Update(&ctx, (const uint8_t *) text, strlen(text));
+		GMRFLib_SHA_Final(&ctx, buf);
+
+#if defined(INLA_WITH_OPENSSL)
+		printf("Use openssl depreciated functions\n");
+#else		
+		printf("Use stand-alone implementation\n");
+#endif
+		printf("Result is       SHA256: ");
+		for (int i = 0; i < GMRFLib_SHA_DIGEST_LEN; i++) {
+			printf("%02x", buf[i]);
+		}
+		printf("\n");
+		printf("SHOULD EQUAL TO SHA256: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9\n");
+		printf("\necho -n hello world | sha256sum' gives: \n");
+		system("echo -n '                        '; echo -n hello world | sha256sum");
+	}
+	break;
+		
 	default:
 	{
 		printf("\nNo such test: %d\n", test_no);

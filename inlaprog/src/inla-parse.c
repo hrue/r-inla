@@ -314,6 +314,12 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		char a = -1;
 		signed char b = -1;
 
+#if defined(INLA_WITH_OPENSSL)
+		printf("\t\tSHA256: Use implementation in openssl-library libcrypto\n");
+#else		
+		printf("\t\tSHA256: Use internal implementation\n");
+#endif
+
 		printf("\t\t'char' is %s\n", (((int) a == (int) b) ? "signed" : "unsigned"));
 		printf("\t\t'short int' is %1zu bytes\n", sizeof(short int));
 		printf("\t\t'int' is %1zu bytes\n", sizeof(int));
