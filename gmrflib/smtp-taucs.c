@@ -1186,6 +1186,7 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 #endif
 
 	int n = graph->n;
+	int N = n * nrhs;
 	int skip_reordering = 0;
 	GMRFLib_graph_tp g;
 
@@ -1203,7 +1204,46 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 		skip_reordering = 1;
 		// its faster to do 'from' as it corresponds to 'pack', which 'to' corresponds to 'unpack'
 		// GMRFLib_convert_to_mapped(work, rhs, &g, r);
-		GMRFLib_convert_from_mapped(work, rhs, &g, rinv, r);
+
+		// check if we are in the case where the 'rhs' is essentially zero, which we do have on some scenarios. then we do
+		// not need to reorder a lot of zero's and we save more or less, the time of doing the whole reordering. for the
+		// code, 25 is just a number, but it corresponds to: 'GMRFLib_idxval_tp *v = A_idx(node)', so in that respect its
+		// high. we should revisit this value later.
+		const int num = 25;
+		int nidx_lim = num * nrhs + 1;	
+		int idx[nidx_lim];
+		int nidx = 0;
+		int small_N = (N <= 1E4);
+		
+		if (!small_N) {
+			for (int i = 0; i < N && nidx < nidx_lim; i++) {
+				if (!ISZERO(rhs[i])) {
+					idx[nidx++] = i;
+				}
+			}
+		}
+
+		if (!small_N && nidx < nidx_lim) {
+			// we have an almost-zero 'rhs' and we are in a 'non-small N'-case, so we just reorder the non-zero terms
+			GMRFLib_dfill(N, 0.0, work);
+			for(int i = 0; i < nidx; i++) {
+				int k = idx[i];
+				work[r[k]] = rhs[k];
+			}
+
+#if 0
+			// enable this to check that the result above, 'work', is correct. DO NOT REMOVE
+			double *wtest = Calloc(N, double);
+			GMRFLib_convert_from_mapped(wtest, rhs, &g, rinv, r);
+			for(int i = 0; i < N; i++) {
+				assert(wtest[i] == work[i]);
+			}
+			Free(wtest);
+#endif
+		} else {
+			// otherwise, we just do the 'normal' call and reorder the whole 'rhs'
+			GMRFLib_convert_from_mapped(work, rhs, &g, rinv, r);
+		}
 	} else {
 		// this is doing the first reordering, the second one is in llt2
 		skip_reordering = 0;
