@@ -3726,17 +3726,23 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 
 		// build stuff for unrolling 'nmatch' later on.
+		// NSUB==1 will turn the 2nd layer off. 
 #define BLOCK 32
 #define BLOCK_SUB 8
 #define NSUB 4
-		assert(BLOCK_SUB * NSUB == BLOCK);
+//#define BLOCK 8
+//#define BLOCK_SUB 8
+//#define NSUB 1
+		assert(NSUB == 1 || BLOCK_SUB * NSUB == BLOCK);
 		GMRFLib_idx_tp **A_idx_block = NULL;
 		GMRFLib_idx_tp **A_idx_block_sub[NSUB] = { NULL };
 
 		if (gcpo_param->min_overlap > 0) {
 			A_idx_block = Calloc(dn, GMRFLib_idx_tp *);
-			for (int j = 0; j < NSUB; j++) {
-				A_idx_block_sub[j] = Calloc(dn, GMRFLib_idx_tp *);
+			if (NSUB > 1) {
+				for (int j = 0; j < NSUB; j++) {
+					A_idx_block_sub[j] = Calloc(dn, GMRFLib_idx_tp *);
+				}
 			}
 			// we do not need to care about the remainder
 			for (int i = 0; i + BLOCK - 1 < dn; i += BLOCK) {
@@ -3754,23 +3760,29 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				}
 				// create it and then copy the idx's
 				GMRFLib_idx_create_x(&(A_idx_block[node]), m);
-				for (int j = 0; j < NSUB; j++) {
-					GMRFLib_idx_create_x(&(A_idx_block_sub[j][node]), m_sub[j]);
+				if (NSUB > 1) {
+					for (int j = 0; j < NSUB; j++) {
+						GMRFLib_idx_create_x(&(A_idx_block_sub[j][node]), m_sub[j]);
+					}
 				}
 				for (int j = 0; j < BLOCK; j++) {
 					int nnode = d_idx->idx[i + j];
 					int sub_idx = j / BLOCK_SUB;	/* integer division */
 
 					GMRFLib_idx_nadd(&(A_idx_block[node]), A_idx(nnode)->n, A_idx(nnode)->idx);
-					GMRFLib_idx_nadd(&(A_idx_block_sub[sub_idx][node]), A_idx(nnode)->n, A_idx(nnode)->idx);
+					if (NSUB > 1) {
+						GMRFLib_idx_nadd(&(A_idx_block_sub[sub_idx][node]), A_idx(nnode)->n, A_idx(nnode)->idx);
+					}
 				}
 				assert(A_idx_block[node]->n == m);
 				assert(A_idx_block[node]->n == GMRFLib_isum(NSUB, m_sub));
 				GMRFLib_sort_i(A_idx_block[node]->idx, m);
 				GMRFLib_idx_remove_duplicates(A_idx_block[node]);
-				for (int j = 0; j < NSUB; j++) {
-					GMRFLib_sort_i(A_idx_block_sub[j][node]->idx, m_sub[0]);
-					GMRFLib_idx_remove_duplicates(A_idx_block_sub[j][node]);
+				if (NSUB > 1) {
+					for (int j = 0; j < NSUB; j++) {
+						GMRFLib_sort_i(A_idx_block_sub[j][node]->idx, m_sub[0]);
+						GMRFLib_idx_remove_duplicates(A_idx_block_sub[j][node]);
+					}
 				}
 			}
 		}
@@ -3922,9 +3934,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 								if (unlikely(GMRFLib_idx_ge_match(A_idx_block[nnode], bitmap, min_overlap)))
 									for (int sub = 0; sub < NSUB; sub++) {
-										if (likely
-										    (GMRFLib_idx_ge_match
-										     (A_idx_block_sub[sub][nnode], bitmap, min_overlap))) {
+										if (NSUB == 1 ||
+										    likely(GMRFLib_idx_ge_match(A_idx_block_sub[sub][nnode],
+														bitmap, min_overlap))) {
 											for (int kknode = knode; kknode < knode + BLOCK_SUB;
 											     kknode++) {
 												int offset = sub * BLOCK_SUB;
@@ -4163,7 +4175,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 #       pragma omp critical(Name_7508f00dd4c1b92329d5e04808f67f928903d401)
 			{
-				printf("\n\tGCPO TIMER: fractions of total = %.3fs using (%1d,%1d) threads\n", 1.0 / inv_sum, nt_outer, nt_inner);
+				printf("\n\tBLOCK=%1d BLOCK_SUB=%1d NSUB=%1d\n", BLOCK, BLOCK_SUB, NSUB);
+				printf("\tGCPO TIMER: fractions of total = %.3fs using (%1d,%1d) threads\n", 1.0 / inv_sum, nt_outer, nt_inner);
 				for (int i = 0; i < NLOC; i++) {
 					printf("\t\tchunk_%1d: %.3f\n", i, tot[i] * inv_sum);
 				}
@@ -4199,13 +4212,17 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		if (A_idx_block) {
 			for (int i = 0; i < dn - BLOCK; i += BLOCK) {
 				GMRFLib_idx_free(A_idx_block[i]);
-				for (int j = 0; j < NSUB; j++) {
-					GMRFLib_idx_free(A_idx_block_sub[j][i]);
+				if (NSUB > 1) {
+					for (int j = 0; j < NSUB; j++) {
+						GMRFLib_idx_free(A_idx_block_sub[j][i]);
+					}
 				}
 			}
 			Free(A_idx_block);
-			for (int j = 0; j < NSUB; j++) {
-				Free(A_idx_block_sub[j]);
+			if (NSUB > 1) {
+				for (int j = 0; j < NSUB; j++) {
+					Free(A_idx_block_sub[j]);
+				}
 			}
 		}
 
