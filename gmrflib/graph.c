@@ -450,6 +450,7 @@ int GMRFLib_graph_free(GMRFLib_graph_tp *graph)
 	Free(graph->rowidx);
 	Free(graph->colidx);
 	Free(graph->row2col);
+	Free(graph->col2row);
 	if (graph->cache) {
 		for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
 			if (graph->cache[i]) {
@@ -457,7 +458,9 @@ int GMRFLib_graph_free(GMRFLib_graph_tp *graph)
 				Free(graph->cache[i]->rowind);
 				Free(graph->cache[i]->colptr);
 				Free(graph->cache[i]->vperm);
+				Free(graph->cache[i]->vperminv);
 				Free(graph->cache[i]->vperm2);
+				Free(graph->cache[i]->vperm2inv);
 			}
 		}
 		Free(graph->cache);
@@ -782,8 +785,14 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 		Free(idx);
 	}
 	graph->row2col = row2col;
-#undef Q
 
+	int *col2row = Calloc(N, int);
+	for(int i = 0; i < N; i++) {
+		col2row[row2col[i]] = i;
+	}
+	graph->col2row = col2row;
+
+#undef Q
 	return GMRFLib_SUCCESS;
 }
 
@@ -1355,14 +1364,14 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_graph_tp *graph, int *remap)
+int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_graph_tp *graph, int *remap, int *inv_remap)
 {
 	/*
 	 * convert from the mapped-world to the real world. source might be NULL. 
 	 */
 	if ((destination && source) && !OVERLAP(destination, source, graph->n)) {
 		// for (int i = 0; i < graph->n; i++) destination[i] = source[remap[i]];
-		GMRFLib_pack(graph->n, source, remap, destination);
+		GMRFLib_pack(graph->n, source, remap, inv_remap, destination);
 	} else {
 		static double **wwork = NULL;
 		static int *wwork_len = NULL;
@@ -1390,7 +1399,7 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 
 		Memcpy(work, destination, graph->n * sizeof(double));
 		// for (int i = 0; i < graph->n; i++) destination[i] = work[remap[i]];
-		GMRFLib_pack(graph->n, work, remap, destination);
+		GMRFLib_pack(graph->n, work, remap, inv_remap, destination);
 	}
 	return GMRFLib_SUCCESS;
 }

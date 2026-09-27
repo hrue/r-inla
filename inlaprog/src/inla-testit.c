@@ -4117,11 +4117,16 @@ int testit(int argc, char **argv)
 		double y[] = { 1, 2, 3, 4, 5 };
 		double a[] = { 0, 1, 0, 0, 2, 3, 0, 0, 4, 0, 5, 0 };
 		int ia[] = { 1, 4, 5, 8, 10 };
+		int iainv[] = { 1, 4, 5, 8, 10 };
 
 		const int m = sizeof(a) / sizeof(double);
 		double yy[n], aa[m];
 
-		GMRFLib_pack(n, a, ia, yy);
+		for(int i = 0; i < n; i++){
+			iainv[ia[i]] = i;
+		}
+		
+		GMRFLib_pack(n, a, ia, iainv, yy);
 		for (int i = 0; i < n; i++) {
 			printf("pack: i %d y %g yy %g\n", i, y[i], yy[i]);
 		}
@@ -6325,10 +6330,10 @@ int testit(int argc, char **argv)
 				map[i] = (int) dmap[i];
 			}
 
-			GMRFLib_pack(n, x, map, y);
+			GMRFLib_pack(n, x, map, NULL, y);
 
 			tref[0] -= GMRFLib_timer();
-			GMRFLib_pack(n, x, map, y);
+			GMRFLib_pack(n, x, map, NULL, y);
 			tref[0] += GMRFLib_timer();
 
 			tref_simple[0] -= GMRFLib_timer();
@@ -6973,7 +6978,7 @@ int testit(int argc, char **argv)
 			tref[1] += GMRFLib_timer();
 
 			tref[2] += -GMRFLib_timer();
-			GMRFLib_pack(n, x, iperm, x3);
+			GMRFLib_pack(n, x, iperm, NULL, x3);
 			tref[2] += GMRFLib_timer();
 			assert(x2[0] == x1[0]);
 			assert(x3[0] == x1[0]);

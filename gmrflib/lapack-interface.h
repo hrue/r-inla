@@ -115,7 +115,7 @@ void GMRFLib_dscale(int n, double a, double *x);
 void GMRFLib_dscale2(int n, double a, double *RESTRICT x, double *RESTRICT y);
 void GMRFLib_gsl_dgemm_sym(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C, int num_threads);
 void GMRFLib_ifill(int n, int ia, int *ix);
-void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, double *RESTRICT y);
+void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, int *RESTRICT iainv, double *RESTRICT y);
 void GMRFLib_powx(int n, double *x, double a, double *y);
 void GMRFLib_unpack(int n, double *RESTRICT a, double *RESTRICT y, int *RESTRICT iy);
 void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANSPOSE TransB, int M, int N, int K, double alpha, double *A,

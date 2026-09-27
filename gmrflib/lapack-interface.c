@@ -2054,73 +2054,31 @@ void GMRFLib_bfill(int n, bool a, bool *x)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, double *RESTRICT y)
+void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, int *RESTRICT iainv, double *RESTRICT y)
 {
 	// y[] = a[ia[]]
+	const int lim = 1.5E6;
 
-	// the unrolled plain loop runs best, also better than the SIMDE AVX2 code. the MKL function vdPackV(n, a, ia, y) does not
-	// do well either
-
-#define DO_TEST 0
-#define USE_PREFETCH 0
-
-#if DO_TEST
-	static double tref[2] = { 0 };
-	static int trefc = 0;
-
-	tref[0] -= GMRFLib_timer();
-
-	// plain code:
-#       pragma GCC unroll 4
-	for (int i = 0; i < n; i++)
-		y[i] = a[ia[i]];
-
-	tref[0] += GMRFLib_timer();
-	tref[1] -= GMRFLib_timer();
-#endif
-
-	int i = 0;
-
-	for (; i <= n - 4; i += 4) {
-		int idx0 = ia[i + 0];
-		int idx1 = ia[i + 1];
-		int idx2 = ia[i + 2];
-		int idx3 = ia[i + 3];
-
-#if USE_PREFETCH
-		// Prefetch the *future* random memory targets long before reading them. This fires all 4 cache line requests into
-		// the hardware concurrently.
-		__builtin_prefetch(&a[idx0], 0, 3);
-		__builtin_prefetch(&a[idx1], 0, 3);
-		__builtin_prefetch(&a[idx2], 0, 3);
-		__builtin_prefetch(&a[idx3], 0, 3);
-		// Prefetch the linear index block too
-		__builtin_prefetch(&ia[i + 32], 0, 3);
-		// While the CPU evaluates the loop logic, the background cache lines are actively being populated by the prefetches
-		// above.
-#endif
-
-		y[i + 0] = a[idx0];
-		y[i + 1] = a[idx1];
-		y[i + 2] = a[idx2];
-		y[i + 3] = a[idx3];
+	if (n > lim && !iainv) {
+		fprintf(stderr, "\n*** Warning *** n = %1d > lim = %1d, but 'iainv' is NULL\n", n, lim);
 	}
-	for (; i < n; i++) {
-		y[i] = a[ia[i]];
+
+	GMRFLib_ENTER_FUNCTION;
+
+	if (n > lim && iainv) {
+#pragma GCC unroll 4
+		for (int i = 0; i < n; i++) {
+			y[iainv[i]] = a[i];
+		}
+	} else {
+#pragma GCC unroll 4
+		for (int i = 0; i < n; i++) {
+			y[i] = a[ia[i]];
+		}
 	}
-#if DO_TEST
-	tref[1] += GMRFLib_timer();
-	trefc++;
-	if (trefc % 1 == 0) {
-#       if USE_PREFETCH
-		printf("PREFETCH: unroll4 / (unroll4 + alternative) %.4f\n", tref[1] / (tref[1] + tref[0]));
-#       else
-		printf("NO PREFETCH: unroll4 / (unroll4 + alternative) %.4f\n", tref[1] / (tref[1] + tref[0]));
-#       endif
-	}
-#endif
-#undef DO_TEST
-#undef USE_PREFETCH
+	GMRFLib_LEAVE_FUNCTION;
+
+	return;
 }
 
 #pragma GCC diagnostic pop
@@ -2133,7 +2091,7 @@ void GMRFLib_unpack(int n, double *RESTRICT a, double *RESTRICT y, int *RESTRICT
 {
 	// y[iy[]] = a[]
 	// MKL does not work that well: vdUnpackV(n, a, y, iy);
-#pragma omp simd
+#pragma GCC unroll 4
 	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}

@@ -108,6 +108,7 @@ typedef struct {
 	int *rowind;
 	int *rowind_sorted;
 	int *perm;
+	int *iperm;
 } GMRFLib_taucs_cache_tp;
 
 typedef struct {

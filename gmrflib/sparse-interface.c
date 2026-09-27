@@ -1060,10 +1060,11 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fa
 	{
 		if (remapped) {
 			int *perm = GMRFLib_stiles_get_perm(problem->stiles_idx);
+			int *iperm = GMRFLib_stiles_get_iperm(problem->stiles_idx);
 			double *y = Malloc(graph->n, double);
 
 			Memcpy(y, rhs, graph->n * sizeof(double));
-			GMRFLib_pack(graph->n, y, perm, rhs);
+			GMRFLib_pack(graph->n, y, perm, iperm, rhs);
 			Free(y);
 		}
 		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, problem->stiles_idx->within_group, 1 };
