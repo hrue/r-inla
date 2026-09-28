@@ -3929,10 +3929,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							// one. there are way more non-match than match, so...
 							int knode = 0;
 
-							for (knode = 0; knode + BLOCK - 1 < dn; knode += BLOCK) {
+							for (knode = 0; knode <= dn - BLOCK; knode += BLOCK) {
 								int nnode = d_idx->idx[knode];
 
-								if (unlikely(GMRFLib_idx_ge_match(A_idx_block[nnode], bitmap, min_overlap)))
+								if (unlikely(GMRFLib_idx_ge_match(A_idx_block[nnode], bitmap, min_overlap))) {
 									for (int sub = 0; sub < NSUB; sub++) {
 										if (NSUB == 1 ||
 										    likely(GMRFLib_idx_ge_match(A_idx_block_sub[sub][nnode],
@@ -3951,6 +3951,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 											}
 										}
 									}
+								}
 							}
 							for (int kknode = knode; kknode < dn; kknode++) {
 								int nnode = d_idx->idx[kknode];
