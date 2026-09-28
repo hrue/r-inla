@@ -64,7 +64,7 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 		}
 	}
 
-#pragma omp parallel for num_threads(num_threads) if (num_threads > 1) schedule(static)
+#pragma omp parallel for num_threads(num_threads) if (num_threads > 1) 
 	for (int k = 0; k < num_k; k++) {
 		int ii = xx[k].ii;
 		int jj = xx[k].jj;

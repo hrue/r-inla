@@ -729,58 +729,6 @@ typedef enum {
 		Free(work__);						\
         }
 
-#       define RUN_CODE_BLOCK_DYNAMIC(thread_max_, n_work_, len_work_)		\
-	if (1) {							\
-		int need_work__ = (n_work_ * len_work_ > 0);		\
-		assert(need_work__ >= 0);				\
-		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
-			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
-		int tmax__ = thread_max_;				\
-		int len_work__ = IMAX(1, len_work_);			\
-		int n_work__ = IMAX(1, n_work_);			\
-		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
-									\
-		double ** work__ = Calloc(nt__, double *);		\
-		assert(work__);						\
-									\
-		if (nt__ > 1) {						\
-			_Pragma("omp parallel for num_threads(nt__) schedule(dynamic)") \
-				CODE_BLOCK;				\
-		} else {						\
-			CODE_BLOCK;					\
-		}							\
-		for (int i_ = 0; i_ < nt__; i_++) {			\
-			Free(work__[i_]);				\
-		}							\
-		Free(work__);						\
-        }
-
-#       define RUN_CODE_BLOCK_STATIC(thread_max_, n_work_, len_work_)		\
-	if (1) {							\
-		int need_work__ = (n_work_ * len_work_ > 0);		\
-		assert(need_work__ >= 0);				\
-		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
-			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
-		int tmax__ = thread_max_;				\
-		int len_work__ = IMAX(1, len_work_);			\
-		int n_work__ = IMAX(1, n_work_);			\
-		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
-									\
-		double ** work__ = Calloc(nt__, double *);		\
-		assert(work__);						\
-									\
-		if (nt__ > 1) {						\
-			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
-				CODE_BLOCK;				\
-		} else {						\
-			CODE_BLOCK;					\
-		}							\
-		for (int i_ = 0; i_ < nt__; i_++) {			\
-			Free(work__[i_]);				\
-		}							\
-		Free(work__);						\
-        }
-
 #       define CODE_BLOCK_WORK_TP_PTR() work_t__[(nt__ == 1 ? 0 : t_num__)]
 // CODE_BLOCK_WORK_TP_FREE(ptr_) needs to be defined
 
