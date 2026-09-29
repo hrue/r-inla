@@ -19,7 +19,17 @@
 #       include <string.h>
 
 __BEGIN_DECLS
-//
+// if INLA_WITH_OPENSSL is defined, then the implementation in openssl's library: libcrypto, is used. otherwise, the stand-alone
+// implementation in sha.c is used and we avoid the openssl dependency
+#       if defined(INLA_WITH_OPENSSL)
+#              define OPENSSL_SUPPRESS_DEPRECATED 1
+#              include <openssl/sha.h>
+#              define GMRFLib_SHA_Init       SHA256_Init
+#              define GMRFLib_SHA_Update     SHA256_Update
+#              define GMRFLib_SHA_Final      SHA256_Final_wrap
+void SHA256_Final_wrap(SHA256_CTX * ctx, uint8_t * hash);
+
+#       else
     typedef struct {
 	uint32_t state[8];
 	uint64_t bitlen;
@@ -31,11 +41,13 @@ void sha256_init(SHA256_CTX * ctx);
 void sha256_update(SHA256_CTX * ctx, const uint8_t * data, size_t len);
 void sha256_final(SHA256_CTX * ctx, uint8_t * hash);
 
+#              define GMRFLib_SHA_Init       sha256_init
+#              define GMRFLib_SHA_Update     sha256_update
+#              define GMRFLib_SHA_Final      sha256_final
+#       endif
+
 #       define GMRFLib_SHA_TP         SHA256_CTX
 #       define GMRFLib_SHA_DIGEST_LEN 32L
-#       define GMRFLib_SHA_Init       sha256_init
-#       define GMRFLib_SHA_Update     sha256_update
-#       define GMRFLib_SHA_Final      sha256_final
 #       define GMRFLib_SHA_UPDATE_LEN 64L
 #       define GMRFLib_SHA_UPDATE_CORE(_x, _len, _type, _c) \
 	if ((_len) > 0) {						\

@@ -4117,11 +4117,16 @@ int testit(int argc, char **argv)
 		double y[] = { 1, 2, 3, 4, 5 };
 		double a[] = { 0, 1, 0, 0, 2, 3, 0, 0, 4, 0, 5, 0 };
 		int ia[] = { 1, 4, 5, 8, 10 };
+		int iainv[] = { 1, 4, 5, 8, 10 };
 
 		const int m = sizeof(a) / sizeof(double);
 		double yy[n], aa[m];
 
-		GMRFLib_pack(n, a, ia, yy);
+		for(int i = 0; i < n; i++){
+			iainv[ia[i]] = i;
+		}
+		
+		GMRFLib_pack(n, a, ia, iainv, yy);
 		for (int i = 0; i < n; i++) {
 			printf("pack: i %d y %g yy %g\n", i, y[i], yy[i]);
 		}
@@ -5592,7 +5597,7 @@ int testit(int argc, char **argv)
 			       cpu, numa, numa_ptr);			\
 		}
 
-		RUN_CODE_BLOCK_STATIC(GMRFLib_MAX_THREADS(), 1, 8);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 8);
 #       undef CODE_BLOCK
 	}
 		break;
@@ -6325,10 +6330,10 @@ int testit(int argc, char **argv)
 				map[i] = (int) dmap[i];
 			}
 
-			GMRFLib_pack(n, x, map, y);
+			GMRFLib_pack(n, x, map, NULL, y);
 
 			tref[0] -= GMRFLib_timer();
-			GMRFLib_pack(n, x, map, y);
+			GMRFLib_pack(n, x, map, NULL, y);
 			tref[0] += GMRFLib_timer();
 
 			tref_simple[0] -= GMRFLib_timer();
@@ -6927,6 +6932,287 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 211:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double tref[3] = { 0.0 };
+		double *x = Malloc(n, double);
+		double *x1 = Malloc(n, double);
+		double *x2 = Malloc(n, double);
+		double *x3 = Malloc(n, double);
+		int *ix = Malloc(n, int);
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+			x2[i] = GMRFLib_uniform();
+			x3[i] = x2[i];
+			ix[i] = i;
+		}
+		GMRFLib_qsort2((void *) x, (size_t) n, sizeof(double), (void *) ix, sizeof(int), GMRFLib_dcmp);
+
+		int *perm = ix;
+		int *iperm = Malloc(n, int);
+
+		for (int i = 0; i < n; i++) {
+			iperm[perm[i]] = i;
+		}
+
+		for (int j = 0; j < m; j++) {
+			tref[0] += -GMRFLib_timer();
+#       pragma omp simd
+			for (int i = 0; i < n; i++) {
+				x1[perm[i]] = x[i];
+			}
+			tref[0] += GMRFLib_timer();
+
+			tref[1] += -GMRFLib_timer();
+#       pragma omp simd
+			for (int i = 0; i < n; i++) {
+				x2[i] = x[iperm[i]];
+			}
+			tref[1] += GMRFLib_timer();
+
+			tref[2] += -GMRFLib_timer();
+			GMRFLib_pack(n, x, iperm, NULL, x3);
+			tref[2] += GMRFLib_timer();
+			assert(x2[0] == x1[0]);
+			assert(x3[0] == x1[0]);
+		}
+
+		printf("perm %.3f iperm %.3f _pack %.3f\n",
+		       tref[0] / (tref[0] + tref[1] + tref[2]), tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
+	}
+		break;
+
+	case 212:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double tref[2] = { 0.0 };
+		double *x = Malloc(n, double);
+		double *y = Malloc(n, double);
+		double *yy = Malloc(n, double);
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		for (int j = 0; j < m; j++) {
+			double a = GMRFLib_uniform();
+
+			tref[0] -= GMRFLib_timer();
+#       pragma omp simd
+			for (int i = 0; i < n; i++) {
+				y[i] = a * x[i];
+			}
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+			GMRFLib_dscale2(n, a, x, yy);
+			tref[1] += GMRFLib_timer();
+			assert(y[0] == yy[0]);
+		}
+
+		printf("simd %.3f dscale2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
+	case 213:
+	{
+		int n = 16;
+		int m = atoi(args[0]);
+
+		P(n);
+		P(m);
+
+		double tref[2] = { 0.0 };
+		double *x = Malloc(n, double);
+		double *y = Malloc(n, double);
+		double *z = Malloc(n, double);
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+			y[i] = GMRFLib_uniform();
+			z[i] = GMRFLib_uniform();
+		}
+
+		for (int j = 0; j < m; j++) {
+			tref[0] -= GMRFLib_timer();
+			double s1 = 0.0, s2 = 0.0;
+
+#       pragma omp simd reduction(+: s1, s2)
+			for (int i = 0; i < n; i++) {
+				s1 += x[i] * y[i];
+				s2 += x[i] * z[i];
+			}
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+			double ss1 = 0.0, ss2 = 0.0;
+
+			GMRFLib_ddot2(&ss1, &ss2, n, x, y, z);
+			tref[1] += GMRFLib_timer();
+			assert(ABS(s1 - ss1) < FLT_EPSILON);
+			assert(ABS(s2 - ss2) < FLT_EPSILON);
+		}
+		printf("simd %.3f ddot2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
+	case 214:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double tref[3] = { 0.0 };
+		double *x = Malloc(n, double);
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		for (int j = 0; j < m; j++) {
+			tref[0] -= GMRFLib_timer();
+			double s = 0.0;
+
+#       pragma omp simd reduction(+: s)
+			for (int i = 0; i < n; i++) {
+				s += x[i];
+			}
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+			double ss = 0.0;
+
+			ss = GMRFLib_dsum_ext(n, x);
+			tref[1] += GMRFLib_timer();
+
+			tref[2] -= GMRFLib_timer();
+			double sss = 0.0;
+
+			sss = GMRFLib_dsum(n, x);
+			tref[2] += GMRFLib_timer();
+
+			assert(ABS(s - ss) < FLT_EPSILON);
+			assert(ABS(s - sss) < FLT_EPSILON);
+		}
+		printf("simd %.3f dsum_ext %.3f dsum %.3f\n",
+		       tref[0] / (tref[0] + tref[1] + tref[2]), tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
+	}
+		break;
+
+	case 215:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double tref[4] = { 0.0 };
+		double *x = Malloc(n, double);
+		int *ix = Malloc(n, int);
+
+		for (int i = 0; i < n; i++) {
+			x[i] = i;
+			ix[i] = i;
+		}
+
+		for (int j = 0; j < m; j++) {
+			tref[0] -= GMRFLib_timer();
+			volatile int r0 = GMRFLib_is_sorted_iinc(n, ix);
+
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+			volatile int r1 = GMRFLib_is_sorted_iinc_plain(n, ix);
+
+			tref[1] += GMRFLib_timer();
+
+			tref[2] -= GMRFLib_timer();
+			volatile int r2 = GMRFLib_is_sorted_dinc(n, x);
+
+			tref[2] += GMRFLib_timer();
+
+			tref[3] -= GMRFLib_timer();
+			volatile int r3 = GMRFLib_is_sorted_dinc_plain(n, x);
+
+			tref[3] += GMRFLib_timer();
+
+			assert(r1 == r0);
+			assert(r2 == r0);
+			assert(r3 == r0);
+		}
+		printf("int_simd %.3f int_plain %.3f d_simd %.3f d_plain %.3f\n",
+		       tref[0] / (tref[0] + tref[1] + tref[2] + tref[3]),
+		       tref[1] / (tref[0] + tref[1] + tref[2] + tref[3]),
+		       tref[2] / (tref[0] + tref[1] + tref[2] + tref[3]), tref[3] / (tref[0] + tref[1] + tref[2] + tref[3]));
+	}
+		break;
+
+	case 216:
+	{
+		printf("Number of   cores %d\n", GMRFLib_MAX_THREADS());
+		int p_cores = inla_num_p_cores();
+
+		printf("Number of P-cores %d\n", p_cores);
+
+		omp_set_num_threads(p_cores);
+		double *xx = Calloc(p_cores, double);
+
+#       pragma omp parallel for schedule(static)
+		for (int i = 0; i < p_cores; i++) {
+			int tid = omp_get_thread_num();
+
+			inla_lock_thread_to_p_core(tid);
+			for (int j = 0; j < 10000; j++) {
+				xx[tid] += i + j;
+			}
+		}
+		double sum = GMRFLib_dsum(p_cores, xx);
+
+		P(sum);
+	}
+		break;
+
+	case 217: 
+	{
+		const char *text = "hello world";
+		uint8_t buf[GMRFLib_SHA_DIGEST_LEN];
+		GMRFLib_SHA_TP ctx;
+		
+		GMRFLib_SHA_Init(&ctx);
+		GMRFLib_SHA_Update(&ctx, (const uint8_t *) text, strlen(text));
+		GMRFLib_SHA_Final(&ctx, buf);
+
+#if defined(INLA_WITH_OPENSSL)
+		printf("Use openssl depreciated functions\n");
+#else		
+		printf("Use stand-alone implementation\n");
+#endif
+		printf("Result is       SHA256: ");
+		for (int i = 0; i < GMRFLib_SHA_DIGEST_LEN; i++) {
+			printf("%02x", buf[i]);
+		}
+		printf("\n");
+		printf("SHOULD EQUAL TO SHA256: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9\n");
+		printf("\necho -n hello world | sha256sum' gives: \n");
+		system("echo -n '                        '; echo -n hello world | sha256sum");
+	}
+	break;
+		
 	default:
 	{
 		printf("\nNo such test: %d\n", test_no);

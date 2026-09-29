@@ -1587,7 +1587,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 				}					\
 			}
 
-			RUN_CODE_BLOCK_STATIC(GMRFLib_openmp->max_threads_inner, 0, 0);
+			RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
 #undef CODE_BLOCK
 
 			Dclose_r();
@@ -1640,7 +1640,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					}				\
 				}
 
-				RUN_CODE_BLOCK_STATIC(GMRFLib_openmp->max_threads_inner, 3, mm);
+				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 3, mm);
 #undef CODE_BLOCK
 			} else if (func) {
 #define CODE_BLOCK							\
@@ -1677,7 +1677,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					}				\
 				}
 
-				RUN_CODE_BLOCK_STATIC(GMRFLib_openmp->max_threads_inner, 3, mm);
+				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 3, mm);
 #undef CODE_BLOCK
 			} else if (tfunc) {
 #define CODE_BLOCK							\
@@ -1714,7 +1714,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					}				\
 				}
 
-				RUN_CODE_BLOCK_STATIC(GMRFLib_openmp->max_threads_inner, 3, mm);
+				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 3, mm);
 #undef CODE_BLOCK
 			} else {
 				assert(0 == 1);

@@ -539,7 +539,7 @@ void GMRFLib_openmp_timing(void)
 		int nt = GMRFLib_adapt_nt_get(tag, 0, 0, nt_def);
 		double tref = -GMRFLib_timer();
 
-#pragma omp parallel for num_threads(nt) schedule(static)
+#pragma omp parallel for num_threads(nt)
 		for (int k = 0; k < m; k++) {
 			GMRFLib_openmp_chunk(nmax, A, b);
 		}

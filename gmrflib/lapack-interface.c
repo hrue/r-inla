@@ -64,7 +64,7 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 		}
 	}
 
-#pragma omp parallel for num_threads(num_threads) if (num_threads > 1) schedule(static)
+#pragma omp parallel for num_threads(num_threads) if (num_threads > 1) 
 	for (int k = 0; k < num_k; k++) {
 		int ii = xx[k].ii;
 		int jj = xx[k].jj;
@@ -1989,12 +1989,11 @@ void GMRFLib_ddot2(double *RESTRICT a, double *RESTRICT b, int n, double *RESTRI
 	// a = ddot(x,y); b = ddot(x,z)
 	// this is a very particular function, only used for n=16
 	if (n == 16) {
-#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+		// only enable for x86_64
+#if defined(INLA_WITH_SIMDE_AVX512F_) && (defined(__x86_64__) && defined(__AVX512F__))
 #       include "intrinsics/simde/ddot2-avx512f.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+#elif defined(INLA_WITH_SIMDE_AVX2_) && (defined(__x86_64__) && defined(__AVX2__))
 #       include "intrinsics/simde/ddot2-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-#       include "intrinsics/simde/ddot2-sse2.h"
 #else
 		DDOT2_CORE();
 #endif
@@ -2055,21 +2054,31 @@ void GMRFLib_bfill(int n, bool a, bool *x)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, double *RESTRICT y)
+void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, int *RESTRICT iainv, double *RESTRICT y)
 {
 	// y[] = a[ia[]]
-#if 0 && defined(INLA_WITH_MKL)
-	vdPackV(n, a, ia, y);
-#elif 0 && defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
-#       include "intrinsics/simde/pack-avx512f.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
-#       include "intrinsics/simde/pack-avx2.h"
-#else
-#       pragma omp simd
-	for (int i = 0; i < n; i++) {
-		y[i] = a[ia[i]];
+	const int lim = 1.5E6;
+
+	if (n > lim && !iainv) {
+		fprintf(stderr, "\n*** Warning *** n = %1d > lim = %1d, but 'iainv' is NULL\n", n, lim);
 	}
-#endif
+
+	GMRFLib_ENTER_FUNCTION;
+
+	if (n > lim && iainv) {
+#pragma GCC unroll 4
+		for (int i = 0; i < n; i++) {
+			y[iainv[i]] = a[i];
+		}
+	} else {
+#pragma GCC unroll 4
+		for (int i = 0; i < n; i++) {
+			y[i] = a[ia[i]];
+		}
+	}
+	GMRFLib_LEAVE_FUNCTION;
+
+	return;
 }
 
 #pragma GCC diagnostic pop
@@ -2081,14 +2090,11 @@ __attribute__((optimize("O3")))
 void GMRFLib_unpack(int n, double *RESTRICT a, double *RESTRICT y, int *RESTRICT iy)
 {
 	// y[iy[]] = a[]
-#if 0 && defined(INLA_WITH_MKL)
-	vdUnpackV(n, a, y, iy);
-#else
-#       pragma omp simd
+	// MKL does not work that well: vdUnpackV(n, a, y, iy);
+#pragma GCC unroll 4
 	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}
-#endif
 }
 
 #pragma GCC diagnostic pop

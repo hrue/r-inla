@@ -314,6 +314,12 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		char a = -1;
 		signed char b = -1;
 
+#if defined(INLA_WITH_OPENSSL)
+		printf("\t\tSHA256: Use implementation in openssl-library libcrypto\n");
+#else		
+		printf("\t\tSHA256: Use internal implementation\n");
+#endif
+
 		printf("\t\t'char' is %s\n", (((int) a == (int) b) ? "signed" : "unsigned"));
 		printf("\t\t'short int' is %1zu bytes\n", sizeof(short int));
 		printf("\t\t'int' is %1zu bytes\n", sizeof(int));
@@ -21234,6 +21240,7 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	GMRFLib_opt_solve = iniparser_getboolean(ini, inla_string_join(secname, "OPT.SOLVE"), 0);
 	GMRFLib_opt_storage = iniparser_getboolean(ini, inla_string_join(secname, "OPT.STORAGE"), 0);
 	GMRFLib_opt_num_threads = iniparser_getboolean(ini, inla_string_join(secname, "OPT.NUM.THREADS"), 1);
+	GMRFLib_pin_to_p_cores = iniparser_getboolean(ini, inla_string_join(secname, "PIN.TO.PCORES"), 0);
 
 	GMRFLib_memory_alignment = 64;
 #if defined(__linux__)
@@ -21280,6 +21287,7 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\t\tOptimise storage         = [%s]\n", (GMRFLib_opt_storage ? "Yes" : "No"));
 		printf("\t\t\tOptimise num.threads     = [%s]\n", (GMRFLib_opt_num_threads ? "Yes" : "No"));
 		printf("\t\t\tMemory.alignment.enabled = [%s]\n", (GMRFLib_memory_alignment_enabled ? "Yes" : "No"));
+		// printf("\t\t\tPin.to.pcores = [%1d]\n", GMRFLib_pin_to_p_cores);
 		printf("\t\t\tMemory.alignment         = [%u] bytes\n", GMRFLib_memory_alignment);
 	}
 

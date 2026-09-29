@@ -679,7 +679,7 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_
 	case GMRFLib_SMTP_BAND:
 	{
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < nrhs; i++) {
 			GMRFLib_solve_l_sparse_matrix_BAND(&rhs[i * graph->n], sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth);
 		}
@@ -689,7 +689,7 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_
 	case GMRFLib_SMTP_TAUCS:
 	{
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < nrhs; i++) {
 			GMRFLib_solve_l_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
@@ -736,7 +736,7 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm
 	case GMRFLib_SMTP_BAND:
 	{
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < nrhs; i++) {
 			GMRFLib_solve_lt_sparse_matrix_BAND(&rhs[i * graph->n], sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth);
 		}
@@ -746,7 +746,7 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm
 	case GMRFLib_SMTP_TAUCS:
 	{
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < nrhs; i++) {
 			GMRFLib_solve_lt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
@@ -852,7 +852,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 
 	if (sm_fact->smtp == GMRFLib_SMTP_BAND) {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < nrhs; i++) {
 			int offset = i * graph->n;
 
@@ -916,7 +916,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 				offset[i] = offset[i - 1] + csize[i - 1] * graph->n;
 			}
 
-#pragma omp parallel for num_threads(ntt) schedule(static)
+#pragma omp parallel for num_threads(ntt)
 			for (int i = 0; i < ntt; i++) {
 				GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs + offset[i], sm_fact->TAUCS_L, graph,
 								       sm_fact->remap, csize[i], work + offset[i]);
@@ -1060,10 +1060,11 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fa
 	{
 		if (remapped) {
 			int *perm = GMRFLib_stiles_get_perm(problem->stiles_idx);
+			int *iperm = GMRFLib_stiles_get_iperm(problem->stiles_idx);
 			double *y = Malloc(graph->n, double);
 
 			Memcpy(y, rhs, graph->n * sizeof(double));
-			GMRFLib_pack(graph->n, y, perm, rhs);
+			GMRFLib_pack(graph->n, y, perm, iperm, rhs);
 			Free(y);
 		}
 		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, problem->stiles_idx->within_group, 1 };

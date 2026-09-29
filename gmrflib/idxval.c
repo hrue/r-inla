@@ -1811,6 +1811,26 @@ int GMRFLib_idx_ge_match_core(const int n, const int *RESTRICT idx, const GMRFLi
 
 #pragma GCC diagnostic pop
 
+#if 0
+int GMRFLib_idx_ge_match_core(const int n, const int *RESTRICT idx, const GMRFLib_idx_bitmap_tp *RESTRICT bm, const int nmatches)
+{
+	static double tref[2] = { 0 };
+
+	tref[0] -= GMRFLib_timer();
+	int r1 = GMRFLib_idx_ge_match_core_OLD(n, idx, bm, nmatches);
+
+	tref[0] += GMRFLib_timer();
+	tref[1] -= GMRFLib_timer();
+	int r2 = GMRFLib_idx_ge_match_core_NEW(n, idx, bm, nmatches);
+
+	tref[1] += GMRFLib_timer();
+	assert(r1 == r2);
+
+	P(tref[1] / (tref[0] + tref[1]));
+	return r1;
+}
+#endif
+
 int GMRFLib_idx_ge_match(const GMRFLib_idx_tp *RESTRICT v, const GMRFLib_idx_bitmap_tp *RESTRICT bm, const int nmatches)
 {
 	return GMRFLib_idx_ge_match_core(v->n, v->idx, bm, nmatches);

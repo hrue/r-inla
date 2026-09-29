@@ -146,6 +146,7 @@
 
 #       include "GMRFLib/GMRFLibP.h"
 #       include "GMRFLib/alloc.h"
+#       include "GMRFLib/sha.h"
 #       include "GMRFLib/init.h"
 #       include "GMRFLib/fsort.h"
 #       include "GMRFLib/error-handler.h"

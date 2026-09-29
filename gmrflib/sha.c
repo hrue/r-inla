@@ -1,13 +1,18 @@
 #include "GMRFLib/sha.h"
 
+// if INLA_WITH_OPENSSL is defined, then the implementation in openssl's library: libcrypto, is used. otherwise, this stand-alone
+// implementation below is used and we avoid the openssl dependency
+
+#if !defined(INLA_WITH_OPENSSL)
+
 // Core standard rotation and Boolean functions
-#define ROTR(x, n)    (((x) >> (n)) | ((x) << (32 - (n))))
-#define Ch(x, y, z)   ((z) ^ ((x) & ((y) ^ (z))))
-#define Maj(x, y, z)  (((x) & (y)) ^ ((z) & ((x) ^ (y))))
-#define Sigma0(x)     (ROTR(x, 2)  ^ ROTR(x, 13) ^ ROTR(x, 22))
-#define Sigma1(x)     (ROTR(x, 6)  ^ ROTR(x, 11) ^ ROTR(x, 25))
-#define sigma0(x)     (ROTR(x, 7)  ^ ROTR(x, 18) ^ ((x) >> 3))
-#define sigma1(x)     (ROTR(x, 17) ^ ROTR(x, 19) ^ ((x) >> 10))
+#       define ROTR(x, n)    (((x) >> (n)) | ((x) << (32 - (n))))
+#       define Ch(x, y, z)   ((z) ^ ((x) & ((y) ^ (z))))
+#       define Maj(x, y, z)  (((x) & (y)) ^ ((z) & ((x) ^ (y))))
+#       define Sigma0(x)     (ROTR(x, 2)  ^ ROTR(x, 13) ^ ROTR(x, 22))
+#       define Sigma1(x)     (ROTR(x, 6)  ^ ROTR(x, 11) ^ ROTR(x, 25))
+#       define sigma0(x)     (ROTR(x, 7)  ^ ROTR(x, 18) ^ ((x) >> 3))
+#       define sigma1(x)     (ROTR(x, 17) ^ ROTR(x, 19) ^ ((x) >> 10))
 
 // Cross-Platform Native Byte-Swapping (Leverages single-instruction BSWAP on x86 or REV on ARM)
 static inline uint32_t read_be32(const uint8_t *p)
@@ -15,11 +20,11 @@ static inline uint32_t read_be32(const uint8_t *p)
 	uint32_t val;
 
 	memcpy(&val, p, 4);				       // Prevents alignment faults on strict alignment devices (like older ARM)
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#       if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	return __builtin_bswap32(val);
-#else
+#       else
 	return val;
-#endif
+#       endif
 }
 
 static const uint32_t K[64] = {
@@ -53,7 +58,7 @@ static void sha256_transform_opt(SHA256_CTX *ctx, const uint8_t *block)
 	}
 
 	// Local macro step to bypass register copy delays (h = g, g = f, etc.)
-#define STEP(a, b, c, d, e, f, g, h, i) do {				\
+#       define STEP(a, b, c, d, e, f, g, h, i) do {				\
 		uint32_t t1 = h + Sigma1(e) + Ch(e, f, g) + K[i] + W[i]; \
 		uint32_t t2 = Sigma0(a) + Maj(a, b, c);			\
 		d += t1;						\
@@ -71,7 +76,7 @@ static void sha256_transform_opt(SHA256_CTX *ctx, const uint8_t *block)
 		STEP(c, d, e, f, g, h, a, b, i + 6);
 		STEP(b, c, d, e, f, g, h, a, i + 7);
 	}
-#undef STEP
+#       undef STEP
 
 	ctx->state[0] += a;
 	ctx->state[1] += b;
@@ -159,6 +164,13 @@ void sha256_final(SHA256_CTX *ctx, uint8_t *hash)
 		hash[i * 4 + 3] = (uint8_t) (ctx->state[i]);
 	}
 }
+#else
+void SHA256_Final_wrap(SHA256_CTX *ctx, uint8_t *hash)
+{
+	// the order of the argument is changed
+	SHA256_Final(hash, ctx);
+}
+#endif
 
 /*
  * test programs that gives the same result

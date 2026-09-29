@@ -965,7 +965,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						      loglFunc_arg, &(optpar->step_len), &three, NULL); \
 			}
 
-			RUN_CODE_BLOCK_STATIC(nt_opt, 0, 0);
+			RUN_CODE_BLOCK(nt_opt, 0, 0);
 #undef CODE_BLOCK
 		}
 
@@ -2227,7 +2227,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		// with early_stop, we do not need this one, but its somewhat involed to remove it as code below depends on it...
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);  /* add Qinv if its not there already */
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < graph->n; i++) {
 			GMRFLib_density_create_normal(&dens[i][dens_count], 0.0, 1.0, ai_store_id->mode[i], ai_store_id->stdev[i], 0);
 			if (tfunc && tfunc[i]) {
@@ -2264,7 +2264,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 						 GMRFLib_openmp->max_threads_inner);
 		GMRFLib_preopt_predictor_moments(lpred_mode, NULL, preopt, ai_store_id->problem, NULL, GMRFLib_openmp->max_threads_inner);
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < preopt->mnpred; i++) {
 			GMRFLib_density_create_normal(&lpred[i][dens_count], 0.0, 1.0, lpred_mean[i], sqrt(lpred_variance[i]), 0);
 		}
@@ -2576,7 +2576,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	// merge the two loops into one larger one for better omp
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL, NULL);
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int ii = 0; ii < preopt->mnpred + graph->n; ii++) {
 		int i;
 
@@ -2698,7 +2698,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		(*gcpo)->groups = gcpo_groups->groups;
 
 		// if theta_correction is turned off, then all correction terms are 0
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int j = 0; j < preopt->Npred; j++) {
 			double lcorr_max = gcpo_theta[0][j]->marg_theta_correction;
 
@@ -2758,7 +2758,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		double *w1 = Calloc(d_idx->n, double);
 		double *w2 = Calloc(d_idx->n, double);
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int j = 0; j < d_idx->n; j++) {
 			double evalue, evalue2, evalue_one = 1.0;
 			int ii = d_idx->idx[j];
@@ -2943,7 +2943,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 		GMRFLib_ifill(GMRFLib_openmp->max_threads_outer, -1, llcache_idx);
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) reduction(+ : deviance_mean,  deviance_mean_sat, mean_deviance, mean_deviance_sat) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) reduction(+ : deviance_mean,  deviance_mean_sat, mean_deviance, mean_deviance_sat)
 		for (int j = 0; j < d_idx->n; j++) {
 			double md = 0.0, md_sat = 0.0, dm = 0.0, dm_sat = 0.0, logl_sat = 0.0;
 			int ii = d_idx->idx[j];
@@ -3725,33 +3725,65 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			GMRFLib_stiles_rescale_start(1);
 		}
 
-		// build stuff for unrolling 'nmatch' later on
-#define BLOCK 8
+		// build stuff for unrolling 'nmatch' later on.
+		// NSUB==1 will turn the 2nd layer off. 
+#define BLOCK 32
+#define BLOCK_SUB 8
+#define NSUB 4
+//#define BLOCK 8
+//#define BLOCK_SUB 8
+//#define NSUB 1
+		assert(NSUB == 1 || BLOCK_SUB * NSUB == BLOCK);
 		GMRFLib_idx_tp **A_idx_block = NULL;
+		GMRFLib_idx_tp **A_idx_block_sub[NSUB] = { NULL };
 
 		if (gcpo_param->min_overlap > 0) {
 			A_idx_block = Calloc(dn, GMRFLib_idx_tp *);
+			if (NSUB > 1) {
+				for (int j = 0; j < NSUB; j++) {
+					A_idx_block_sub[j] = Calloc(dn, GMRFLib_idx_tp *);
+				}
+			}
 			// we do not need to care about the remainder
 			for (int i = 0; i + BLOCK - 1 < dn; i += BLOCK) {
 				// easier if we know the lengths of the joined BLOCK idx's...
 				int m = 0;
+				int m_sub[NSUB] = { 0 };
 				int node = d_idx->idx[i];
 
 				for (int j = 0; j < BLOCK; j++) {
 					int nnode = d_idx->idx[i + j];
+					int sub_idx = j / BLOCK_SUB;	/* integer division */
 
 					m += A_idx(nnode)->n;
+					m_sub[sub_idx] += A_idx(nnode)->n;
 				}
 				// create it and then copy the idx's
 				GMRFLib_idx_create_x(&(A_idx_block[node]), m);
+				if (NSUB > 1) {
+					for (int j = 0; j < NSUB; j++) {
+						GMRFLib_idx_create_x(&(A_idx_block_sub[j][node]), m_sub[j]);
+					}
+				}
 				for (int j = 0; j < BLOCK; j++) {
 					int nnode = d_idx->idx[i + j];
+					int sub_idx = j / BLOCK_SUB;	/* integer division */
 
 					GMRFLib_idx_nadd(&(A_idx_block[node]), A_idx(nnode)->n, A_idx(nnode)->idx);
+					if (NSUB > 1) {
+						GMRFLib_idx_nadd(&(A_idx_block_sub[sub_idx][node]), A_idx(nnode)->n, A_idx(nnode)->idx);
+					}
 				}
 				assert(A_idx_block[node]->n == m);
+				assert(A_idx_block[node]->n == GMRFLib_isum(NSUB, m_sub));
 				GMRFLib_sort_i(A_idx_block[node]->idx, m);
 				GMRFLib_idx_remove_duplicates(A_idx_block[node]);
+				if (NSUB > 1) {
+					for (int j = 0; j < NSUB; j++) {
+						GMRFLib_sort_i(A_idx_block_sub[j][node]->idx, m_sub[0]);
+						GMRFLib_idx_remove_duplicates(A_idx_block_sub[j][node]);
+					}
+				}
 			}
 		}
 
@@ -3880,7 +3912,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 						GMRFLib_idx_sort(nb);
 						GMRFLib_idx_bitmap_tp *bitmap = GMRFLib_idx_bitmap_get(nb);
 
-						GMRFLib_idx_create_x(&d_idx_local, 1024);
+						GMRFLib_idx_create_x(&d_idx_local, 8192);
 						if (0) {
 							// straight code, doing one at the time
 							for (int knode = 0; knode < dn; knode++) {
@@ -3897,16 +3929,26 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 							// one. there are way more non-match than match, so...
 							int knode = 0;
 
-							for (knode = 0; knode + BLOCK - 1 < dn; knode += BLOCK) {
+							for (knode = 0; knode <= dn - BLOCK; knode += BLOCK) {
 								int nnode = d_idx->idx[knode];
 
 								if (unlikely(GMRFLib_idx_ge_match(A_idx_block[nnode], bitmap, min_overlap))) {
-									for (int kknode = knode; kknode < knode + BLOCK; kknode++) {
-										nnode = d_idx->idx[kknode];
-										if (likely
-										    (GMRFLib_idxval_ge_match(A_idx(nnode), bitmap, min_overlap))
-										    || unlikely(node == nnode)) {
-											GMRFLib_idx_add(&d_idx_local, nnode);
+									for (int sub = 0; sub < NSUB; sub++) {
+										if (NSUB == 1 ||
+										    likely(GMRFLib_idx_ge_match(A_idx_block_sub[sub][nnode],
+														bitmap, min_overlap))) {
+											for (int kknode = knode; kknode < knode + BLOCK_SUB;
+											     kknode++) {
+												int offset = sub * BLOCK_SUB;
+												int nnode_local = d_idx->idx[kknode + offset];
+
+												if (likely
+												    (GMRFLib_idxval_ge_match
+												     (A_idx(nnode_local), bitmap, min_overlap))
+												    || unlikely(node == nnode_local)) {
+													GMRFLib_idx_add(&d_idx_local, nnode_local);
+												}
+											}
 										}
 									}
 								}
@@ -4134,7 +4176,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 #       pragma omp critical(Name_7508f00dd4c1b92329d5e04808f67f928903d401)
 			{
-				printf("\n\tGCPO TIMER: fractions of total = %.3fs using (%1d,%1d) threads\n", 1.0 / inv_sum, nt_outer, nt_inner);
+				printf("\n\tBLOCK=%1d BLOCK_SUB=%1d NSUB=%1d\n", BLOCK, BLOCK_SUB, NSUB);
+				printf("\tGCPO TIMER: fractions of total = %.3fs using (%1d,%1d) threads\n", 1.0 / inv_sum, nt_outer, nt_inner);
 				for (int i = 0; i < NLOC; i++) {
 					printf("\t\tchunk_%1d: %.3f\n", i, tot[i] * inv_sum);
 				}
@@ -4170,8 +4213,18 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		if (A_idx_block) {
 			for (int i = 0; i < dn - BLOCK; i += BLOCK) {
 				GMRFLib_idx_free(A_idx_block[i]);
+				if (NSUB > 1) {
+					for (int j = 0; j < NSUB; j++) {
+						GMRFLib_idx_free(A_idx_block_sub[j][i]);
+					}
+				}
 			}
 			Free(A_idx_block);
+			if (NSUB > 1) {
+				for (int j = 0; j < NSUB; j++) {
+					Free(A_idx_block_sub[j]);
+				}
+			}
 		}
 
 	} else {
@@ -4240,6 +4293,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 	}
 
 #undef BLOCK
+#undef BLOCK_SUB
+#undef NSUB
 #undef A_idx
 #undef W
 #undef LEGAL_TO_ADD
@@ -4385,7 +4440,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 
 	int run_parallel = !use_stiles || (use_stiles && serial);
 
-#pragma omp parallel for num_threads(nt_inner) if(run_parallel) schedule(static)
+#pragma omp parallel for num_threads(nt_inner) if(run_parallel)
 	for (int kk = 0; kk < split->n; kk++) {
 
 		int tnum = omp_get_thread_num();
@@ -6263,12 +6318,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		if (iter < hessian_update) {
 			gsl_matrix_set_zero(hessian);
 		}
-		if (hessian_full && (iter < hessian_update)) {
-			// as we in this case has a triagular double loop
-			RUN_CODE_BLOCK_DYNAMIC(num_threads, 1, graph->n);
-		} else {
-			RUN_CODE_BLOCK(num_threads, 1, graph->n);
-		}
+		RUN_CODE_BLOCK(num_threads, 1, graph->n);
 #undef CODE_BLOCK
 
 		// GMRFLib_printf_gsl_matrix(stdout, hessian, "%.2g ");
@@ -6896,7 +6946,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp ***lindens, double **cross, in
 		 * this loop is quick in any case, so no need to make do it in parallel unless we have constraints ? 
 		 */
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int k = 0; k < klen; k++) {
 			int i = arr[k].i;
 			int j = arr[k].j;
@@ -8097,7 +8147,7 @@ double GMRFLib_prior_mean_func_eval(int thread_id, GMRFLib_prior_mean_tp *prior_
 int GMRFLib_prior_mean_get(int thread_id, double *pmean, int n, GMRFLib_prior_mean_tp **prior_mean)
 {
 	if (prior_mean) {
-#pragma omp parallel for num_threads(GMRFLib_OPENMP_NUM_THREADS_LEVEL()) schedule(static)
+#pragma omp parallel for num_threads(GMRFLib_OPENMP_NUM_THREADS_LEVEL())
 		for (int i = 0; i < n; i++) {
 			pmean[i] = (prior_mean[i] ? GMRFLib_prior_mean_func_eval(thread_id, prior_mean[i]) : 0.0);
 		}

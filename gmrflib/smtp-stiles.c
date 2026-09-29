@@ -640,9 +640,11 @@ int GMRFLib_stiles_solve_LLT(GMRFLib_stiles_idx_tp *stiles_idx, double *rhs)
 
 #if 0
 	static double tref = 0;
-#pragma omp threadprivate(tref)
+
+#       pragma omp threadprivate(tref)
 	static int trefc = 0;
-#pragma omp threadprivate(trefc)
+
+#       pragma omp threadprivate(trefc)
 
 	tref += -GMRFLib_timer();
 #endif

@@ -7520,7 +7520,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:cpLP:QWC")) != -1) {
+	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:cpLP:WC")) != -1) {
 		switch (opt) {
 		case 'C':
 		{
@@ -7552,16 +7552,6 @@ int main(int argc, char **argv)
 				GMRFLib_inla_mode = GMRFLib_MODE_COMPACT;
 			} else {
 				assert(0 == 1);
-			}
-		}
-			break;
-
-		case 'Q':
-		{
-			int status = inla_lock_to_p_cores();
-
-			if (verbose > 0) {
-				printf("\tLock threads to the %1d P-cores [%s]\n", num_p_cores, (status == 0 ? "SUCCESS" : "FAIL"));
 			}
 		}
 			break;

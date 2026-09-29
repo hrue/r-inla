@@ -500,7 +500,6 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < G.nhyper + 1; i++) {
 			int thread_id = omp_get_thread_num();
-
 			int j, err;
 			GMRFLib_ai_store_tp *ais = NULL;
 			double *xx = Calloc(G.nhyper, double);
@@ -572,7 +571,6 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < 2 * G.nhyper; i++) {
 			int thread_id = omp_get_thread_num();
-
 			int j, err;
 			double *xx = NULL;
 			GMRFLib_ai_store_tp *ais = NULL;

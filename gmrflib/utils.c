@@ -2198,12 +2198,11 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_iinc(int n, int *a)
 {
-#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+	// __x86_64__ only
+#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__) && defined(__x86_64__)
 #       include "intrinsics/simde/is-sorted-int-avx512.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+#elif defined(INLA_WITH_SIMDE_AVX2_) && defined(__AVX2__) && defined(__x86_64__)
 #       include "intrinsics/simde/is-sorted-int-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-#       include "intrinsics/simde/is-sorted-int-sse2.h"
 #else
 	SOURCE_INCLUDE(<);
 #endif
@@ -2217,12 +2216,11 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_dinc(int n, double *a)
 {
-#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+	// __x86_64__ only
+#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__) && defined(__x86_64__)
 #       include "intrinsics/simde/is-sorted-double-avx512.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+#elif defined(INLA_WITH_SIMDE_AVX2_) && defined(__AVX2__) && defined(__x86_64__)
 #       include "intrinsics/simde/is-sorted-double-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-#       include "intrinsics/simde/is-sorted-double-sse2.h"
 #else
 	SOURCE_INCLUDE(<);
 #endif
@@ -2230,37 +2228,73 @@ int GMRFLib_is_sorted_dinc(int n, double *a)
 
 #pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_idec(int n, int *a)
 {
 	// decreasing int's
 	SOURCE_INCLUDE(>);
 }
 
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_ddec(int n, double *a)
 {
 	// decreasing double's
 	SOURCE_INCLUDE(>);
 }
 
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_iinc_plain(int n, int *a)
 {
 	SOURCE_INCLUDE(<);
 }
 
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_dinc_plain(int n, double *a)
 {
 	SOURCE_INCLUDE(<);
 }
 
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_idec_plain(int n, int *a)
 {
 	SOURCE_INCLUDE(>);
 }
 
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 {
 	SOURCE_INCLUDE(>);
 }
+
+#pragma GCC diagnostic pop
 
 #undef SOURCE_INCLUDE
 
@@ -2490,69 +2524,10 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_zero_small(int n, double eps, double *x)
 {
-	// if (ABS(x[i]) < eps) x[i]=0.0
-#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
-#       include "intrinsics/simde/zero-small-avx512f.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
-#       include "intrinsics/simde/zero-small-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-#       include "intrinsics/simde/zero-small-sse2.h"
-#else
-#       pragma omp simd
+#pragma omp simd
 	for (int i = 0; i < n; i++) {
-		if (ABS(x[i]) <= eps) {
-			x[i] = 0.0;
-		}
+		x[i] = (ABS(x[i]) <= eps ? 0.0 : x[i]);
 	}
-#endif
 }
 
 #pragma GCC diagnostic pop
-
-int GMRFLib_idx_match(int nx, int *x, int ny, int *y)
-{
-	// check if any value in (increasing) x matches any element in (increasing) y.
-
-	FIXME("This function is not yet finalized. second option is good when na << nb:  complete...");
-	exit(1);
-
-	if (1) {
-		int i = 0;
-		int j = 0;
-
-		while (i < nx && j < ny) {
-			if (x[i] == y[j]) {
-				return 1;
-			}
-			if (x[i] < y[j]) {
-				i++;
-			} else {
-				j++;
-			}
-		}
-	} else {
-		// let 'a' be the shorter one
-		int na, nb, *a, *b;
-
-		if (nx <= ny) {
-			a = x;
-			b = y;
-			na = nx;
-			nb = ny;
-		} else {
-			b = x;
-			a = y;
-			nb = nx;
-			na = ny;
-		}
-
-		for (int i = 0; i < na; i++) {
-			int found = GMRFLib_iwhich_sorted(a[i], b, nb);
-
-			if (found >= 0) {
-				return 1;
-			}
-		}
-	}
-	return 0;
-}
