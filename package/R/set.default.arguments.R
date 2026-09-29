@@ -278,7 +278,13 @@
              #' for BLAS functions, most often 1. If set to 0, then it will be determined
              #' adaptively. If set to 'NULL' then its value it will be determined by
              #' 'inla.getOption("blas.num.threads")' (which defaults to 0).
-             blas.num.threads = NULL
+             blas.num.threads = NULL,
+
+             #' @param pin.to.pcores Experimental option and work-in-progress: do not use.
+             #' This logical option determine if we should pin some parallel loops to
+             #' p-cores only. This require a spesific 'num.threads' argument that are NOT checked
+             #' for. (This option is currently disabled.) 
+             pin.to.pcores = FALSE
              ) {
         ctrl_object(as.list(environment()), "expert", check = FALSE)
     }
