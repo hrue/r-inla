@@ -74,11 +74,7 @@
         cand <- c(Sys.glob(file.path(d, "bin", exe)),
                   Sys.glob(file.path(d, exe)))
         cand <- cand[file.exists(cand) & !dir.exists(cand)]
-        if (length(cand)) {
-            path <- cand[1]
-            ## Remember it, so the search happens once per session.
-            try(inla.setOption(inla.call = path), silent = TRUE)
-        }
+        if (length(cand)) path <- cand[1]
     }
 
     if (is.null(path) || !is.character(path) || !nzchar(path[1])) {
