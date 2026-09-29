@@ -133,6 +133,13 @@ case "$BLAS" in
             echo "== BLAS: ARMPL (shared) at $ARMPL_DIR =="
             BLAS_LIBS="-L$ARMPL_DIR/lib -larmpl -lamath"
         fi
+        ## An NVHPC-built ARMPL needs that compiler's runtime, which lives
+        ## beside the compilers rather than beside ARMPL. Absent elsewhere.
+        NVHPC_LIB=$(cd "$ARMPL_DIR/../../compilers/lib" 2>/dev/null && pwd || true)
+        if [ -n "$NVHPC_LIB" ] && [ -f "$NVHPC_LIB/libnvcpumath.so" ]; then
+            echo "== BLAS: NVHPC-built ARMPL, adding its runtime from $NVHPC_LIB =="
+            BLAS_LIBS="$BLAS_LIBS -L$NVHPC_LIB -Wl,-rpath,$NVHPC_LIB -lnvcpumath -lnvc"
+        fi
         ;;
     *)
         BLAS_INC=""
