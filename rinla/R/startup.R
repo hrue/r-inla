@@ -128,9 +128,21 @@ inla.print.version <- function() {
                              error = function(e) NULL)
             if (!is.null(need) && nzchar(need) && nzchar(bv) &&
                 !identical(bv, need)) {
-                packageStartupMessage(
-                    " - Using the binary you selected: ", bv,
-                    " (this package was built for ", need, ").")
+                ## Two different situations, and calling both "you selected"
+                ## was wrong: a NULL inla.call means the resolver fell back
+                ## past the declared release to whatever was installed, which
+                ## the user did not choose and should be told to fix.
+                chosen <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
+                chosen <- !is.null(chosen) && is.character(chosen) && nzchar(chosen[1])
+                if (chosen) {
+                    packageStartupMessage(
+                        " - Using the binary you selected: ", bv,
+                        " (this package was built for ", need, ").")
+                } else {
+                    packageStartupMessage(
+                        " - No binary for ", need, "; using ", bv,
+                        ". Run inla.stiles.install() to get the matching one.")
+                }
             }
             return(invisible(NULL))
         }

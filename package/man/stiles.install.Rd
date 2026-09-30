@@ -26,8 +26,6 @@ before anything uses it; the function prints that line.}
 
 \item{smtp}{Also select the sTiles sparse-matrix backend (default \code{TRUE}).}
 
-is kept the first time the file is modified.}
-
 \item{verbose}{Print the report (default \code{TRUE}).}
 
 \item{ping}{Also run the binary with \code{-ping} to prove it starts (default
