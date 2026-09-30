@@ -770,7 +770,10 @@ jobs:
   windows-x86_64:
     name: "Windows x86_64: cross-build inla.exe (MinGW UCRT)"
     runs-on: ubuntu-latest
-    container: fedora:latest
+    ## Pinned, not latest: this lane's compiler must match the one that built
+    ## the Windows libstiles. MINGW_FEDORA_IMAGE in ci/toolchain.env is the
+    ## decision, ci/deps-mingw.sh fails if this tag stops agreeing with it.
+    container: fedora:44
     defaults:
       run:
         shell: bash
