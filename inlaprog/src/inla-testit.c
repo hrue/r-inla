@@ -7209,7 +7209,7 @@ int testit(int argc, char **argv)
 		printf("\n");
 		printf("SHOULD EQUAL TO SHA256: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9\n");
 		printf("\necho -n hello world | sha256sum' gives: \n");
-		system("echo -n '                        '; echo -n hello world | sha256sum");
+		int POSSIBLY_UNUSED(ret) = system("echo -n '                        '; echo -n hello world | sha256sum");
 	}
 	break;
 		
