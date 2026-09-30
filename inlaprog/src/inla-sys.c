@@ -168,7 +168,21 @@ static int p_cores_verbose = 0;
 #       include <sys/stat.h>
 #       include <sched.h>
 #       include <hwloc.h>
-#       include <hwloc/cpukinds.h>			       // Handles modern Intel & AMD hybrid architectures
+// Handles modern Intel & AMD hybrid architectures. hwloc 2.4 added it, and
+// RHEL 8 (manylinux_2_28) still ships 2.2, so the header is absent there.
+// Ask the compiler whether the header exists; HWLOC_API_VERSION (2.4 is
+// 0x00020400) covers the compilers that have no __has_include.
+#if defined(__has_include)
+#       if __has_include(<hwloc/cpukinds.h>)
+#               define INLA_HAVE_HWLOC_CPUKINDS 1
+#       endif
+#elif HWLOC_API_VERSION >= 0x00020400
+#       define INLA_HAVE_HWLOC_CPUKINDS 1
+#endif
+
+#if defined(INLA_HAVE_HWLOC_CPUKINDS)
+#       include <hwloc/cpukinds.h>
+#endif
 
 #       define MAX_CORES (2*1024)
 static int *g_p_core_pu_ids = NULL;
@@ -191,7 +205,9 @@ int inla_num_p_cores(void)
 
 	int total_cores = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_CORE);
 	int num_l2_caches = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_L2CACHE);
+#if defined(INLA_HAVE_HWLOC_CPUKINDS)
 	int num_kinds = hwloc_cpukinds_get_nr(topology, 0);
+#endif
 
 	// --------------------------------------------------------------------
 	// STEP 1: SCAN FOR PHYSICAL CACHE ASYMMETRY (Perfect for ARM/DGX Spark)
@@ -250,7 +266,13 @@ int inla_num_p_cores(void)
 	}
 	// --------------------------------------------------------------------
 	// STEP 2: FALLBACK TO OS SCHEDULER KINDS (Perfect for Intel/AMD x86)
+	//
+	// Compiled out where hwloc has no cpukinds, RHEL 8 being the case that
+	// matters. Step 1 still finds hybrid layouts through cache asymmetry and
+	// Step 3 handles symmetric machines, so the effect is the same as a CPU
+	// reporting a single kind.
 	// --------------------------------------------------------------------
+#if defined(INLA_HAVE_HWLOC_CPUKINDS)
 	else if (num_kinds > 1) {
 		hwloc_bitmap_t p_core_cpuset = hwloc_bitmap_alloc();
 		int best_kind_index = num_kinds - 1;
@@ -270,6 +292,7 @@ int inla_num_p_cores(void)
 			printf("[Linux Detected] Hybrid layout found via OS kinds. Using %d performance cores.\n", g_p_core_count);
 		}
 	}
+#endif
 	// --------------------------------------------------------------------
 	// STEP 3: FALLBACK TO STANDARD SYMMETRIC (EPYC Servers / Older CPUs)
 	// --------------------------------------------------------------------
