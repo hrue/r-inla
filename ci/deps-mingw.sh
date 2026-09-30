@@ -11,19 +11,64 @@ set -e
 _ROOT=$(cd "$(dirname "$0")/.." && pwd)
 [ -f "$_ROOT/ci/toolchain.env" ] && . "$_ROOT/ci/toolchain.env"
 
-TRIPLET=x86_64-w64-mingw32ucrt
+TRIPLET=${MINGW_TRIPLET:-x86_64-w64-mingw32ucrt}
 MINGW_CC=$TRIPLET-gcc
 MINGW_CXX=$TRIPLET-g++
 
 SUDO=""
 [ "$(id -u)" != 0 ] && SUDO=sudo
 
+## The container must be the one the toolchain file names. The tag cannot be read
+## from here by the workflow, so it is written literally there and checked here:
+## that way the two cannot disagree silently.
+if [ -n "${MINGW_FEDORA_IMAGE:-}" ] && [ -r /etc/os-release ]; then
+    want=${MINGW_FEDORA_IMAGE#*:}
+    have=$(. /etc/os-release && echo "${VERSION_ID:-}")
+    if [ -n "$have" ] && [ "$want" != "$have" ]; then
+        echo "ERROR: running Fedora $have but ci/toolchain.env pins $MINGW_FEDORA_IMAGE." >&2
+        echo "       Align the container: line in the Windows lane with that file." >&2
+        exit 1
+    fi
+fi
+
+## The cross compiler at the exact pinned version, so this binary and the
+## libstiles it links come from the same GCC. Unpinned, dnf takes whatever the
+## container offers that day, which is how 16.1.1 and 16.2.1 ended up on
+## opposite sides of one bundle a week apart.
+GCC_PKGS="ucrt64-gcc ucrt64-gcc-c++ ucrt64-gcc-gfortran"
+pinned=""
+for p in $GCC_PKGS; do pinned="$pinned $p-${MINGW_GCC_VERSION:-}-*"; done
+## Ask for the pinned build, fall back to the plain names if dnf cannot resolve
+## that spec. The fallback is not a loophole: the version check below is what
+## enforces the pin, and it runs either way.
+if [ -n "${MINGW_GCC_VERSION:-}" ]; then
+    $SUDO dnf -y install $pinned || $SUDO dnf -y install $GCC_PKGS
+else
+    $SUDO dnf -y install $GCC_PKGS
+fi
+
 $SUDO dnf -y install \
-    ucrt64-gcc ucrt64-gcc-c++ ucrt64-gcc-gfortran ucrt64-winpthreads \
+    ucrt64-winpthreads \
     mingw64-eigen3 mingw64-libltdl \
     eigen3-devel \
     git-core make cmake findutils diffutils rsync wget innoextract zip \
     gcc gcc-c++ R-core-devel libRmath-devel
+
+## -dumpversion gives the major alone since GCC 7, so ask for the full one.
+## Checked here because a wrong compiler is cheap to catch now and expensive to
+## discover in fetch-stiles.sh after the rest of the container is built.
+got=$($MINGW_CXX -dumpfullversion 2>/dev/null || $MINGW_CXX -dumpversion 2>/dev/null || echo unknown)
+if [ -n "${MINGW_GCC_VERSION:-}" ] && [ "$got" != "$MINGW_GCC_VERSION" ]; then
+    echo "ERROR: $MINGW_CXX is $got but ci/toolchain.env pins $MINGW_GCC_VERSION." >&2
+    echo "       This container's repos offer:" >&2
+    $SUDO dnf -q --showduplicates list ucrt64-gcc-c++ >&2 2>/dev/null || true
+    echo "       Either pin MINGW_FEDORA_IMAGE to a release carrying $MINGW_GCC_VERSION," >&2
+    echo "       or set MINGW_GCC_VERSION to $got and rebuild the sTiles Windows asset" >&2
+    echo "       in the same pass so both halves move together. Dropping the pin is" >&2
+    echo "       not a fix: the drift it prevents is what broke the bundle." >&2
+    exit 1
+fi
+echo "== MinGW: $MINGW_CXX $got (pinned ${MINGW_GCC_VERSION:-none}) =="
 
 ## Optional UCRT packages: use them when present, otherwise the source
 ## builds below cover the gaps.
