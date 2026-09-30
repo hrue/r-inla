@@ -4,12 +4,10 @@
 \alias{inla.stiles.releases}
 \title{Binary releases available to install}
 \usage{
-inla.stiles.releases(n = 10, repo = "hrue/r-inla", verbose = TRUE)
+inla.stiles.releases(n = 10, verbose = TRUE)
 }
 \arguments{
 \item{n}{How many of the most recent releases to list.}
-
-\item{repo}{GitHub repository holding the releases.}
 
 \item{verbose}{Print the table.}
 }

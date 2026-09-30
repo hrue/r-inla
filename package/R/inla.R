@@ -261,7 +261,7 @@
                    control.taucs = list(),
                    control.numa = list(),
                    only.hyperparam = FALSE,
-                   inla.call = inla.getOption("inla.call"),
+                   inla.call = inla.binary.path(check = FALSE),
                    inla.arg = inla.getOption("inla.arg"),
                    num.threads = inla.getOption("num.threads"),
                    keep = inla.getOption("keep"),

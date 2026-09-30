@@ -1,3 +1,26 @@
+## Can we actually write there? Tested by writing, not by file.access(): on a
+## network filesystem or under an ACL the permission bits say yes and the write
+## still fails, which would send the install to a directory it cannot fill.
+## Cleans up after itself and leaves no empty tree behind on failure.
+`inla.dir.writable` <- function(dir) {
+    made <- !dir.exists(dir)
+    if (made && !dir.create(dir, recursive = TRUE, showWarnings = FALSE)) {
+        return(FALSE)
+    }
+    probe <- file.path(dir, paste0(".inla-write-test-", Sys.getpid()))
+    ok <- isTRUE(tryCatch({
+        cat("", file = probe)
+        file.exists(probe)
+    }, error = function(e) FALSE, warning = function(w) FALSE))
+    unlink(probe)
+    if (made && !ok) unlink(dir, recursive = TRUE)
+    ok
+}
+
+## The repository holding the releases. One value, overridable for a fork or
+## a move, so the name is not spelled out in five places.
+`inla.repo` <- function() Sys.getenv("INLA_REPO", "hrue/r-inla")
+
 ## Per-user cache directory for downloaded binaries.
 ##
 ## tools::R_user_dir() arrived in R 4.0 but this package supports R >= 3.5, so
@@ -23,9 +46,10 @@
 #'
 #' @description
 #' `inla.stiles.install()` works out which pre-built binary matches this
-#' machine, downloads it from the releases page, unpacks it into a cache
-#' directory, checks that it runs, and points `inla.call` at it. One call
-#' instead of the manual download, un-pack and `inla.setOption()` steps.
+#' machine, downloads the release this package version needs, unpacks it
+#' beside the package, and checks that it runs. Nothing to configure
+#' afterwards: `inla.call` stays unset and the binary is found where it was
+#' put.
 #'
 #' The binaries are portable: six of them cover Linux (x86-64 baseline and
 #' x86-64-v3), Linux arm64, macOS (Intel and Apple silicon) and Windows, so the
@@ -35,27 +59,21 @@
 #' `BUILDINFO` file recording the compiler, flags and library versions that
 #' produced it.
 #'
-#' @param tag     Release to install from, e.g. `"Version_26.08.31"` (tags
-#'                published before that use the older `"v26.08.18"` form,
-#'                and both still resolve). Defaults to the
-#'                current release. Pin it for reproducibility.
-#' @param dir     Where to unpack. Defaults to a per-user cache directory.
+#' @param dir     Where to unpack. By default the installed package, so the
+#'                binary travels with it, or a per-user cache when the package
+#'                directory is not writable. Those two are the only places
+#'                INLA searches, so a binary put anywhere else has to be named
+#'                with `inla.setOption(inla.call = ...)` before anything uses
+#'                it; the function prints that line.
 #' @param force   Re-download even when the binary is already installed.
 #' @param smtp    Also select the sTiles sparse-matrix backend (default `TRUE`).
-#' @param persist Write the settings into `~/.Rprofile` so they survive an R
-#'                restart (default `TRUE`). The block is delimited and is
-#'                REPLACED on each install, so installing another release
-#'                re-points it rather than adding a second entry. A `.bak`
-#'                is kept the first time the file is modified.
-#' @param repo    GitHub repository holding the releases.
 #' @param verbose Report each step.
 #'
 #' @return The path of the installed binary, invisibly.
 #'
 #' @examples
 #' \dontrun{
-#' inla.stiles.install()                  # newest release
-#' inla.stiles.install(tag = "Version_26.08.31") # a specific one
+#' inla.stiles.install()   # the binary this package version needs
 #' }
 #'
 #' @seealso [inla.binary.install()]
@@ -64,14 +82,12 @@
 #' @rdname stiles.install
 #' @export inla.stiles.install
 
-`inla.stiles.install` <- function(tag = NULL,
-                                  dir = NULL,
+`inla.stiles.install` <- function(dir = NULL,
                                   force = FALSE,
                                   smtp = TRUE,
-                                  persist = TRUE,
-                                  repo = "hrue/r-inla",
                                   verbose = TRUE) {
     say <- function(...) if (verbose) cat("*", paste0(..., collapse = ""), "\n")
+    repo <- inla.repo()
 
     sysname <- Sys.info()["sysname"]
     machine <- Sys.info()["machine"]
@@ -177,76 +193,8 @@
         if (length(m) == 1L) sub('.*"tag_name"[^"]*"([^"]+)".*', "\\1", m) else NULL
     }
 
-    ## A tag the caller supplied is checked BEFORE downloading. Otherwise a
-    ## typo, or the date column of inla.stiles.releases() pasted in place of
-    ## the tag, surfaces as a raw 404 from download.file() with no hint that
-    ## the tag was the problem.
-    if (!is.null(tag)) {
-        if (is.null(tag_name_of(paste0("https://api.github.com/repos/", repo,
-                                       "/releases/tags/", tag)))) {
-            avail <- tryCatch(inla.stiles.releases(n = 8, repo = repo, verbose = FALSE),
-                              error = function(e) NULL)
-            stop("no release tagged '", tag, "' in ", repo,
-                 if (!is.null(avail) && nrow(avail))
-                     paste0("\n  available: ", paste(utils::head(avail$tag, 8), collapse = ", "))
-                 else "",
-                 "\n  (pass the TAG, e.g. \"v26.09.03\", not the date)",
-                 call. = FALSE)
-        }
-    }
-
-    ## CHANNELS. tag can name a release ("Version_26.09.08-3") or one of two
-    ## channels, so a user does not have to know release names at all:
-    ##
-    ##   "stable"   the release marked "latest" on GitHub. That flag is a
-    ##              one-click setting per release and excludes prereleases, so
-    ##              blessing any of the existing builds as stable is done in the
-    ##              release page, with nothing to edit or commit here.
-    ##   "testing"  the newest release by date, prereleases included.
-    ##
-    ## The two coincide until a release is marked prerelease, or until "latest"
-    ## is deliberately pointed at an older build, which is exactly the case
-    ## these names exist for: shipping a tested binary while newer ones are
-    ## published for people who want them.
-    ## A channel name in `dir` is always a mistake. It happens when both a
-    ## positional value and a named tag are given:
-    ##     inla.stiles.install("stable", tag = "Version_26.09.07-1")
-    ## R matches the NAMED argument first, so "stable" falls through to the
-    ## next free parameter, which is dir. That would install into a folder
-    ## called "stable" in the working directory, with no error, which is not
-    ## what anyone means. There is only one slot: a channel IS a tag.
-    if (!is.null(dir) && tolower(dir) %in% c("stable", "testing")) {
-        stop("'", dir, "' is a channel, not a directory. It belongs in `tag`:\n",
-             "  inla.stiles.install(\"", tolower(dir), "\")\n",
-             "A channel and a tag are the same argument, so pass only one.")
-    }
-
-    if (!is.null(tag) && tolower(tag) %in% c("stable", "testing")) {
-        chan <- tolower(tag)
-        tag <- if (chan == "stable") {
-            tag_name_of(paste0("https://api.github.com/repos/", repo, "/releases/latest"))
-        } else {
-            ## per_page=1: the newest release of any kind. /releases is ordered
-            ## newest first and, unlike /releases/latest, does not skip
-            ## prereleases.
-            js <- tryCatch(paste(readLines(paste0("https://api.github.com/repos/", repo,
-                                                  "/releases?per_page=1"),
-                                           warn = FALSE), collapse = ""),
-                           error = function(e) NULL)
-            if (is.null(js)) NULL else {
-                m <- regmatches(js, regexpr('"tag_name"[[:space:]]*:[[:space:]]*"[^"]+"', js))
-                if (!length(m)) NULL else sub('.*"([^"]+)"$', "\\1", m)
-            }
-        }
-        if (is.null(tag) || !nzchar(tag)) {
-            stop("could not resolve the '", chan, "' channel from ", repo,
-                 " (no network, or no release is marked as such)")
-        }
-        say("channel:  ", chan, " -> ", tag)
-    }
-
-    resolved <- tag
-    if (is.null(resolved)) {
+    resolved <- NULL
+    {
         ## Default to the release that MATCHES THIS R PACKAGE, not merely the
         ## newest one. The binary and the package are two halves of one
         ## release: pairing 26.09.03 with a binary from a later release is how
@@ -300,17 +248,29 @@
         }
     }
 
-    url <- if (is.null(tag) && is.null(resolved)) {
+    url <- if (is.null(resolved)) {
         paste0("https://github.com/", repo, "/releases/latest/download/", asset)
     } else {
-        paste0("https://github.com/", repo, "/releases/download/",
-               if (is.null(tag)) resolved else tag, "/", asset)
+        paste0("https://github.com/", repo, "/releases/download/", resolved, "/", asset)
     }
 
     default.dir <- is.null(dir)
     if (is.null(dir)) {
-        dir <- file.path(inla.cache.dir(), "stiles-binary",
-                         if (!is.null(resolved)) resolved else "latest")
+        ## Prefer the installed package: the binary then travels with it, so a
+        ## NULL inla.call finds the one that belongs to this version and no
+        ## cache has to be kept in step. The cache is the fallback for a site
+        ## library, where the package directory belongs to root. Reinstalling
+        ## the package removes a package-side binary, which is accepted.
+        tag.dir <- if (!is.null(resolved)) resolved else "latest"
+        pkg <- tryCatch(find.package("INLA"), error = function(e) "")
+        cand <- if (nzchar(pkg)) file.path(pkg, "stiles-binary", tag.dir) else ""
+        dir <- ""
+        if (nzchar(cand) && inla.dir.writable(cand)) dir <- cand
+        if (!nzchar(dir)) {
+            dir <- file.path(inla.cache.dir(), "stiles-binary", tag.dir)
+        }
+        say("target:   ", dir,
+            if (identical(dir, cand)) "  (inside the package)" else "  (user cache)")
     }
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -380,7 +340,7 @@
     ## download redirect still worked (see `resolved` above): there is nothing
     ## to point at that is not already sitting at that name.
     alive <- any(grepl("ALIVE", ping))
-    if (default.dir && is.null(tag) && alive && !identical(basename(dir), "latest")) {
+    if (default.dir && alive && !identical(basename(dir), "latest")) {
         latest <- file.path(dirname(dir), "latest")
         ## Remove whatever is there, symlink or directory, and VERIFY it went.
         ##
@@ -468,7 +428,7 @@
     ## caller manages versions deliberately). "latest" is never superseded --
     ## it was just re-pointed above, or (the offline-fallback case) it IS the
     ## live install -- either way it must survive this pass.
-    if (default.dir && is.null(tag) && alive) {
+    if (default.dir && alive) {
         for (d in list.dirs(dirname(dir), recursive = FALSE)) {
             if (!identical(basename(d), basename(dir)) && !identical(basename(d), "latest")) {
                 say("removing superseded ", basename(d))
@@ -477,9 +437,13 @@
         }
     }
 
-    inla.setOption(inla.call = bin[1])
+    ## inla.call is left NULL on purpose. NULL means "the binary that belongs to
+    ## this package version", which the resolver finds at the paths written
+    ## above and which stays right after an upgrade. Storing the path here made
+    ## every install an override pinned to one release. Setting it is the
+    ## expert's choice, not the installer's.
     if (isTRUE(smtp)) inla.setOption(smtp = "stiles")
-    say("inla.call = ", bin[1], if (isTRUE(smtp)) ", smtp = stiles" else "")
+    say("installed: ", bin[1], if (isTRUE(smtp)) "   smtp = stiles" else "")
 
     ## BUILDINFO sits at the bundle root, which is the binary's grandparent for
     ## a <root>/bin/inla layout but the binary's OWN directory for the flat
@@ -492,77 +456,21 @@
         cat(paste0("    ", readLines(info, warn = FALSE)), sep = "\n")
     }
 
-    ## The options set above live in this R session only; a restart keeps the
-    ## downloaded binary but forgets both settings, which looks like the
-    ## install vanished. Print the calls that bring it back, unconditionally:
-    ## they are the actionable output of this function, not progress chatter.
-    if (isTRUE(persist)) {
-        ## Write the settings into ~/.Rprofile so a restart keeps them.
-        ##
-        ## The block is delimited by markers and REPLACED on every install, so
-        ## installing a second release re-points the same lines instead of
-        ## appending a second inla.call that would shadow the first depending
-        ## on order. Everything outside the markers is copied through
-        ## untouched, and a one-time .bak is kept the first time this file is
-        ## modified, because it is the user's file and not ours to lose.
-        ok <- tryCatch({
-            rp <- path.expand("~/.Rprofile")
-            beg <- "## >>> INLA: set by inla.stiles.install() >>>"
-            end <- "## <<< INLA <<<"
-            ## Guarded, because ~/.Rprofile is read by EVERY R process --
-            ## including the one running R CMD INSTALL for INLA itself. Calling
-            ## INLA::inla.setOption() there while the package is mid-reinstall
-            ## (old copy removed, new one not yet in place) segfaults and takes
-            ## the installation down with it. R_CMD is what marks such a
-            ## session: it is set for any "R CMD ..." and empty otherwise.
-            ## NOT R_INSTALL_PKG, which this used to test: that one is unset at
-            ## the time ~/.Rprofile is read, so the guard never fired and the
-            ## block ran during installs regardless. Also skip when INLA is not
-            ## installed at all, so a removed package cannot break every later
-            ## R session.
-            body <- c(beg,
-                      "local({",
-                      "    if (nzchar(Sys.getenv(\"R_CMD\"))) return(invisible(NULL))",
-                      "    if (!requireNamespace(\"INLA\", quietly = TRUE)) return(invisible(NULL))",
-                      sprintf('    try(INLA::inla.setOption(inla.call = "%s"), silent = TRUE)', bin[1]),
-                      if (isTRUE(smtp)) '    try(INLA::inla.setOption(smtp = "stiles"), silent = TRUE)',
-                      "})",
-                      end)
-            oldl <- if (file.exists(rp)) readLines(rp, warn = FALSE) else character(0)
-            if (length(oldl) && !file.exists(paste0(rp, ".bak"))) {
-                try(writeLines(oldl, paste0(rp, ".bak")), silent = TRUE)
-            }
-            i <- which(oldl == beg); j <- which(oldl == end)
-            keep <- if (length(i) == 1L && length(j) == 1L && j > i) {
-                c(utils::head(oldl, i - 1L), utils::tail(oldl, length(oldl) - j))
-            } else {
-                oldl
-            }
-            ## Write beside and rename: an interrupted write must not leave a
-            ## truncated .Rprofile, which would break every future R session.
-            tmp <- paste0(rp, ".new")
-            writeLines(c(keep, body), tmp)
-            file.rename(tmp, rp)
-            TRUE
-        }, error = function(e) e)
-
-        if (isTRUE(ok)) {
-            say("~/.Rprofile updated; the settings survive a restart")
-            cat("\nWritten to ~/.Rprofile (replacing any previous INLA block):\n\n")
-            cat(sprintf('    INLA::inla.setOption(inla.call = "%s")\n', bin[1]))
-            if (isTRUE(smtp)) cat('    INLA::inla.setOption(smtp = "stiles")\n')
-            cat("\nRun with persist = FALSE to leave ~/.Rprofile alone.\n")
-        } else {
-            cat("\nCould not update ~/.Rprofile (", conditionMessage(ok), ").\n", sep = "")
-            cat("Add these lines yourself to make the settings permanent:\n\n")
-            cat(sprintf('    INLA::inla.setOption(inla.call = "%s")\n', bin[1]))
-            if (isTRUE(smtp)) cat('    INLA::inla.setOption(smtp = "stiles")\n')
-        }
-    } else {
-        cat("\nThese settings do not survive an R restart. To restore them next time, run:\n\n")
+    ## Nothing to remember: inla.call stays unset, so the binary just
+    ## installed is the one found from now on, here and after a restart.
+    ##
+    ## Unless `dir` sent it somewhere else. The resolver only searches the
+    ## package and the cache, so a binary anywhere else is installed and then
+    ## ignored, silently and especially after a restart. Say so, and give the
+    ## line that makes it usable, rather than letting it look like it worked.
+    if (!default.dir) {
+        cat("\nThis is outside the places INLA searches, so nothing will use it\n")
+        cat("until you say so:\n\n")
         cat(sprintf('    inla.setOption(inla.call = "%s")\n', bin[1]))
-        if (isTRUE(smtp)) cat('    inla.setOption(smtp = "stiles")\n')
-        cat("\nor re-run with persist = TRUE to write them to ~/.Rprofile.\n")
+        cat("\nPut that line in ~/.Rprofile to keep it across restarts, or run\n")
+        cat("inla.stiles.install() with no dir to install where INLA looks.\n")
+    } else {
+        cat("\nDone. Check with inla.stiles.status().\n")
     }
 
     invisible(bin[1])
@@ -592,20 +500,41 @@
 `inla.stiles.status` <- function(ping = TRUE, verbose = TRUE) {
     say <- function(...) if (verbose) cat("*", paste0(..., collapse = ""), "\n")
 
-    call <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
+    ## RESOLVE, do not read the option. inla.call is NULL on a healthy
+    ## installation, so reading it reported "(package default)" and then said
+    ## nothing else: no release, no ping, no BUILDINFO, because every field
+    ## below is keyed on this path. Ask for the binary that will actually run.
+    set <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
+    set <- if (is.null(set) || !is.character(set) || !nzchar(set[1])) NULL else set[1]
+    call <- tryCatch(inla.binary.path(check = FALSE), error = function(e) NA_character_)
+    if (length(call) != 1L || is.na(call) || !nzchar(call)) call <- NULL
     smtp <- tryCatch(inla.getOption("smtp"), error = function(e) NULL)
 
+    ## Both places a binary can live, and everything installed in either.
+    pkg <- tryCatch(find.package("INLA"), error = function(e) "")
+    pkg.base <- if (nzchar(pkg)) file.path(pkg, "stiles-binary") else ""
     cache <- file.path(inla.cache.dir(), "stiles-binary")
-    installed <- basename(list.dirs(cache, recursive = FALSE))
+    installed <- c(
+        if (nzchar(pkg.base)) paste0(basename(list.dirs(pkg.base, recursive = FALSE)),
+                                     " (package)") else character(0),
+        paste0(basename(list.dirs(cache, recursive = FALSE)), " (cache)"))
 
-    ## Is the active binary one of ours, and which release? The cache path is
-    ## <cache>/<tag>/bin/<exe>, so the tag is two levels up from the file.
+    ## Which of the two it came from, and which release. Both layouts are
+    ## <base>/<tag>/bin/<exe>, so the tag is two levels up and the base three.
     release <- NA_character_
-    if (!is.null(call) && is.character(call) && nzchar(call) && file.exists(call)) {
+    source <- if (!is.null(set)) "set in inla.call" else NA_character_
+    if (!is.null(call) && file.exists(call)) {
         root <- dirname(dirname(call))
-        if (identical(normalizePath(dirname(root), mustWork = FALSE),
-                      normalizePath(cache, mustWork = FALSE))) {
+        base <- normalizePath(dirname(root), mustWork = FALSE)
+        if (identical(base, normalizePath(cache, mustWork = FALSE))) {
             release <- basename(root)
+            if (is.na(source)) source <- "user cache"
+        } else if (nzchar(pkg.base) &&
+                   identical(base, normalizePath(pkg.base, mustWork = FALSE))) {
+            release <- basename(root)
+            if (is.na(source)) source <- "inside the package"
+        } else if (is.na(source)) {
+            source <- "elsewhere"
         }
         info <- file.path(root, "BUILDINFO")
         buildinfo <- if (file.exists(info)) readLines(info, warn = FALSE) else character(0)
@@ -613,8 +542,8 @@
         buildinfo <- character(0)
     }
 
-    say("inla.call: ", if (is.null(call) || !is.character(call) || !nzchar(call[1])) "(package default)" else call)
-    if (!is.na(release)) say("release:   ", release, "  (from the install cache)")
+    say("inla.call: ", if (is.null(call)) "(no binary found)" else call)
+    if (!is.na(release)) say("release:   ", release)
     say("smtp:      ", if (is.null(smtp)) "(default)" else smtp)
 
     alive <- NA
@@ -659,17 +588,22 @@
         hit <- grep("version", vout, ignore.case = TRUE, value = TRUE)
         if (length(hit)) binary.version <- trimws(sub(".*version:[[:space:]]*", "", hit[1]))
     }
+    ## Exact, not "or newer": one number identifies the R package and the
+    ## binary that belongs with it, so anything else is a pairing nobody
+    ## tested. A binary chosen by hand is the user's business and says so.
     ok <- NA
     if (!is.na(binary.version) && !is.na(binary.required)) {
-        ok <- tryCatch(!(package_version(binary.version) < package_version(binary.required)),
+        ok <- tryCatch(package_version(binary.version) == package_version(binary.required),
                        error = function(e) NA)
     }
     say("R package: ", if (is.na(r.version)) "?" else r.version)
     say("binary:    ", if (is.na(binary.version)) "(none)" else binary.version,
         "   (this package needs ",
-        if (is.na(binary.required)) "?" else binary.required,
-        " or newer: ",
-        if (is.na(ok)) "unknown" else if (isTRUE(ok)) "OK" else "TOO OLD", ")")
+        if (is.na(binary.required)) "?" else binary.required, ": ",
+        if (is.na(ok)) "unknown"
+        else if (isTRUE(ok)) "OK"
+        else if (!is.null(set)) "chosen by you"
+        else "MISMATCH, run inla.stiles.install()", ")")
     if (length(buildinfo) && verbose) {
         keep <- grep("^(compiler|libstiles|blas|date):", buildinfo, ignore.case = TRUE, value = TRUE)
         if (length(keep)) { say("BUILDINFO:"); cat(paste0("    ", keep), sep = "\n") }
@@ -694,7 +628,6 @@
 #' reports only what is installed.
 #'
 #' @param n     How many of the most recent releases to list.
-#' @param repo  GitHub repository holding the releases.
 #' @param verbose Print the table.
 #'
 #' @returns Invisibly, a `data.frame` with `tag`, `published`, `installed`,
@@ -709,7 +642,8 @@
 #' @seealso [inla.stiles.install()], [inla.stiles.status()]
 #' @export inla.stiles.releases
 
-`inla.stiles.releases` <- function(n = 10, repo = "hrue/r-inla", verbose = TRUE) {
+`inla.stiles.releases` <- function(n = 10, verbose = TRUE) {
+    repo <- inla.repo()
     ## Same dependency-free parse as the installer: three flat fields out of
     ## the releases JSON, rather than adding jsonlite to Imports for this.
     js <- tryCatch(paste(readLines(paste0("https://api.github.com/repos/", repo,
@@ -727,13 +661,20 @@
     if (length(pub) != length(tags)) pub <- rep(NA_character_, length(tags))
     if (!length(tags)) return(invisible(data.frame()))
 
-    have <- basename(list.dirs(file.path(inla.cache.dir(), "stiles-binary"),
-                               recursive = FALSE))
-    call <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
-    ## The active release is the cache directory the running inla.call sits in:
-    ## <cache>/<tag>/bin/<exe>, so the tag is two levels up.
+    ## Installed in EITHER place, not just the cache: the default target is
+    ## now the package itself.
+    pkg <- tryCatch(find.package("INLA"), error = function(e) "")
+    have <- basename(c(
+        if (nzchar(pkg)) list.dirs(file.path(pkg, "stiles-binary"), recursive = FALSE)
+        else character(0),
+        list.dirs(file.path(inla.cache.dir(), "stiles-binary"), recursive = FALSE)))
+    ## Resolve, do not read the option: it is NULL on a healthy installation,
+    ## so reading it marked nothing as in use.
+    call <- tryCatch(inla.binary.path(check = FALSE), error = function(e) NULL)
+    ## The active release is the directory the running binary sits in:
+    ## <base>/<tag>/bin/<exe>, so the tag is two levels up.
     active <- NA_character_
-    if (!is.null(call) && is.character(call) && nzchar(call)) {
+    if (length(call) == 1L && !is.na(call) && nzchar(call)) {
         active <- basename(dirname(dirname(call)))
     }
     need <- tryCatch(utils::packageDescription("INLA")[["Config/INLA/BinaryVersion"]],
@@ -755,7 +696,6 @@
                         if (out$active[i])    " [in use]"   else "",
                         if (out$required[i])  " [required by this package]" else ""))
         }
-        cat("\n  inla.stiles.install(tag = \"<tag>\") to install or switch.\n")
     }
     invisible(out)
 }

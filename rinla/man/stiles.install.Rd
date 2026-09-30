@@ -7,36 +7,26 @@
 \title{Install a pre-built INLA binary with sTiles support}
 \usage{
 inla.stiles.install(
-  tag = NULL,
   dir = NULL,
   force = FALSE,
   smtp = TRUE,
-  persist = TRUE,
-  repo = "hrue/r-inla",
   verbose = TRUE
 )
 
 inla.stiles.status(ping = TRUE, verbose = TRUE)
 }
 \arguments{
-\item{tag}{Release to install from, e.g. \code{"Version_26.08.31"} (tags
-published before that use the older \code{"v26.08.18"} form,
-and both still resolve). Defaults to the
-current release. Pin it for reproducibility.}
-
-\item{dir}{Where to unpack. Defaults to a per-user cache directory.}
+\item{dir}{Where to unpack. By default the installed package, so the
+binary travels with it, or a per-user cache when the package directory is
+not writable. Those two are the only places INLA searches, so a binary put
+anywhere else has to be named with \code{inla.setOption(inla.call = ...)}
+before anything uses it; the function prints that line.}
 
 \item{force}{Re-download even when the binary is already installed.}
 
 \item{smtp}{Also select the sTiles sparse-matrix backend (default \code{TRUE}).}
 
-\item{persist}{Write the settings into \verb{~/.Rprofile} so they survive an R
-restart (default \code{TRUE}). The block is delimited and is
-REPLACED on each install, so installing another release
-re-points it rather than adding a second entry. A \code{.bak}
 is kept the first time the file is modified.}
-
-\item{repo}{GitHub repository holding the releases.}
 
 \item{verbose}{Print the report (default \code{TRUE}).}
 
@@ -72,7 +62,6 @@ an earlier install intended.
 \examples{
 \dontrun{
 inla.stiles.install()                  # newest release
-inla.stiles.install(tag = "Version_26.08.31") # a specific one
 }
 
 }
