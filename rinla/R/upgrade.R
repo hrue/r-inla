@@ -50,7 +50,7 @@
     ##
     ## Falls back to install_github when no tarball is published for the
     ## newest release (older releases predate it), which is the old behaviour.
-    repo <- "hrue/r-inla"
+    repo <- inla.repo()
     url <- tryCatch({
         ## stable  = the release carrying GitHub's "Latest" badge, which skips
         ##           prereleases and can be pointed at any older build.
@@ -81,9 +81,9 @@
     ## carry rinla/ (it holds the symlinks that make Windows tar.exe abort).
     ## package/ is the same sources with the symlinks resolved, so this works on
     ## every platform and no longer needs Developer Mode.
-    cat('Run remotes::install_github("hrue/r-inla", subdir = "package", ref = "master")\n')
+    cat('Run remotes::install_github("', repo, '", subdir = "package", ref = "master")\n', sep = "")
     cat("If you have 'library(INLA)' in your '~/.Rprofile',  this will fail...\n\n")
-    remotes::install_github("hrue/r-inla", subdir = "package", ref = "master")
+    remotes::install_github(repo, subdir = "package", ref = "master")
     return (invisible())
 }
 

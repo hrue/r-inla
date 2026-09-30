@@ -68,14 +68,34 @@
     ## The binary lives at a known path, so look there rather than depend on a
     ## profile having run. Same layouts the installer searches: <root>/bin/inla*
     ## on unix, and the flat Windows bundle where inla.exe sits at the top.
+    ## Same order the installer writes in: inside the package first, so the
+    ## binary found is the one that shipped with this version, then the cache.
     if (is.null(path) || !is.character(path) || !nzchar(path[1])) {
         exe <- if (.Platform$OS.type == "windows") "inla.exe" else "inla*"
-        d <- file.path(inla.cache.dir(), "stiles-binary", "latest")
-        cand <- c(Sys.glob(file.path(d, "bin", exe)),
-                  Sys.glob(file.path(d, exe)))
+        ## The release this package asks for comes FIRST. Globbing the install
+        ## directories and taking the first hit sorts alphabetically, so with
+        ## Version_26.08.31 and Version_26.09.19 both installed the older one
+        ## won and became the default silently.
+        need <- tryCatch(utils::packageDescription("INLA")[["Config/INLA/BinaryVersion"]],
+                         error = function(e) NULL)
+        want <- if (!is.null(need) && nzchar(need)) {
+            c(paste0("Version_", need), paste0("v", need))
+        } else character(0)
+        bases <- character(0)
+        pkg <- tryCatch(find.package("INLA"), error = function(e) "")
+        if (nzchar(pkg)) bases <- file.path(pkg, "stiles-binary")
+        bases <- c(bases, file.path(inla.cache.dir(), "stiles-binary"))
+        roots <- character(0)
+        for (b in bases) {
+            roots <- c(roots, file.path(b, want), file.path(b, "latest"),
+                       Sys.glob(file.path(b, "*")))
+        }
+        cand <- unlist(lapply(roots, function(d)
+            c(Sys.glob(file.path(d, "bin", exe)), Sys.glob(file.path(d, exe)))))
         cand <- cand[file.exists(cand) & !dir.exists(cand)]
         if (length(cand)) path <- cand[1]
     }
+
 
     if (is.null(path) || !is.character(path) || !nzchar(path[1])) {
         if (isTRUE(must)) {
