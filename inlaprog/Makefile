@@ -87,7 +87,7 @@ src/fast-math/%.o: src/fast-math/%.c
 	$(CC) -c $(FMFLAGS) -o $@ $<
 
 $(INLA) : $(OBJ) $(OBJFM)
-	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(OBJFM) -L$(PREFIX)/lib  $(EXTLIBS)
+	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(OBJFM) -L$(PREFIX)/lib $(EXTLIBS)
 
 src/inla.o: $(HEADERS) \
 	src/inla-sys.c src/inla-map-and-link.c src/inla-testit.c src/inla-graph.c src/inla-Qfunc.c \

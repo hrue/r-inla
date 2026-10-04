@@ -134,7 +134,7 @@ double GMRFLib_sparse_dsum(int n, double *RESTRICT a, int *RESTRICT idx)
 
 #pragma GCC diagnostic pop
 
-FORCEINLINE double GMRFLib_sparse_dsum_INLINE(int n, double *RESTRICT a, int *RESTRICT idx)
+double GMRFLib_sparse_dsum_INLINE(int n, double *RESTRICT a, int *RESTRICT idx)
 {
 	double res = 0.0;
 
@@ -170,7 +170,7 @@ double GMRFLib_sparse_ddot(int n, double *RESTRICT v, double *RESTRICT a, int *R
 
 #pragma GCC diagnostic pop
 
-FORCEINLINE double GMRFLib_sparse_ddot_INLINE(int n, double *RESTRICT v, double *RESTRICT a, int *RESTRICT idx)
+double GMRFLib_sparse_ddot_INLINE(int n, double *RESTRICT v, double *RESTRICT a, int *RESTRICT idx)
 {
 	// sum_i v[i] * a[idx[i]]
 #if defined(INLA_WITH_MKL)
@@ -181,7 +181,7 @@ FORCEINLINE double GMRFLib_sparse_ddot_INLINE(int n, double *RESTRICT v, double 
 	SPARSE_DOT();
 }
 
-FORCEINLINE double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp *RESTRICT ELM_, double *RESTRICT ARR_)
+double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp *RESTRICT ELM_, double *RESTRICT ARR_)
 {
 	// special case: ->idx == sequential
 	return (GMRFLib_ddot_INLINE(ELM_->n, ELM_->val, ARR_ + ELM_->idx[0]));

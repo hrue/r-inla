@@ -1,7 +1,12 @@
+#include <assert.h>
+#include <math.h>
+#include <string.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "inla.h"
+
 #include "GMRFLib/GMRFLib.h"
+#include "inla.h"
 
 // NOTE: not very efficient but the use is for small matrices only, so its fine
 

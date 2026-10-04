@@ -21,20 +21,18 @@ __BEGIN_DECLS
 #       if defined(INLA_WITH_ARMPL)
 #              include "armpl_sparse.h"
 #       endif
+
+
+
+double GMRFLib_sparse_ddot_INLINE(int n, double *RESTRICT v, double *RESTRICT a, int *RESTRICT idx);
+double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
+double GMRFLib_sparse_dsum_INLINE(int n, double *RESTRICT a, int *RESTRICT idx);
 double GMRFLib_dsum(int n, double *x);
 double GMRFLib_dsum_ext(int n, double *x);
-double GMRFLib_sparse_dsum(int n, double *RESTRICT a, int *RESTRICT idx);
-double GMRFLib_sparse_dsum_INLINE(int n, double *RESTRICT a, int *RESTRICT idx);
-int GMRFLib_isum(int n, int *ix);
-
 double GMRFLib_sparse_ddot(int n, double *RESTRICT v, double *RESTRICT a, int *RESTRICT idx);
-double GMRFLib_sparse_ddot_INLINE(int n, double *RESTRICT v, double *RESTRICT a, int *RESTRICT idx);
 double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
 double GMRFLib_sparse_ddot_group_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
 double GMRFLib_sparse_ddot_group_simple_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
-
-double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
-double GMRFLib_sparse_ddot_sum_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
 double GMRFLib_sparse_ddot_sum1_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
 double GMRFLib_sparse_ddot_sum2_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
 double GMRFLib_sparse_ddot_sum3_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
@@ -42,6 +40,9 @@ double GMRFLib_sparse_ddot_sum4_(GMRFLib_idxval_tp * RESTRICT ELM_, double *REST
 double GMRFLib_sparse_ddot_sum5_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
 double GMRFLib_sparse_ddot_sum6_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
 double GMRFLib_sparse_ddot_sum7_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
+double GMRFLib_sparse_ddot_sum_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
+double GMRFLib_sparse_dsum(int n, double *RESTRICT a, int *RESTRICT idx);
+int GMRFLib_isum(int n, int *ix);
 
 __END_DECLS
 #endif

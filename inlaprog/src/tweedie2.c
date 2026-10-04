@@ -37,9 +37,9 @@ typedef struct {
 	double *res;
 	double *lgam_terms;
 	double *lnfact;
-} dtweedie_cache_tp;
+} dtweedie_cache2_tp;
 
-static dtweedie_cache_tp **cache = NULL;
+static dtweedie_cache2_tp **cache = NULL;
 static int verbose = 0;
 
 // must be called before use to initialize cache
@@ -51,7 +51,7 @@ void dtweedie2_init_cache_idx(int idx)
 		return;
 	}
 
-	cache[idx] = Calloc(1, dtweedie_cache_tp);
+	cache[idx] = Calloc(1, dtweedie_cache2_tp);
 	cache[idx]->save_p = -9999.9999;
 	cache[idx]->len = LEN;
 	cache[idx]->w = Calloc(LEN, double);
@@ -71,7 +71,7 @@ void dtweedie2_init_cache(void)
 	if (!cache) {
 #pragma omp critical (Name_92509c30f7c8ce2ff56520888da767c88a1ae7d4)
 		if (!cache) {
-			dtweedie_cache_tp **ccache = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp *);
+			dtweedie_cache2_tp **ccache = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache2_tp *);
 
 			verbose = 0;			       // GMRFLib_DEBUG_IF_TRUE();
 			cache = ccache;
@@ -145,7 +145,7 @@ void dtweedie2(int n, double y, double *mu, double phi, double p, double *ldens)
 
 	GMRFLib_CACHE_SET_IDX(id);
 	dtweedie2_init_cache_idx(id);
-	dtweedie_cache_tp *c = cache[id];
+	dtweedie_cache2_tp *c = cache[id];
 
 	double cc = alpha * log(p1) - log(p2);
 	double jmax = DMAX(10.0, pow(y, p2) / (phi * p2));
@@ -309,7 +309,7 @@ double ptweedie2(double y, double mu, double phi, double p)
 	int id;
 
 	GMRFLib_CACHE_SET_IDX(id);
-	dtweedie_cache_tp *c = cache[id];
+	dtweedie_cache2_tp *c = cache[id];
 
 	double lambda = pow(mu, 2.0 - p) / (phi * (2.0 - p));
 	double log_lambda = log(lambda);

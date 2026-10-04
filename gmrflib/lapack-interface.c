@@ -1604,7 +1604,7 @@ void GMRFLib_dscale(int n, double a, double *x)
 
 #pragma GCC diagnostic pop
 
-FORCEINLINE void GMRFLib_dscale_INLINE(int n, double a, double *x)
+void GMRFLib_dscale_INLINE(int n, double a, double *x)
 {
 	// x[i] *= a
 	if (n <= GMRFLib_dscale_cutoff) {
@@ -1778,7 +1778,7 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 		daxpy_(&n, &a, x, &inc, y, &inc);	\
 	}
 
-FORCEINLINE void GMRFLib_daxpy_INLINE(int n, double a, double *x, double *y)
+void GMRFLib_daxpy_INLINE(int n, double a, double *x, double *y)
 {
 	DAXPY_CORE();
 }
@@ -1891,7 +1891,7 @@ double GMRFLib_ddot(int n, double *RESTRICT x, double *RESTRICT y)
 
 #pragma GCC diagnostic pop
 
-FORCEINLINE double GMRFLib_ddot_INLINE(int n, double *RESTRICT x, double *RESTRICT y)
+double GMRFLib_ddot_INLINE(int n, double *RESTRICT x, double *RESTRICT y)
 {
 	DDOT_CORE();
 }

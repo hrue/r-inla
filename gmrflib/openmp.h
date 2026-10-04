@@ -12,8 +12,8 @@
 #              define __END_DECLS			       /* empty */
 #       endif
 
-// workaround for the moment (gcc-15.2.1)
-#       if 1
+// workaround for g++-15.2: do not know exactly which g++ version causing the issue
+#       if defined(INLA_OMP_GCC15_2_WORKAROUND)
 #              if defined(__cplusplus)
 #                     define TMP_ __cplusplus
 #                     undef __cplusplus
@@ -23,6 +23,8 @@
 #              else
 #                     include <omp.h>
 #              endif
+#       else
+#              include <omp.h> 
 #       endif
 
 __BEGIN_DECLS typedef struct {

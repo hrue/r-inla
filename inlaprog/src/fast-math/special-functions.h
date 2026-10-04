@@ -17,6 +17,8 @@ __BEGIN_DECLS
 /*
  *
  */
+
+double inla_gamma(double x);
 double inla_lgamma_fast(double x);
 double inla_lbeta(double a, double b);
 void inla_lbeta_m(size_t m, double *RESTRICT a, double *RESTRICT b, double *RESTRICT llbeta);

@@ -111,8 +111,10 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 	return (i == j ? 2 * g->n : -1.0);
 }
 
+#if !defined(__cplusplus)
 // Force the compiler to keep this symbol even with aggressive LTO enabled
 __attribute__((used)) __attribute__((visibility("default")))
+#endif
 #       if defined(__cplusplus)
 extern "C"
 #       endif
@@ -6369,6 +6371,7 @@ int testit(int argc, char **argv)
 		break;
 
 	case 192:
+	{
 		int cutoff1 = GMRFLib_daxpy_tune(stdout);
 
 		P(cutoff1);
@@ -6378,6 +6381,7 @@ int testit(int argc, char **argv)
 		int cutoff3 = GMRFLib_dscale_tune(stdout);
 
 		P(cutoff3);
+	}
 		break;
 
 	case 193:

@@ -1,3 +1,4 @@
+#include <math.h>
 #include <assert.h>
 #include <time.h>
 #include <stdint.h>
@@ -186,6 +187,7 @@ extern double bessel_k(double, double, double);
 double Rf_gammafn(double x)
 {
 	return gammafn(x);
+	//return exp(lgamma(x));
 }
 
 double Rf_bessel_k(double x, double alpha, double expo)

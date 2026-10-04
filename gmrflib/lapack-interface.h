@@ -44,12 +44,14 @@ typedef struct {
 #       define BLAS_LEVEL2 2
 #       define BLAS_LEVEL3 3
 
+double GMRFLib_ddot_INLINE(int n, double *RESTRICT x, double *RESTRICT y);
+void GMRFLib_daxpy_INLINE(int n, double a, double *RESTRICT x, double * RESTRICT y);
+void GMRFLib_dscale_INLINE(int n, double a, double *x);
 GMRFLib_gsl_ensure_spd_store_tp *GMRFLib_gsl_ensure_spd_store_alloc(int n);
 GMRFLib_gsl_ldnorm_store_tp *GMRFLib_gsl_ldnorm_store_alloc(int n);
 GMRFLib_gsl_low_rank_store_tp *GMRFLib_gsl_low_rank_store_alloc(int n);
 GMRFLib_gsl_spd_solve_store_tp *GMRFLib_gsl_spd_solve_store_alloc(int n);
 double GMRFLib_ddot(int n, double *RESTRICT x, double *RESTRICT y);
-double GMRFLib_ddot_INLINE(int n, double *RESTRICT x, double *RESTRICT y);
 double GMRFLib_dssqr(int n, double *x);
 double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m, gsl_matrix * Q, double tol, int *rankdef);
 double GMRFLib_gsl_ldnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity);
@@ -99,8 +101,7 @@ int GMRFLib_gsl_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x);
 int GMRFLib_gsl_spd_solve_store_free(GMRFLib_gsl_spd_solve_store_tp * store);
 int GMRFLib_gsl_spd_solve_x(gsl_matrix * A, gsl_vector * b, gsl_vector * x, GMRFLib_gsl_spd_solve_store_tp * store);
 int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int nrhs);
-int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB, double alpha, gsl_matrix * A, gsl_matrix * B, double beta,
-		       gsl_matrix * C, int nt);
+int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB, double alpha, gsl_matrix * A, gsl_matrix * B, double beta, gsl_matrix * C, int nt);
 int idamax_(int *, double *, int *);
 void GMRFLib_bfill(int n, bool a, bool *x);
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y);
@@ -108,7 +109,6 @@ void GMRFLib_daxpby(int n, double a, double *x, double b, double *y);
 void GMRFLib_daxpbypcz(int n, double a, double *x, double b, double *y, double c, double *z);
 void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z);
 void GMRFLib_daxpy(int n, double a, double *x, double *y);
-void GMRFLib_daxpy_INLINE(int n, double a, double *x, double *y);
 void GMRFLib_ddot2(double *RESTRICT a, double *RESTRICT b, int n, double *RESTRICT x, double *RESTRICT y, double *RESTRICT z);
 void GMRFLib_dfill(int n, double a, double *x);
 void GMRFLib_dscale(int n, double a, double *x);
@@ -118,15 +118,13 @@ void GMRFLib_ifill(int n, int ia, int *ix);
 void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, int *RESTRICT iainv, double *RESTRICT y);
 void GMRFLib_powx(int n, double *x, double a, double *y);
 void GMRFLib_unpack(int n, double *RESTRICT a, double *RESTRICT y, int *RESTRICT iy);
-void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANSPOSE TransB, int M, int N, int K, double alpha, double *A,
-		     int lda, double *B, int ldb, double beta, double *C, int ldc, int nt);
+void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANSPOSE TransB, int M, int N, int K, double alpha, double *A, int lda, double *B, int ldb, double beta, double *C, int ldc, int nt);
 void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
 void daxpy_(int *n, double *alpha, double *x, int *incx, double *y, int *incy);
 void daxpyi_(int *, double *, double *, int *, double *);
 void dchdc_(double *, int *, int *, double *, int *, int *, int *, double *);
 void dcopy_(int *n, double *x, int *incx, double *y, int *incy);
-void dgemm_(const char *, const char *, int *, int *, int *, double *, double *, int *, double *, int *, double *, double *, int *,
-	    FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T);
+void dgemm_(const char *, const char *, int *, int *, int *, double *, double *, int *, double *, int *, double *, double *, int *, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T);
 void dgemv_(const char *, int *, int *, double *, double *, int *, double *, int *, double *, double *, int *, FORTRAN_CHARLEN_T);
 void dgemv_failsafe_(const char *, int *, int *, double *, double *, int *, double *, int *, double *, double *, int *, FORTRAN_CHARLEN_T);
 void dpbtf2_(const char *, int *, int *, double *, int *, int *, FORTRAN_CHARLEN_T);
@@ -137,10 +135,8 @@ void dpotri_(const char *, int *, double *, int *, int *, FORTRAN_CHARLEN_T);
 void dpotrs_(const char *, int *, int *, double *, int *, double *, int *, int *, FORTRAN_CHARLEN_T);
 void dscal_(int *n, double *a, double *x, int *incx);
 void dscal_(int *n, double *alpha, double *x, int *inc);
-void dtbsv_(const char *, const char *, const char *, int *, int *, double *, int *, double *, int *, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T,
-	    FORTRAN_CHARLEN_T);
-void dtrmv_(const char *, const char *, const char *, int *, double *, int *, double *, int *, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T,
-	    FORTRAN_CHARLEN_T);
+void dtbsv_(const char *, const char *, const char *, int *, int *, double *, int *, double *, int *, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T);
+void dtrmv_(const char *, const char *, const char *, int *, double *, int *, double *, int *, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T);
 void dwaxpby_(int *, double *, double *, int *, double *, double *, int *, double *, int *);
 
 __END_DECLS

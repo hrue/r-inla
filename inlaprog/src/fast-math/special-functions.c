@@ -9,7 +9,7 @@
 #include "inla.h"
 #include "fast-math/special-functions.h"
 
-FORCEINLINE double inla_lgamma(double x)
+double inla_lgamma(double x)
 {
 	return lgamma(x);
 }
@@ -97,17 +97,17 @@ void inla_lgamma_fast_m(size_t m, double *RESTRICT x, double *RESTRICT res)
 }
 #pragma GCC diagnostic pop
 
-FORCEINLINE double inla_gamma(double x)
+double inla_gamma(double x)
 {
 	return (exp(lgamma(x)));
 }
 
-FORCEINLINE double inla_gamma_fast(double x)
+double inla_gamma_fast(double x)
 {
 	return (exp(inla_lgamma_fast(x)));
 }
 
-FORCEINLINE double inla_beta(double a, double b)
+double inla_beta(double a, double b)
 {
 	return exp(inla_lbeta(a, b));
 }
