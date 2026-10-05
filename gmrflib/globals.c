@@ -143,3 +143,8 @@ int GMRFLib_pin_to_p_cores = 0;
 double GMRFLib_overall_cpu[8] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
 char *GMRFLib_tmpdir = NULL;
+
+// Use SIMD <=cutoff and BLAS above
+int GMRFLib_daxpy_cutoff = 192;
+int GMRFLib_ddot_cutoff = 96;
+int GMRFLib_dscale_cutoff = 1024;

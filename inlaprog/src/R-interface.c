@@ -37,6 +37,10 @@ extern char *GMRFLib_tmpdir;
 
 __BEGIN_DECLS
 //
+
+#define MATHLIB_STANDALONE
+#include <Rmath.h> // define gammafn/bessel_k
+
 char *Strdup(const char *s);
 int my_file_exists(const char *filename);
 int my_dir_exists(const char *filename);
@@ -181,8 +185,8 @@ static void inla_R_dlopen_(void)
  * error unwinding does not exist when these models run outside R anyway.
  */
 #       include <stdarg.h>
-extern double gammafn(double);
-extern double bessel_k(double, double, double);
+//extern double gammafn(double);
+//extern double bessel_k(double, double, double);
 
 double Rf_gammafn(double x)
 {

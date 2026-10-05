@@ -44,9 +44,10 @@ typedef struct {
 #       define BLAS_LEVEL2 2
 #       define BLAS_LEVEL3 3
 
-double GMRFLib_ddot_INLINE(int n, double *RESTRICT x, double *RESTRICT y);
-void GMRFLib_daxpy_INLINE(int n, double a, double *RESTRICT x, double * RESTRICT y);
-void GMRFLib_dscale_INLINE(int n, double a, double *x);
+extern int GMRFLib_daxpy_cutoff;
+extern int GMRFLib_ddot_cutoff;
+extern int GMRFLib_dscale_cutoff;
+
 GMRFLib_gsl_ensure_spd_store_tp *GMRFLib_gsl_ensure_spd_store_alloc(int n);
 GMRFLib_gsl_ldnorm_store_tp *GMRFLib_gsl_ldnorm_store_alloc(int n);
 GMRFLib_gsl_low_rank_store_tp *GMRFLib_gsl_low_rank_store_alloc(int n);
@@ -138,6 +139,58 @@ void dscal_(int *n, double *alpha, double *x, int *inc);
 void dtbsv_(const char *, const char *, const char *, int *, int *, double *, int *, double *, int *, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T);
 void dtrmv_(const char *, const char *, const char *, int *, double *, int *, double *, int *, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T);
 void dwaxpby_(int *, double *, double *, int *, double *, double *, int *, double *, int *);
+
+//
+
+static FORCEINLINE void GMRFLib_dscale_INLINE(int n, double a, double *x)
+{
+	// x[i] *= a
+	if (n <= GMRFLib_dscale_cutoff) {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			x[i] *= a;
+		}
+	} else {
+		int one = 1;
+		dscal_(&n, &a, x, &one);
+	}
+}
+
+#define DAXPY_CORE()					\
+	if (n <= GMRFLib_daxpy_cutoff) {		\
+		_Pragma("omp simd")			\
+			for (int i = 0; i < n; i++) {	\
+				y[i] += a * x[i];	\
+			}				\
+	} else {					\
+		int inc = 1;				\
+		daxpy_(&n, &a, x, &inc, y, &inc);	\
+	}
+
+static FORCEINLINE void GMRFLib_daxpy_INLINE(int n, double a, double *x, double *y)
+{
+	DAXPY_CORE();
+}
+
+#define DDOT_CORE(cutoff_)						\
+	if (n <= GMRFLib_ddot_cutoff) {					\
+		double res = 0.0;					\
+		_Pragma("omp simd reduction(+: res)")			\
+			for (int i = 0; i < n; i++) {			\
+				res += x[i] * y[i];			\
+			}						\
+		return res;						\
+	} else {							\
+		int one = 1;						\
+		return ddot_(&n, x, &one, y, &one);			\
+	}
+
+static FORCEINLINE double GMRFLib_ddot_INLINE(int n, double *RESTRICT x, double *RESTRICT y)
+{
+	DDOT_CORE();
+}
+
+
 
 __END_DECLS
 #endif

@@ -6,11 +6,6 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-// Use SIMD <=cutoff and BLAS above
-int GMRFLib_daxpy_cutoff = 192;
-int GMRFLib_ddot_cutoff = 96;
-int GMRFLib_dscale_cutoff = 1024;
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
@@ -1604,21 +1599,6 @@ void GMRFLib_dscale(int n, double a, double *x)
 
 #pragma GCC diagnostic pop
 
-void GMRFLib_dscale_INLINE(int n, double a, double *x)
-{
-	// x[i] *= a
-	if (n <= GMRFLib_dscale_cutoff) {
-#pragma omp simd
-		for (int i = 0; i < n; i++) {
-			x[i] *= a;
-		}
-	} else {
-		int one = 1;
-
-		dscal_(&n, &a, x, &one);
-	}
-}
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
@@ -1767,22 +1747,6 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 #pragma GCC diagnostic pop
 
 // y = a * x + y
-#define DAXPY_CORE()					\
-	if (n <= GMRFLib_daxpy_cutoff) {		\
-		_Pragma("omp simd")			\
-			for (int i = 0; i < n; i++) {	\
-				y[i] += a * x[i];	\
-			}				\
-	} else {					\
-		int inc = 1;				\
-		daxpy_(&n, &a, x, &inc, y, &inc);	\
-	}
-
-void GMRFLib_daxpy_INLINE(int n, double a, double *x, double *y)
-{
-	DAXPY_CORE();
-}
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
@@ -1867,19 +1831,6 @@ int GMRFLib_daxpy_tune(FILE *fp)
 
 #pragma GCC diagnostic pop
 
-#define DDOT_CORE(cutoff_)						\
-	if (n <= GMRFLib_ddot_cutoff) {					\
-		double res = 0.0;					\
-		_Pragma("omp simd reduction(+: res)")			\
-			for (int i = 0; i < n; i++) {			\
-				res += x[i] * y[i];			\
-			}						\
-		return res;						\
-	} else {							\
-		int one = 1;						\
-		return ddot_(&n, x, &one, y, &one);			\
-	}
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
@@ -1890,11 +1841,6 @@ double GMRFLib_ddot(int n, double *RESTRICT x, double *RESTRICT y)
 }
 
 #pragma GCC diagnostic pop
-
-double GMRFLib_ddot_INLINE(int n, double *RESTRICT x, double *RESTRICT y)
-{
-	DDOT_CORE();
-}
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"

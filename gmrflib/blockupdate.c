@@ -7,7 +7,7 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-FORCEINLINE double GMRFLib_prod_diff(double a, double b, double c, double d)
+double GMRFLib_prod_diff(double a, double b, double c, double d)
 {
 	// return a*b-c*d , see https://pharr.org/matt/blog/2019/11/03/difference-of-floats 
 	double cd = c * d;

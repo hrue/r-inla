@@ -1,26 +1,20 @@
-#include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 
-#include "cgeneric.h"
-#if __has_include("cgeneric-defs.h")
-#       include "cgeneric-defs.h"
-#endif
-#if __has_include("cloglike-defs.h")
-#       include "cloglike-defs.h"
-#endif
-
-typedef struct {
-	const char *name;
-	inla_cgeneric_func_tp *func;
-} inla_cgeneric_mapper_elm_tp;
+#include "cgeneric-mapper.h"
 
 static inla_cgeneric_mapper_elm_tp table_cgeneric[] = {
-#if __has_include("cgeneric-table.h")
+#if defined(INLA_WITH_EXTERNAL_PACKAGES) &&  __has_include("cgeneric-table.h")
 #       include "cgeneric-table.h"
 #endif
 	{ (const char *) NULL, (inla_cgeneric_func_tp *) NULL }
+};
+
+static inla_cloglike_mapper_elm_tp table_cloglike[] = {
+#if defined(INLA_WITH_EXTERNAL_PACKAGES) && __has_include("cloglike-table.h")
+#       include "cloglike-table.h"
+#endif
+	{ (const char *) NULL, (inla_cloglike_func_tp *) NULL }
 };
 
 void inla_cgeneric_mapper_list(FILE *fp)
@@ -46,18 +40,6 @@ inla_cgeneric_func_tp *inla_cgeneric_mapper(char *name)
 	}
 	return NULL;
 }
-
-typedef struct {
-	const char *name;
-	inla_cloglike_func_tp *func;
-} inla_cloglike_mapper_elm_tp;
-
-static inla_cloglike_mapper_elm_tp table_cloglike[] = {
-#if __has_include("cloglike-table.h")
-#       include "cloglike-table.h"
-#endif
-	{ (const char *) NULL, (inla_cloglike_func_tp *) NULL }
-};
 
 void inla_cloglike_mapper_list(FILE *fp)
 {

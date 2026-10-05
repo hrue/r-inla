@@ -26,6 +26,7 @@ __BEGIN_DECLS
 #       include "quantile-regression.h"
 #       include "cgeneric.h"
 #       include "prw2.h"
+#       include "cgeneric-mapper.h"
 #       define ONE_mexp(_x) (-expm1(_x))		       /* 1-exp(_x) */
 #       define LOG_1mp(_x) log1p(-(_x))			       /* log(1-(_x)) */
 #       define LOG_p(_x) log1p((_x) - 1.0)
@@ -2494,24 +2495,6 @@ double inla_logitcdf_normal(double x);
 double inla_logcdf_normal_fast(double x);
 
 GMRFLib_ptr_tp *inla_stiles_get_graphs(void *mbv);
-
-#       if defined(INLA_WITH_EXTERNAL_PACKAGES)
-#              if __has_include("cgeneric-defs.h")
-#                     include "cgeneric-defs.h"
-#              elif __has_include("../external-packages/cgeneric-defs.h")
-#                     include "../external-packages/cgeneric-defs.h"
-#              elif __has_include("../../external-packages/cgeneric-defs.h")
-#                     include "../../external-packages/cgeneric-defs.h"
-#              elif __has_include("../../../external-packages/cgeneric-defs.h")
-#                     include "../../../external-packages/cgeneric-defs.h"
-#              else
-#                     error "Cannot find file 'cgeneric-defs.h'"
-#              endif
-#       endif
-void inla_cgeneric_mapper_list(FILE * fp);
-inla_cgeneric_func_tp *inla_cgeneric_mapper(char *name);
-void inla_cloglike_mapper_list(FILE * fp);
-inla_cloglike_func_tp *inla_cloglike_mapper(char *name);
 
 /* 
 ***
