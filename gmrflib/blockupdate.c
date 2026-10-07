@@ -177,7 +177,9 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			       double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	// default step-size is determined using test=151
-	double step, df = 0.0, ddf = 0.0, dddf = 0.0, xx[9], f[9], f0 = 0.0, x00;
+	double step, df = 0.0, ddf = 0.0, dddf = 0.0, f0 = 0.0, x00;
+	aligned_double xx[9];
+	aligned_double f[9];
 	int stenc = (stencil ? *stencil : 5);
 
 	if (step_len && *step_len < 0.0) {
@@ -221,7 +223,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			df = 0.5 * (-f[0] + f[2]);
 			ddf = f[0] - 2.0 * f[1] + f[2];
 		}
-			break;
+		break;
 
 		case 5:
 		{
@@ -233,9 +235,10 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				step = *step_len;
 			}
 
-			const int n = 5, nn = 2, wlength = 8;
-
-			static const double wf[24] = {
+#define N5 5
+#define NN5 2
+#define WLEN5 8			
+			static const aligned_double wf[24] = {
 				1.0 / 12.0,
 				-2.0 / 3.0,
 				0,
@@ -264,32 +267,31 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				0
 			};
 
-			x00 = x0 - nn * step;
-			for (int i = 0; i < n; i++) {
+			x00 = x0 - NN5 * step;
+			for (int i = 0; i < N5; i++) {
 				xx[i] = x00 + i * step;
 			}
 
-			loglFunc(thread_id, lcache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg);
-			f0 = f[nn];
+			loglFunc(thread_id, lcache_idx, f, xx, N5, idx, x_vec, NULL, loglFunc_arg);
+			f0 = f[NN5];
 
-			double *wff = (double *) wf + wlength;
-			double *wfff = (double *) wf + 2 * wlength;
-			double *f_ref = f + nn;
-			double *wf_ref = (double *) wf + nn;
-			double *wff_ref = wff + nn;
+			double *wff = (double *) wf + WLEN5;
+			double *wfff = (double *) wf + 2 * WLEN5;
+			double *f_ref = f + NN5;
+			double *wf_ref = (double *) wf + NN5;
+			double *wff_ref = wff + NN5;
 
-#if 1
 			if (!dd) {
 				ddf = f_ref[0] * wff_ref[0];
-				for (int i = 1; i <= nn; i++) {
+				for (int i = 1; i <= NN5; i++) {
 					df += wf_ref[i] * (f_ref[i] - f_ref[-i]);
 					ddf += wff_ref[i] * (f_ref[i] + f_ref[-i]);
 				}
 			} else {
-				double *wfff_ref = wfff + nn;
+				double *wfff_ref = wfff + NN5;
 
 				ddf = f_ref[0] * wff_ref[0];
-				for (int i = 1; i <= nn; i++) {
+				for (int i = 1; i <= NN5; i++) {
 					double dif = f_ref[i] - f_ref[-i];
 
 					df += wf_ref[i] * dif;
@@ -298,18 +300,18 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				}
 			}
 
-#else
+#if 0
 			df = GMRFLib_prod_diff(wf_ref[1], f_ref[1] - f_ref[-1], -wf_ref[2], f_ref[2] - f_ref[-2]);
 			ddf = GMRFLib_prod_diff(wff_ref[1], f_ref[-1] + f_ref[1], -wff_ref[2], f_ref[-2] + f_ref[2]);
 			ddf = fma(wff_ref[0], f_ref[0], ddf);
 			if (dd) {
-				double *wfff_ref = wfff + nn;
+				double *wfff_ref = wfff + NN5;
 
 				dddf = GMRFLib_prod_diff(wfff_ref[1], f_ref[1] - f_ref[-1], -wfff_ref[2], f_ref[2] - f_ref[-2]);
 			}
 #endif
 		}
-			break;
+		break;
 
 		case 7:
 		{
@@ -321,9 +323,10 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				step = *step_len;
 			}
 
-			const int n = 7, nn = 3, wlength = 8;
-
-			static const double wf[24] = {
+#define N7 7
+#define NN7 3
+#define WLEN7 8
+			static const aligned_double wf[24] = {
 				-0.01666666666666667,
 				0.15,
 				-0.75,
@@ -352,32 +355,30 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 				0
 			};
 
-			x00 = x0 - nn * step;
-			for (int i = 0; i < n; i++) {
+			x00 = x0 - NN7 * step;
+			for (int i = 0; i < N7; i++) {
 				xx[i] = x00 + i * step;
 			}
+			loglFunc(thread_id, lcache_idx, f, xx, N7, idx, x_vec, NULL, loglFunc_arg);
+			f0 = f[NN7];
 
-			loglFunc(thread_id, lcache_idx, f, xx, n, idx, x_vec, NULL, loglFunc_arg);
-			f0 = f[nn];
-
-			double *wff = (double *) wf + wlength;
-			double *wfff = (double *) wf + 2 * wlength;
-			double *f_ref = f + nn;
-			double *wf_ref = (double *) wf + nn;
-			double *wff_ref = wff + nn;
+			double *wff = (double *) wf + WLEN7;
+			double *wfff = (double *) wf + 2 * WLEN7;
+			double *f_ref = f + NN7;
+			double *wf_ref = (double *) wf + NN7;
+			double *wff_ref = wff + NN7;
 
 			// we do not need to initialized df and dddf, as wf_ref[0]=0 and wfff_ref[0]=0
-#if 1
 			ddf = f_ref[0] * wff_ref[0];
 			if (!dd) {
-				for (int i = 1; i <= nn; i++) {
+				for (int i = 1; i <= NN7; i++) {
 					df += wf_ref[i] * (f_ref[i] - f_ref[-i]);
 					ddf += wff_ref[i] * (f_ref[i] + f_ref[-i]);
 				}
 			} else {
-				double *wfff_ref = wfff + nn;
+				double *wfff_ref = wfff + NN7;
 
-				for (int i = 1; i <= nn; i++) {
+				for (int i = 1; i <= NN7; i++) {
 					double dif = f_ref[i] - f_ref[-i];
 
 					df += wf_ref[i] * dif;
@@ -385,20 +386,20 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 					dddf += wfff_ref[i] * dif;
 				}
 			}
-#else
+#if 0			
 			df = GMRFLib_prod_diff(wf_ref[1], f_ref[1] - f_ref[-1], -wf_ref[2], f_ref[2] - f_ref[-2]);
 			df = fma(wf_ref[3], f_ref[3] - f_ref[-3], df);
 			ddf = GMRFLib_prod_diff(wff_ref[0], f_ref[0], -wff_ref[1], f_ref[1] + f_ref[-1]) +
-			    GMRFLib_prod_diff(wff_ref[2], f_ref[2] + f_ref[-2], -wff_ref[3], f_ref[3] + f_ref[-3]);
+				GMRFLib_prod_diff(wff_ref[2], f_ref[2] + f_ref[-2], -wff_ref[3], f_ref[3] + f_ref[-3]);
 			if (dd) {
-				double *wfff_ref = wfff + nn;
+				double *wfff_ref = wfff + NN7;
 
 				dddf = GMRFLib_prod_diff(wfff_ref[1], f_ref[1] - f_ref[-1], -wfff_ref[2], f_ref[2] - f_ref[-2]);
 				dddf = fma(wfff_ref[3], f_ref[3] - f_ref[-3], dddf);
 			}
 #endif
 		}
-			break;
+		break;
 
 		default:
 			assert(0 == 1);
@@ -417,6 +418,13 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 		*dd = dddf * POW3(istep);
 	}
 
+#undef N5
+#undef N7
+#undef NN5	
+#undef NN7
+#undef WLEN5	
+#undef WLEN7
+	
 	return GMRFLib_SUCCESS;
 }
 

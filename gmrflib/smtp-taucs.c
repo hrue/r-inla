@@ -1495,28 +1495,28 @@ int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double 
 
 int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix *L)
 {
+#define N64 64
 	double ret = 0.0;
 	int n = L->n;
-	int N = 64;
-	int limit = n & ~(N - 1);
+	int limit = n & ~(N64 - 1);
 	double *v = L->values;
 
-	for (int i = 0; i < limit; i += N) {
-		double xx[N], xx2[N];
+	double xx[N64], xx2[N64];
+	for (int i = 0; i < limit; i += N64) {
 		int *idx = L->colptr + i;
-
-		for (int j = 0; j < N; j++) {
+#pragma GCC unroll 4
+		for (int j = 0; j < N64; j++) {
 			xx[j] = v[idx[j]];
 		}
-		GMRFLib_log(N, xx, xx2);
-		ret += GMRFLib_dsum(N, xx2);
+		GMRFLib_log(N64, xx, xx2);
+		ret += GMRFLib_dsum(N64, xx2);
 	}
 
 	for (int i = limit; i < n; i++) {
 		ret += log(v[L->colptr[i]]);
 	}
 	*logdet = 2.0 * ret;
-
+#undef N64
 	return GMRFLib_SUCCESS;
 }
 
@@ -1892,31 +1892,26 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *RESTRICT vL, double *RESTRICT x, int 
 		}
 	}
 
+	double *sum = Malloc(nrhs, double);
 	for (int i = n - 1; i >= 0; i--) {
-		double sum[nrhs];
-
 		GMRFLib_dfill(nrhs, 0.0, sum);
-
 		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
 			double Aij = L->values[jp];
 			double *xx = x + L->rowind[jp] * nrhs;
-
 			GMRFLib_daxpy_INLINE(nrhs, Aij, xx, sum);
 		}
 
 		int offset_i = i * nrhs;
 		double *yy = y + offset_i;
-
 		GMRFLib_daxpy_INLINE(nrhs, -1.0, sum, yy);
-
 		int jp = L->colptr[i];
 		double iAii = 1.0 / L->values[jp];
 		double *xx = x + offset_i;
-
 		yy = y + offset_i;
 		GMRFLib_dscale2(nrhs, iAii, yy, xx);
 	}
-
+	Free(sum);
+	
 	if (!skip_reordering) {
 		Memcpy(work, x, n * nrhs * sizeof(double));
 		int ione = 1;

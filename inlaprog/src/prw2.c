@@ -385,6 +385,8 @@ inla_prw2_arg_tp *inla_prw2_create(int n, double *loc)
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 {
+#define MVAL 4L
+	
 	// return Q with prec = 1
 	int n = arg->n;
 	double range = GMRFLib_SET_RANGE(arg);
@@ -403,9 +405,8 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 
 	inla_bm_scale(tau, Q);
 
-	const int m = 4;
-	const int m2 = ISQR(m);
-	int mm = n - m;
+	int mm = n - MVAL;
+	assert(mm > 0);
 	int mmn_len = GMRFLib_align_len(mm * n, sizeof(double));
 	double *xx = Calloc(2 * mmn_len, double);
 	double *yy = xx + mmn_len;
@@ -416,7 +417,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	xx[mm - 2 + 2 * mm] = BM_VAL(Q, n - 2, n - 4);
 	xx[mm - 1 + 2 * mm] = BM_VAL(Q, n - 2, n - 3);
 	xx[mm - 1 + 3 * mm] = BM_VAL(Q, n - 1, n - 3);
-	Memcpy(yy, xx, mm * m * sizeof(double));
+	Memcpy(yy, xx, mm * MVAL * sizeof(double));
 
 	inla_bm_tp *QB = inla_bm_alloc(mm, 2, 0);
 
@@ -433,9 +434,9 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	inla_bm_nsolve(chol_QB, NULL, xx, 4);
 
 	int idx[] = { 0, 1, n - 2, n - 1 };
-	inla_bm_tp *S = inla_bm_alloc(m, m - 1, 0);
+	inla_bm_tp *S = inla_bm_alloc(MVAL, MVAL - 1, 0);
 
-	for (int i = 0; i < m; i++) {
+	for (int i = 0; i < MVAL; i++) {
 		BM_VAL(S, i, i) = 1.0;
 		for (int j = 0; j < i; j++) {
 			sBM_VAL(S, i, j) = inla_prw2_corfunc(arg->loc[idx[i]] - arg->loc[idx[j]], kappa);
@@ -478,28 +479,26 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	}
 #endif
 
-	double correction[m2];
-
-	GMRFLib_dfill(m2, 0.0, correction);
-	for (int i = 0; i < m; i++) {
-		for (int j = i; j < m; j++) {
+	double correction[MVAL*MVAL] = { 0 };
+	for (int i = 0; i < MVAL; i++) {
+		for (int j = i; j < MVAL; j++) {
 			double sum = 0.0;
 
 			for (int k = 0; k < mm; k++) {
 				sum += yy[k + i * mm] * xx[k + j * mm];
 			}
-			correction[i + j * m] = correction[j + i * m] = sum + sBM_VAL(Sinv, i, j);
+			correction[i + j * MVAL] = correction[j + i * MVAL] = sum + sBM_VAL(Sinv, i, j);
 		}
 	}
 
-	BM_VAL(Q, 0, 0) = correction[0 + 0 * m];
-	BM_VAL(Q, 1, 0) = correction[1 + 0 * m];
-	BM_VAL(Q, 0, 1) = correction[0 + 1 * m];
-	BM_VAL(Q, 1, 1) = correction[1 + 1 * m];
-	BM_VAL(Q, n - 2, n - 2) = correction[2 + 2 * m];
-	BM_VAL(Q, n - 2, n - 1) = correction[2 + 3 * m];
-	BM_VAL(Q, n - 1, n - 2) = correction[3 + 2 * m];
-	BM_VAL(Q, n - 1, n - 1) = correction[3 + 3 * m];
+	BM_VAL(Q, 0, 0) = correction[0 + 0 * MVAL];
+	BM_VAL(Q, 1, 0) = correction[1 + 0 * MVAL];
+	BM_VAL(Q, 0, 1) = correction[0 + 1 * MVAL];
+	BM_VAL(Q, 1, 1) = correction[1 + 1 * MVAL];
+	BM_VAL(Q, n - 2, n - 2) = correction[2 + 2 * MVAL];
+	BM_VAL(Q, n - 2, n - 1) = correction[2 + 3 * MVAL];
+	BM_VAL(Q, n - 1, n - 2) = correction[3 + 2 * MVAL];
+	BM_VAL(Q, n - 1, n - 1) = correction[3 + 3 * MVAL];
 
 	inla_bm_tp *Qsym = inla_bm_sym(Q, NULL);
 
@@ -529,6 +528,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	inla_bm_free(chol_QB);
 	inla_bm_free(chol_S);
 
+#undef MVAL
 	return Qsym;
 }
 

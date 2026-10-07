@@ -12,6 +12,8 @@
 
 extern G_tp G;						       /* import some global parametes from inla */
 
+#define NC 32
+
 FORCEINLINE void compute_d_values_opt(double *RESTRICT d, double *RESTRICT vals, double *RESTRICT theta, int nc)
 {
 	double d0 = 0.0, d1 = 0.0, d2 = 0.0;
@@ -238,7 +240,8 @@ double inla_spde2_Qfunction_OLD(int thread_id, int ii, int jj, double *values, v
 		int nb = model->graph->lnnbs[ii];
 		double *V = model->row_V[ii];
 		double *v = model->row_v[ii];
-		double theta[nc];
+		double theta_vec[NC];
+		double *theta = (nc <= NC ? theta_vec : Calloc(nc, double));
 
 		theta[0] = 1.0;
 		for (int k = 1; k < nc; k++) {
@@ -298,6 +301,9 @@ double inla_spde2_Qfunction_OLD(int thread_id, int ii, int jj, double *values, v
 			d_j += 3;
 		}
 
+		if (nc > NC) {
+			Free(theta);
+		}
 		return 0.0;
 	} else {
 		return inla_spde2_Qfunction_ij(thread_id, IMIN(ii, jj), IMAX(ii, jj), values, arg);
@@ -316,8 +322,8 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 	double d_i[6] = { 0.0 };
 	double *d_j = d_i + 3;
 	double *vals_i = model->row_V[ii];
-
-	double theta[nc];
+	double theta_vec[NC];
+	double *theta = (nc <= NC ? theta_vec : Calloc(nc, double));
 
 	theta[0] = 1.0;
 	for (int k = 1; k < nc; k++) {
@@ -373,6 +379,9 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 		double *v = model->row_v[ii];
 		double value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
 
+		if (nc > NC) {
+			Free(theta);
+		}
 		return value;
 	}
 
@@ -427,6 +436,9 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 	double *v = vals_j_p->v;
 	double value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 
+	if (nc > NC) {
+		Free(theta);
+	}
 	return value;
 }
 
@@ -851,3 +863,5 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 #undef ThetaNew
 	return NULL;
 }
+
+#undef NC

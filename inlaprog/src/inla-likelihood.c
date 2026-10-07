@@ -2,6 +2,17 @@
 #define gsl_sf_lnbeta(a_, b_) LBETAfn(a_, b_)
 #define my_gsl_sf_lnbeta(a_, b_) LBETAfn(a_, b_)
 
+#define VEC_LEN_MAX 32
+#define VEC_CREATE(name_, len_)						\
+	int name_ ## _len = len_;					\
+	aligned_double name_ ## _vec[VEC_LEN_MAX];			\
+	double *name_ = (len_ == 0 ? NULL :				\
+			 (len_ <= VEC_LEN_MAX ? name_ ## _vec : Malloc(len_, double)))
+
+#define VEC_FREE(name_)				\
+	if (name_ ## _len > VEC_LEN_MAX)	\
+		Free(name_)
+
 double inla_compute_saturated_loglik(int thread_id, int *lcache_idx, int idx, GMRFLib_logl_tp *UNUSED(loglfunc), double *x_vec, void *arg)
 {
 	inla_tp *a = (inla_tp *) arg;
@@ -1731,8 +1742,7 @@ int loglikelihood_fl(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT lo
 			}
 		}
 
-		aligned_double eta[m];
-
+		VEC_CREATE(eta, m);
 		for (int i = 0; i < m; i++) {
 			eta[i] = PREDICTOR_INVERSE_LINK(x[i], off);
 			logll[i] = c[0] + c[1] * eta[i];
@@ -1759,6 +1769,8 @@ int loglikelihood_fl(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT lo
 				logll[i] += (-c[7] * log(expm1(c[8] * eta[i]) / (sign * PUSH_AWAY(eta[i]))));
 			}
 		}
+
+		VEC_FREE(eta);
 	} else {
 		assert(0 == 1);
 	}
@@ -2802,9 +2814,8 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *RESTRI
 				const int mkl_lim = 4L;
 
 				if (likely(m >= mkl_lim)) {
-					aligned_double xx[m];
-					aligned_double exp_x[m];
-
+					VEC_CREATE(xx, m);
+					VEC_CREATE(exp_x, m);
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
 						xx[i] = x[i] + off;
@@ -2821,6 +2832,8 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *RESTRI
 							logll[i] = ylEmn - E * exp_x[i];
 						}
 					}
+					VEC_FREE(xx);
+					VEC_FREE(exp_x);
 				} else {
 					if (likely(y > 0.0)) {
 #pragma omp simd
@@ -3181,9 +3194,8 @@ int loglikelihood_bell(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 
 	LINK_INIT;
 	if (m > 0) {
-		aligned_double mean[m];
-		aligned_double lambda[m];
-
+		VEC_CREATE(mean, m);
+		VEC_CREATE(lambda, m);
 #pragma omp simd
 		for (int i = 0; i < m; i++) {
 			mean[i] = E * PREDICTOR_INVERSE_LINK(x[i], off);
@@ -3193,6 +3205,8 @@ int loglikelihood_bell(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 		for (int i = 0; i < m; i++) {
 			logll[i] = y * log(lambda[i]) - exp(lambda[i]) + normc;
 		}
+		VEC_FREE(mean);
+		VEC_FREE(lambda);
 	} else {
 		int yy = (int) (y_cdf ? *y_cdf : y);
 
@@ -3653,7 +3667,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *REST
 	double *X = ds->data_observations.occ_x[idx];
 	int *Y = ds->data_observations.occ_y[idx];
 
-	double beta[nb];
+	VEC_CREATE(beta, nb);
 
 	for (int i = 0; i < nb; i++) {
 		beta[i] = ds->data_observations.occ_beta[i][thread_id][0];
@@ -3665,8 +3679,8 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *REST
 
 		if (PREDICTOR_SIMPLE_LINK_EQ(link_logit)) {
 			if (ny >= mkl_lim) {
-				aligned_double w[ny], ww[ny];
-
+				VEC_CREATE(w, ny);
+				VEC_CREATE(ww, ny);
 				for (int i = 0; i < ny; i++) {
 					double *xx = X + i * nb;
 					double Xbeta = GMRFLib_ddot_INLINE(nb, beta, xx);
@@ -3675,6 +3689,8 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *REST
 				}
 				inla_llike_log1p_exp(ny, w, ww);
 				logll0 -= GMRFLib_dsum(ny, ww);
+				VEC_FREE(w);
+				VEC_FREE(ww);
 			} else {
 				for (int i = 0; i < ny; i++) {
 					double *xx = X + i * nb;
@@ -3714,8 +3730,8 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *REST
 					double elogll0 = exp(logll0);
 
 					if (m >= mkl_lim) {
-						aligned_double xx[m], exx[m];
-
+						VEC_CREATE(xx, m);
+						VEC_CREATE(exx, m);
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
 							xx[i] = x[i] + off;
@@ -3733,6 +3749,8 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *REST
 						for (int i = 0; i < m; i++) {
 							logll[i] = logll0 + exx[i];
 						}
+						VEC_FREE(xx);
+						VEC_FREE(exx);
 					} else {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
@@ -3876,6 +3894,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *REST
 		GMRFLib_dfill(IABS(m), 0.0, logll);
 	}
 
+	VEC_FREE(beta);
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
@@ -4077,8 +4096,7 @@ int loglikelihood_binomialmix(int thread_id, int *UNUSED(lcache_idx), double *RE
 
 	LINK_INIT;
 
-	double beta[nbeta];
-
+	VEC_CREATE(beta, nbeta);
 	for (int i = 0; i < nbeta; i++) {
 		beta[i] = ds->data_observations.binmix_beta[i][thread_id][0];
 	}
@@ -4131,6 +4149,7 @@ int loglikelihood_binomialmix(int thread_id, int *UNUSED(lcache_idx), double *RE
 		}
 	}
 
+	VEC_FREE(beta);
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
@@ -5106,8 +5125,9 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 						}
 					}
 				} else {
-					aligned_double xx[m], ex[m], lx[m];
-
+					VEC_CREATE(xx, m);
+					VEC_CREATE(ex, m);
+					VEC_CREATE(lx, m);
 					GMRFLib_cdaddto(m, x, off, xx);
 					GMRFLib_exp(m, xx, ex);
 					GMRFLib_dscale(m, E / size, ex);
@@ -5120,6 +5140,9 @@ int loglikelihood_negative_binomial(int thread_id, int *UNUSED(lcache_idx), doub
 						// logll[i] = tt2 + t3 * lx[i];
 						GMRFLib_daxpb(m, t3, lx, tt2, logll);
 					}
+					VEC_FREE(xx);
+					VEC_FREE(ex);
+					VEC_FREE(lx);
 				}
 			} else {
 				double lEsize = log(E) - lsize;
@@ -5758,8 +5781,8 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 		if (likely(PREDICTOR_LINK_EQ(link_logit))) {
 			if (ISZERO(y)) {
 				if (likely(m >= mkl_lim)) {
-					aligned_double v_eta[m], v_lee[m];
-
+					VEC_CREATE(v_eta, m);
+					VEC_CREATE(v_lee, m);
 					if (fast) {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
@@ -5776,6 +5799,8 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 					for (int i = 0; i < m; i++) {
 						logll[i] = res.val - ny * v_lee[i];
 					}
+					VEC_FREE(v_eta);
+					VEC_FREE(v_lee);
 				} else {
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
@@ -5788,8 +5813,8 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 				}
 			} else if (ISZERO(ny)) {
 				if (m >= mkl_lim) {
-					aligned_double v_eta[m], v_lee[m];
-
+					VEC_CREATE(v_eta, m);
+					VEC_CREATE(v_lee, m);
 					if (fast) {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
@@ -5807,6 +5832,8 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 					for (int i = 0; i < m; i++) {
 						logll[i] = res.val - y * v_lee[i];
 					}
+					VEC_FREE(v_eta);
+					VEC_FREE(v_lee);
 				} else {
 #pragma omp simd
 					for (int i = 0; i < m; i++) {
@@ -7630,8 +7657,9 @@ int loglikelihood_beta(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 					logll[i] = -llbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
 				}
 			} else {
-				double va[m], vb[m], vllbeta[m];
-
+				VEC_CREATE(va, m);
+				VEC_CREATE(vb, m);
+				VEC_CREATE(vllbeta, m);
 				for (i = 0; i < m; i++) {
 					mu = PREDICTOR_INVERSE_LINK(x[i], off);
 					va[i] = mu * phi;
@@ -7648,6 +7676,9 @@ int loglikelihood_beta(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 					}
 					logll[i] = -llbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
 				}
+				VEC_FREE(va);
+				VEC_FREE(vb);
+				VEC_FREE(vllbeta);
 			}
 		} else {
 			if (0) {
@@ -7673,8 +7704,8 @@ int loglikelihood_beta(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 			} else {
 				// split code and do all lbeta calculations upfront.
 				// we only need the lbeta for the uncensored case
-				double va[m], vb[m];
-
+				VEC_CREATE(va, m);
+				VEC_CREATE(vb, m);
 				for (i = 0; i < m; i++) {
 					mu = PREDICTOR_INVERSE_LINK(x[i], off);
 					va[i] = mu * phi;
@@ -7693,8 +7724,7 @@ int loglikelihood_beta(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 						logll[i] = MATHLIB_FUN(pbeta) (1.0 - censor_value, a, b, 0, 1);
 					}
 				} else {
-					double vllbeta[m];
-
+					VEC_CREATE(vllbeta, m);
 					inla_lbeta_m((size_t) m, va, vb, vllbeta);
 					for (i = 0; i < m; i++) {
 						a = va[i];
@@ -7706,7 +7736,10 @@ int loglikelihood_beta(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 						}
 						logll[i] = -llbeta + (a - 1.0) * ly + (b - 1.0) * l1my;
 					}
+					VEC_FREE(vllbeta);
 				}
+				VEC_FREE(va);
+				VEC_FREE(vb);
 			}
 		}
 	} else {
@@ -7789,8 +7822,10 @@ int loglikelihood_obeta(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT
 				}
 			} else {
 				// we group the lbeta-calculations which is faster
-				double a[m], b[m], llbeta[m], diff[m];
-
+				VEC_CREATE(a, m);
+				VEC_CREATE(b, m);
+				VEC_CREATE(llbeta, m);
+				VEC_CREATE(diff, m);
 				for (int i = 0; i < m; i++) {
 					double mu = PREDICTOR_INVERSE_LINK(x[i], off);
 					double low = PREDICTOR_INVERSE_LINK(x[i] - k1, off);
@@ -7807,6 +7842,10 @@ int loglikelihood_obeta(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT
 
 					logll[i] = log(diff[i]) - llbeta_local + (a[i] - 1.0) * ly + (b[i] - 1.0) * l1my;
 				}
+				VEC_FREE(a);
+				VEC_FREE(b);
+				VEC_FREE(llbeta);
+				VEC_FREE(diff);
 			}
 		}
 	} else {
@@ -8044,13 +8083,13 @@ int loglikelihood_tweedie(int thread_id, int *UNUSED(lcache_idx), double *RESTRI
 	LINK_INIT;
 
 	if (m > 0) {
-		aligned_double mu[m];
-
+		VEC_CREATE(mu, m);
 		for (int i = 0; i < m; i++) {
 			mu[i] = PREDICTOR_INVERSE_LINK(x[i], off);
 		}
 		// dtweedie(m, y, mu, phi, p, logll);
 		dtweedie2(m, y, mu, phi, p, logll);
+		VEC_FREE(mu);
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
 
@@ -9130,7 +9169,7 @@ int loglikelihood_nvm(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT l
 
 	LINK_INIT;
 	if (m > 0) {
-		double ll[m];
+		VEC_CREATE(ll, m);
 		double yp = PREDICTOR_LINK_PLAIN(y);
 
 		for (int i = 0; i < m; i++) {
@@ -9142,6 +9181,7 @@ int loglikelihood_nvm(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT l
 		double lnormc = LOG_NORMC_GAUSSIAN + 0.5 * lprec - log(2.0 * GMRFLib_cdfnorm(sqrt(1.0 / prec) * M_PI) - 1.0);
 
 		GMRFLib_cdaddto(m, ll, lnormc, logll);
+		VEC_FREE(ll);
 	} else {
 		GMRFLib_dfill(-m, 0.0, logll);
 	}
@@ -9156,7 +9196,6 @@ __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_cloglike(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT logll, double *RESTRICT x, int m, int idx,
 			   double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
-#define MAXTH 16
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
@@ -9171,8 +9210,8 @@ int loglikelihood_cloglike(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 	int numa = GMRFLib_numa_get_node();
 	double *Y = ds->data_observations.cloglike_Y[numa] + idx * ny;
 	double ***theta = ds->data_observations.cloglike_theta;
-	double th_vec[MAXTH];
-	double *th = th_vec;
+
+	VEC_CREATE(th, ntheta);
 
 	if (!(data->processed)) {
 #pragma omp critical (Name_4623344a016140fe19b65e7121bf71eb7b5dcb54)
@@ -9198,9 +9237,6 @@ int loglikelihood_cloglike(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 	}
 
 	if (ntheta) {
-		if (ntheta > MAXTH) {
-			th = Malloc(ntheta, double);
-		}
 #pragma omp simd
 		for (int i = 0; i < ntheta; i++) {
 			th[i] = theta[i][thread_id][0];
@@ -9208,8 +9244,8 @@ int loglikelihood_cloglike(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 	}
 
 	int mm = IABS(m);
-	double xx[mm];
 
+	VEC_CREATE(xx, mm);
 #pragma omp simd
 	for (int i = 0; i < mm; i++) {
 		xx[i] = PREDICTOR_INVERSE_IDENTITY_LINK(x[i], off);
@@ -9222,10 +9258,8 @@ int loglikelihood_cloglike(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 		ds->data_observations.cloglike_func(INLA_CLOGLIKE_CDF, th, ds->data_observations.cloglike_data, ny, Y, mm, xx, logll);
 	}
 
-	if (ntheta > MAXTH) {
-		Free(th);
-	}
-
+	VEC_FREE(xx);
+	VEC_FREE(th);
 	return GMRFLib_SUCCESS;
 }
 
@@ -9233,3 +9267,6 @@ int loglikelihood_cloglike(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 
 #undef gsl_sf_lnbeta
 #undef my_gsl_sf_lnbeta
+#undef VEC_LEN_MAX
+#undef VEC_CREATE
+#undef VEC_FREE

@@ -836,11 +836,12 @@ int GMRFLib_evaluate_ndensity(double *dens, double *x, int n, GMRFLib_density_tp
 {
 	assert(dens);
 	if (n > 0) {
-		double dtmp[n];
-
+		double *dtmp = Malloc(n, double);
+		assert(dtmp);
 		GMRFLib_evaluate_nlogdensity(dens, x, n, density);
 		GMRFLib_exp(n, dens, dtmp);
 		Memcpy(dens, dtmp, n * sizeof(double));
+		Free(dtmp);
 	}
 
 	return GMRFLib_SUCCESS;

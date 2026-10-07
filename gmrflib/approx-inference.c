@@ -5532,9 +5532,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	}
 
 	int try_first = 1;				       /* assume MM matrix is non-singular first, if it is, switch stratgy */
-	double dxs[niter];
-
-	GMRFLib_dfill(niter, 0.0, dxs);
+	double *dxs = Calloc(niter, double);
+	assert(dxs);
 	M = GMRFLib_gsl_transpose_matrix(Mt);
 
 	for (int iter = 0; iter < niter + 1; iter++) {
@@ -5756,9 +5755,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			}
 		}
 		dxs[iter] = err_dx;
-
 		int diverge = 0;
-
 		if (iter >= 3) {
 			// 'diverge' is defined as increasing three times in a row
 			diverge = ((dxs[iter - 0] > dxs[iter - 1]) && (dxs[iter - 1] > dxs[iter - 2])
@@ -5849,6 +5846,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	// we need to update those in any case
 	GMRFLib_preopt_update(thread_id, preopt, like_b_save, like_c_save, num_threads);
 
+	Free(dxs);
 	// update the mean unless we're in an emergency
 	if (!emergency) {
 		for (int i = 0; i < graph->n; i++) {
