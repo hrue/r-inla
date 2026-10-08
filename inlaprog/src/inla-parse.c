@@ -21242,7 +21242,7 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	GMRFLib_opt_num_threads = iniparser_getboolean(ini, inla_string_join(secname, "OPT.NUM.THREADS"), 1);
 	GMRFLib_pin_to_p_cores = iniparser_getboolean(ini, inla_string_join(secname, "PIN.TO.PCORES"), 0);
 
-	GMRFLib_memory_alignment = 64;
+	GMRFLib_memory_alignment = 64;			       /* bytes */
 #if defined(__linux__)
 	GMRFLib_memory_alignment = 64;
 #       if defined(__x86_64__)
@@ -21257,7 +21257,6 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 #elif defined(__APPLE__)
 	GMRFLib_memory_alignment = 64;
 #elif defined(_WIN32)
-
 	GMRFLib_memory_alignment = 32;
 #endif
 

@@ -292,8 +292,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 			}
 		}
 
-		GMRFLib_matrix_add_graph_and_hash(M, GMRFLib_OPENMP_NUM_THREADS_LEVEL());
-
+		GMRFLib_matrix_add_graph_and_hash(M, GMRFLib_openmp->max_threads_inner);
 		if (debug) {
 			double *A = Calloc(M->nrow * M->nrow, double);
 			int *iA = Calloc(M->nrow * M->nrow, int);
@@ -483,7 +482,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 	}
 
 	if (nt <= 0) {
-		nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
+		nt = GMRFLib_openmp->max_threads_inner;
 	}
 
 	int nhold = 0, *hold = NULL, offset = 0;
@@ -908,7 +907,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
 		}
 	}
 
-	GMRFLib_matrix_add_graph_and_hash(N, GMRFLib_OPENMP_NUM_THREADS_LEVEL());
+	GMRFLib_matrix_add_graph_and_hash(N, GMRFLib_openmp->max_threads_inner);
 
 	N->filename = Strdup(M->filename);
 	N->offset = M->offset;
@@ -921,7 +920,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
 int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, int nrow, int ncol, int nt)
 {
 	if (nt <= 0) {
-		nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
+		nt = GMRFLib_openmp->max_threads_inner;
 	}
 
 	int nelm = 0;

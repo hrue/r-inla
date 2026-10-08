@@ -124,9 +124,6 @@ typedef struct {
 #       define GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD()  (GMRFLib_OPENMP_IN_PARALLEL() && (omp_get_num_threads() == 1))
 #       define GMRFLib_OPENMP_IN_SERIAL()               (omp_get_level() == 0)
 
-#       define GMRFLib_OPENMP_NUM_THREADS_LEVEL() (GMRFLib_OPENMP_IN_OUTER() ? GMRFLib_openmp->max_threads_outer : \
-					    GMRFLib_openmp->max_threads_inner)
-
 #       define GMRFLib_OPENMP_ENSURE_IN_PARALLEL_RUN()				\
 	if (GMRFLib_OPENMP_IN_SERIAL()) {				\
 		_Pragma("omp parallel for num_threads(1)")		\

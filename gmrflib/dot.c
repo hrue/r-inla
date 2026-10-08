@@ -292,7 +292,6 @@ double GMRFLib_sparse_ddot_group_(GMRFLib_idxval_tp *RESTRICT ELM_, double *REST
 				if ((g_ == 0) && ELM_->spvec_g) {
 					double res = 0.0;
 					armpl_status_t info = armpl_spdot_exec_d(ELM_->spvec_g, ARR_, &res);
-
 					assert(info == ARMPL_STATUS_SUCCESS);
 					value += res;
 				} else {

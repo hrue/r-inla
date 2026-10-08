@@ -1586,7 +1586,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 		map_id_init_hint(Qinv_L[i], nnbsQ[i]);			\
 	}
 
-	RUN_CODE_BLOCK(IMIN(2, GMRFLib_OPENMP_NUM_THREADS_LEVEL()), 0, 0);
+	RUN_CODE_BLOCK(IMIN(2, GMRFLib_openmp->max_threads_inner), 0, 0);
 #undef CODE_BLOCK
 
 	double *Zj = Calloc(n, double);
