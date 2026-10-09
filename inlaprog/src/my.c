@@ -1,3 +1,9 @@
+#include "GMRFLib/GMRFLib.h"
+#include "inla.h"
+#include "fast-math/special-functions.h"
+#include "my.h"
+#include "my-fix.h"
+
 #include <assert.h>
 #include <float.h>
 #include <math.h>
@@ -10,12 +16,6 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
-#include "inla.h"
-#include "fast-math/special-functions.h"
-#include "my.h"
-#include "my-fix.h"
-#include "GMRFLib/GMRFLib.h"
 
 int my_file_exists(const char *filename)
 {

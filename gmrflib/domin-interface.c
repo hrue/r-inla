@@ -1,15 +1,15 @@
+#include "GMRFLib/GMRFLib.h"
+
 #include <assert.h>
 #include <float.h>
 #include <math.h>
 #include <omp.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include <time.h>
 
-#include "GMRFLib/GMRFLib.h"
 
 static GMRFLib_opt_arg_tp G;				       /* hold arguments */
 static int opt_setup = 0;

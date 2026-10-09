@@ -6910,7 +6910,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 					ldz[i] = -0.5 * SQR(xp[i]);
 				}
 			} else if (func) {
-				if ((void *) func == (void *) map_exp || (void *) func == (void *) link_log) {
+				if ((intptr_t) func == (intptr_t) map_exp || (intptr_t) func == (intptr_t) link_log) {
 					// spell out the most common case
 					for (int i = 0; i < np; i++) {
 						double x = xp[i] * stdev + mean;
@@ -6936,7 +6936,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 					}
 				}
 			} else if (tfunc) {
-				if ((void *) tfunc == (void *) map_exp || (void *) tfunc == (void *) link_log) {
+				if ((intptr_t) tfunc == (intptr_t) map_exp || (intptr_t) tfunc == (intptr_t) link_log) {
 					// spell out the most common case
 					for (int i = 0; i < np; i++) {
 						double x = xp[i] * stdev + mean;

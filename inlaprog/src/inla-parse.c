@@ -67,9 +67,7 @@ int inla_parse_lincomb(inla_tp *mb, dictionary *ini, int sec)
 	int all_weights_are_zero = 1;
 
 	for (sec_no = 0; sec_no < num_sections; sec_no++) {
-
-		int len;
-
+		int len = 0;
 		GMRFLib_io_read(io, &len, sizeof(int));
 		ptr = Calloc(len + 1, char);
 
@@ -9614,7 +9612,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			}
 			lt_dlerror();
 
-			loglike_func = (inla_cloglike_func_tp *) lt_dlsym(handle, cloglike_model);
+			loglike_func = (inla_cloglike_func_tp *) (intptr_t) lt_dlsym(handle, cloglike_model);
 			if ((emsg = lt_dlerror())) {
 				GMRFLib_sprintf(&msg, "\n *** dlsym error with model[%s] err_msg[%s]\n", cloglike_model, emsg);
 				inla_error_general(msg);
@@ -14503,7 +14501,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			}
 			lt_dlerror();
 
-			model_func = (inla_cgeneric_func_tp *) lt_dlsym(handle, cgeneric_model);
+			model_func = (inla_cgeneric_func_tp *) (intptr_t) lt_dlsym(handle, cgeneric_model);
 			if ((emsg = lt_dlerror())) {
 				GMRFLib_sprintf(&msg, "\n *** dlsym error with model[%s] err_msg[%s]\n", cgeneric_model, emsg);
 				inla_error_general(msg);

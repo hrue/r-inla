@@ -1997,7 +1997,7 @@ void my_sort2_id_work(int *RESTRICT ix, double *RESTRICT x, int n, double *work)
 
 void my_sort2_id(int *RESTRICT ix, double *RESTRICT x, int n)
 {
-	return my_sort2_id_x(ix, x, n, NULL);
+	my_sort2_id_x(ix, x, n, NULL);
 }
 
 void my_sort2_id_x(int *RESTRICT ix, double *RESTRICT x, int n, void *UNUSED(work))
@@ -2013,8 +2013,6 @@ void my_sort2_id_x(int *RESTRICT ix, double *RESTRICT x, int n, void *UNUSED(wor
 	} else {
 		gsl_sort2_id(ix, x, n);
 	}
-
-	return;
 }
 
 void my_sort2_dd(double *RESTRICT ix, double *RESTRICT x, int n)
@@ -2300,16 +2298,16 @@ int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if((cmp == GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
 		return GMRFLib_is_sorted_iinc(n,(int *) a);
-	} else if (cmp == (void *) GMRFLib_dcmp && size == sizeof(double)) {
+	} else if (cmp == GMRFLib_dcmp && size == sizeof(double)) {
 		// increasing doubles
 		return GMRFLib_is_sorted_dinc(n, (double *) a);
-	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
+	} else if (cmp == GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
-	} else if (cmp == (void *) GMRFLib_dcmp_r && size == sizeof(double)) {
+	} else if (cmp == GMRFLib_dcmp_r && size == sizeof(double)) {
 		// decreasing doubles
 		return GMRFLib_is_sorted_ddec(n, (double *) a);
 	} else {
@@ -2345,7 +2343,8 @@ void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, cons
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
 	if(!y) {
-		return(GMRFLib_qsort(x, nmemb, size_x, compar));
+		GMRFLib_qsort(x, nmemb, size_x, compar);
+		return;
 	}
 
 	if (nmemb == 0) {
@@ -2386,7 +2385,7 @@ void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y
 // easier interface to sort ints and doubles, increasingly
 void GMRFLib_sort_i(int *ix, int n)
 {
-	return QSORT_FUN((void *) ix, (size_t) n, sizeof(int), GMRFLib_icmp);
+	QSORT_FUN((void *) ix, (size_t) n, sizeof(int), GMRFLib_icmp);
 }
 
 void GMRFLib_sort_d(double *x, int n)

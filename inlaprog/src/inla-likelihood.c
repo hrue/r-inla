@@ -1127,7 +1127,10 @@ int loglikelihood_gaussian(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 	}
 	int numa = GMRFLib_numa_get_node();
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	static double log_prec_limit = -log(INLA_REAL_SMALL);
+	static double log_prec_limit = 0;
+	if (!log_prec_limit) {
+		log_prec_limit = -log(INLA_REAL_SMALL);
+	}
 
 	inla_llik_data_gaussian_tp *p = &(ds->data_observations.data_gaussian[numa][idx]);
 	double y = p->y;

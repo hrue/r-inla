@@ -545,7 +545,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_ii_removeptr(map_ii * spm, int *ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_ii_removeptr)(map_ii * spm, int *ptr) {
 		map_ii_storage *sptr = (map_ii_storage *) ((char *) ptr - offsetof(map_ii_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -560,7 +560,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_ii_set(map_ii * spm, int key, int value) {
+	mapkit_error POSSIBLY_UNUSED(map_ii_set)(map_ii * spm, int key, int value) {
 		map_ii_storage *contents;
 
 		if (spm->alwaysdefault && ((value) == (spm->defaultvalue)))
@@ -595,7 +595,7 @@ extern "C" {
 			return map_ii_set_s(spm, key, value);
 	}
 
-	int map_ii_value(map_ii * spm, int key) {
+	int POSSIBLY_UNUSED(map_ii_value)(map_ii * spm, int key) {
 		map_ii_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -615,7 +615,7 @@ extern "C" {
 			return map_ii_value_s(spm, key);
 	}
 
-	mapkit_error map_ii_get(map_ii * spm, int key, int *value) {
+	mapkit_error POSSIBLY_UNUSED(map_ii_get)(map_ii * spm, int key, int *value) {
 		map_ii_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -637,7 +637,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	int *map_ii_insertptr(map_ii * spm, int key) {
+	int POSSIBLY_UNUSED(*map_ii_insertptr)(map_ii * spm, int key) {
 		map_ii_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -665,7 +665,7 @@ extern "C" {
 			return map_ii_insertptr_s(spm, key);
 	}
 
-	int *map_ii_ptr(map_ii * spm, int key) {
+	int POSSIBLY_UNUSED(*map_ii_ptr)(map_ii * spm, int key) {
 		map_ii_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -863,7 +863,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_id_removeptr(map_id * spm, double *ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_id_removeptr)(map_id * spm, double *ptr) {
 		map_id_storage *sptr = (map_id_storage *) ((char *) ptr - offsetof(map_id_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -878,7 +878,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_id_set(map_id * spm, int key, double value) {
+	mapkit_error POSSIBLY_UNUSED(map_id_set)(map_id * spm, int key, double value) {
 		map_id_storage *contents;
 
 		if (spm->alwaysdefault && ((value) == (spm->defaultvalue)))
@@ -913,7 +913,7 @@ extern "C" {
 			return map_id_set_s(spm, key, value);
 	}
 
-	double map_id_value(map_id * spm, int key) {
+	double POSSIBLY_UNUSED(map_id_value)(map_id * spm, int key) {
 		map_id_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -933,7 +933,7 @@ extern "C" {
 			return map_id_value_s(spm, key);
 	}
 
-	mapkit_error map_id_get(map_id * spm, int key, double *value) {
+	mapkit_error POSSIBLY_UNUSED(map_id_get)(map_id * spm, int key, double *value) {
 		map_id_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -955,7 +955,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	double *map_id_insertptr(map_id * spm, int key) {
+	double POSSIBLY_UNUSED(*map_id_insertptr)(map_id * spm, int key) {
 		map_id_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -983,7 +983,7 @@ extern "C" {
 			return map_id_insertptr_s(spm, key);
 	}
 
-	double *map_id_ptr(map_id * spm, int key) {
+	double POSSIBLY_UNUSED(*map_id_ptr)(map_id * spm, int key) {
 		map_id_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -1158,7 +1158,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_ivp_remove(map_ivp * spm, int key) {
+	mapkit_error POSSIBLY_UNUSED(map_ivp_remove)(map_ivp * spm, int key) {
 		map_ivp_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -1181,7 +1181,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_ivp_removeptr(map_ivp * spm, void **ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_ivp_removeptr)(map_ivp * spm, void **ptr) {
 		map_ivp_storage *sptr = (map_ivp_storage *) ((char *) ptr - offsetof(map_ivp_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -1196,7 +1196,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_ivp_set(map_ivp * spm, int key, void *value) {
+	mapkit_error POSSIBLY_UNUSED(map_ivp_set)(map_ivp * spm, int key, void *value) {
 		map_ivp_storage *contents;
 
 		if (spm->alwaysdefault && ((value) == (spm->defaultvalue)))
@@ -1231,7 +1231,7 @@ extern "C" {
 			return map_ivp_set_s(spm, key, value);
 	}
 
-	void *map_ivp_value(map_ivp * spm, int key) {
+	void POSSIBLY_UNUSED(*map_ivp_value)(map_ivp * spm, int key) {
 		map_ivp_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -1251,7 +1251,7 @@ extern "C" {
 			return map_ivp_value_s(spm, key);
 	}
 
-	mapkit_error map_ivp_get(map_ivp * spm, int key, void **value) {
+	mapkit_error POSSIBLY_UNUSED(map_ivp_get)(map_ivp * spm, int key, void **value) {
 		map_ivp_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -1273,7 +1273,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	void **map_ivp_insertptr(map_ivp * spm, int key) {
+	void POSSIBLY_UNUSED(**map_ivp_insertptr)(map_ivp * spm, int key) {
 		map_ivp_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -1301,7 +1301,7 @@ extern "C" {
 			return map_ivp_insertptr_s(spm, key);
 	}
 
-	void **map_ivp_ptr(map_ivp * spm, int key) {
+	void POSSIBLY_UNUSED(**map_ivp_ptr)(map_ivp * spm, int key) {
 		map_ivp_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -1476,7 +1476,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_h_ii_remove(map_h_ii * spm, int key) {
+	mapkit_error POSSIBLY_UNUSED(map_h_ii_remove)(map_h_ii * spm, int key) {
 		mapkit_hash_t hash;
 		map_h_ii_storage *contents;
 
@@ -1500,7 +1500,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_h_ii_removeptr(map_h_ii * spm, int *ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_h_ii_removeptr)(map_h_ii * spm, int *ptr) {
 		map_h_ii_storage *sptr = (map_h_ii_storage *) ((char *) ptr - offsetof(map_h_ii_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -1515,7 +1515,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_h_ii_set(map_h_ii * spm, int key, int value) {
+	mapkit_error POSSIBLY_UNUSED(map_h_ii_set)(map_h_ii * spm, int key, int value) {
 		mapkit_hash_t hash;
 		map_h_ii_storage *contents;
 
@@ -1551,7 +1551,7 @@ extern "C" {
 			return map_h_ii_set_s(spm, key, value, hash);
 	}
 
-	int map_h_ii_value(map_h_ii * spm, int key) {
+	int POSSIBLY_UNUSED(map_h_ii_value)(map_h_ii * spm, int key) {
 		mapkit_hash_t hash;
 		map_h_ii_storage *contents;
 
@@ -1572,7 +1572,7 @@ extern "C" {
 			return map_h_ii_value_s(spm, key, hash);
 	}
 
-	mapkit_error map_h_ii_get(map_h_ii * spm, int key, int *value) {
+	mapkit_error POSSIBLY_UNUSED(map_h_ii_get)(map_h_ii * spm, int key, int *value) {
 		mapkit_hash_t hash;
 		map_h_ii_storage *contents;
 
@@ -1595,7 +1595,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	int *map_h_ii_insertptr(map_h_ii * spm, int key) {
+	int POSSIBLY_UNUSED(*map_h_ii_insertptr)(map_h_ii * spm, int key) {
 		mapkit_hash_t hash;
 		map_h_ii_storage *contents;
 
@@ -1624,7 +1624,7 @@ extern "C" {
 			return map_h_ii_insertptr_s(spm, key, hash);
 	}
 
-	int *map_h_ii_ptr(map_h_ii * spm, int key) {
+	int POSSIBLY_UNUSED(*map_h_ii_ptr)(map_h_ii * spm, int key) {
 		mapkit_hash_t hash;
 		map_h_ii_storage *contents;
 
@@ -1800,7 +1800,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_h_id_remove(map_h_id * spm, int key) {
+	mapkit_error POSSIBLY_UNUSED(map_h_id_remove)(map_h_id * spm, int key) {
 		mapkit_hash_t hash;
 		map_h_id_storage *contents;
 
@@ -1824,7 +1824,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_h_id_removeptr(map_h_id * spm, double *ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_h_id_removeptr)(map_h_id * spm, double *ptr) {
 		map_h_id_storage *sptr = (map_h_id_storage *) ((char *) ptr - offsetof(map_h_id_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -1839,7 +1839,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_h_id_set(map_h_id * spm, int key, double value) {
+	mapkit_error POSSIBLY_UNUSED(map_h_id_set)(map_h_id * spm, int key, double value) {
 		mapkit_hash_t hash;
 		map_h_id_storage *contents;
 
@@ -1875,7 +1875,7 @@ extern "C" {
 			return map_h_id_set_s(spm, key, value, hash);
 	}
 
-	double map_h_id_value(map_h_id * spm, int key) {
+	double POSSIBLY_UNUSED(map_h_id_value)(map_h_id * spm, int key) {
 		mapkit_hash_t hash;
 		map_h_id_storage *contents;
 
@@ -1896,7 +1896,7 @@ extern "C" {
 			return map_h_id_value_s(spm, key, hash);
 	}
 
-	mapkit_error map_h_id_get(map_h_id * spm, int key, double *value) {
+	mapkit_error POSSIBLY_UNUSED(map_h_id_get)(map_h_id * spm, int key, double *value) {
 		mapkit_hash_t hash;
 		map_h_id_storage *contents;
 
@@ -1919,7 +1919,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	double *map_h_id_insertptr(map_h_id * spm, int key) {
+	double POSSIBLY_UNUSED(*map_h_id_insertptr)(map_h_id * spm, int key) {
 		mapkit_hash_t hash;
 		map_h_id_storage *contents;
 
@@ -1948,7 +1948,7 @@ extern "C" {
 			return map_h_id_insertptr_s(spm, key, hash);
 	}
 
-	double *map_h_id_ptr(map_h_id * spm, int key) {
+	double POSSIBLY_UNUSED(*map_h_id_ptr)(map_h_id * spm, int key) {
 		mapkit_hash_t hash;
 		map_h_id_storage *contents;
 
@@ -2124,7 +2124,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_h_ivp_remove(map_h_ivp * spm, int key) {
+	mapkit_error POSSIBLY_UNUSED(map_h_ivp_remove)(map_h_ivp * spm, int key) {
 		mapkit_hash_t hash;
 		map_h_ivp_storage *contents;
 
@@ -2148,7 +2148,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_h_ivp_removeptr(map_h_ivp * spm, void **ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_h_ivp_removeptr)(map_h_ivp * spm, void **ptr) {
 		map_h_ivp_storage *sptr = (map_h_ivp_storage *) ((char *) ptr - offsetof(map_h_ivp_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -2163,7 +2163,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_h_ivp_set(map_h_ivp * spm, int key, void *value) {
+	mapkit_error POSSIBLY_UNUSED(map_h_ivp_set)(map_h_ivp * spm, int key, void *value) {
 		mapkit_hash_t hash;
 		map_h_ivp_storage *contents;
 
@@ -2199,7 +2199,7 @@ extern "C" {
 			return map_h_ivp_set_s(spm, key, value, hash);
 	}
 
-	void *map_h_ivp_value(map_h_ivp * spm, int key) {
+	void POSSIBLY_UNUSED(*map_h_ivp_value)(map_h_ivp * spm, int key) {
 		mapkit_hash_t hash;
 		map_h_ivp_storage *contents;
 
@@ -2220,7 +2220,7 @@ extern "C" {
 			return map_h_ivp_value_s(spm, key, hash);
 	}
 
-	mapkit_error map_h_ivp_get(map_h_ivp * spm, int key, void **value) {
+	mapkit_error POSSIBLY_UNUSED(map_h_ivp_get)(map_h_ivp * spm, int key, void **value) {
 		mapkit_hash_t hash;
 		map_h_ivp_storage *contents;
 
@@ -2243,7 +2243,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	void **map_h_ivp_insertptr(map_h_ivp * spm, int key) {
+	void POSSIBLY_UNUSED(**map_h_ivp_insertptr)(map_h_ivp * spm, int key) {
 		mapkit_hash_t hash;
 		map_h_ivp_storage *contents;
 
@@ -2272,7 +2272,7 @@ extern "C" {
 			return map_h_ivp_insertptr_s(spm, key, hash);
 	}
 
-	void **map_h_ivp_ptr(map_h_ivp * spm, int key) {
+	void POSSIBLY_UNUSED(**map_h_ivp_ptr)(map_h_ivp * spm, int key) {
 		mapkit_hash_t hash;
 		map_h_ivp_storage *contents;
 
@@ -2448,7 +2448,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_vpi_remove(map_vpi * spm, void *key) {
+	mapkit_error POSSIBLY_UNUSED(map_vpi_remove)(map_vpi * spm, void *key) {
 		map_vpi_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -2471,7 +2471,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_vpi_removeptr(map_vpi * spm, int *ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_vpi_removeptr)(map_vpi * spm, int *ptr) {
 		map_vpi_storage *sptr = (map_vpi_storage *) ((char *) ptr - offsetof(map_vpi_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -2486,7 +2486,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_vpi_set(map_vpi * spm, void *key, int value) {
+	mapkit_error POSSIBLY_UNUSED(map_vpi_set)(map_vpi * spm, void *key, int value) {
 		map_vpi_storage *contents;
 
 		if (spm->alwaysdefault && ((value) == (spm->defaultvalue)))
@@ -2521,7 +2521,7 @@ extern "C" {
 			return map_vpi_set_s(spm, key, value);
 	}
 
-	int map_vpi_value(map_vpi * spm, void *key) {
+	int POSSIBLY_UNUSED(map_vpi_value)(map_vpi * spm, void *key) {
 		map_vpi_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -2541,7 +2541,7 @@ extern "C" {
 			return map_vpi_value_s(spm, key);
 	}
 
-	mapkit_error map_vpi_get(map_vpi * spm, void *key, int *value) {
+	mapkit_error POSSIBLY_UNUSED(map_vpi_get)(map_vpi * spm, void *key, int *value) {
 		map_vpi_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -2563,7 +2563,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	int *map_vpi_insertptr(map_vpi * spm, void *key) {
+	int POSSIBLY_UNUSED(*map_vpi_insertptr)(map_vpi * spm, void *key) {
 		map_vpi_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -2591,7 +2591,7 @@ extern "C" {
 			return map_vpi_insertptr_s(spm, key);
 	}
 
-	int *map_vpi_ptr(map_vpi * spm, void *key) {
+	int POSSIBLY_UNUSED(*map_vpi_ptr)(map_vpi * spm, void *key) {
 		map_vpi_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -2766,7 +2766,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_vpd_remove(map_vpd * spm, void *key) {
+	mapkit_error POSSIBLY_UNUSED(map_vpd_remove)(map_vpd * spm, void *key) {
 		map_vpd_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -2789,7 +2789,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_vpd_removeptr(map_vpd * spm, double *ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_vpd_removeptr)(map_vpd * spm, double *ptr) {
 		map_vpd_storage *sptr = (map_vpd_storage *) ((char *) ptr - offsetof(map_vpd_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -2804,7 +2804,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_vpd_set(map_vpd * spm, void *key, double value) {
+	mapkit_error POSSIBLY_UNUSED(map_vpd_set)(map_vpd * spm, void *key, double value) {
 		map_vpd_storage *contents;
 
 		if (spm->alwaysdefault && ((value) == (spm->defaultvalue)))
@@ -2839,7 +2839,7 @@ extern "C" {
 			return map_vpd_set_s(spm, key, value);
 	}
 
-	double map_vpd_value(map_vpd * spm, void *key) {
+	double POSSIBLY_UNUSED(map_vpd_value)(map_vpd * spm, void *key) {
 		map_vpd_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -2859,7 +2859,7 @@ extern "C" {
 			return map_vpd_value_s(spm, key);
 	}
 
-	mapkit_error map_vpd_get(map_vpd * spm, void *key, double *value) {
+	mapkit_error POSSIBLY_UNUSED(map_vpd_get)(map_vpd * spm, void *key, double *value) {
 		map_vpd_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -2881,7 +2881,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	double *map_vpd_insertptr(map_vpd * spm, void *key) {
+	double POSSIBLY_UNUSED(*map_vpd_insertptr)(map_vpd * spm, void *key) {
 		map_vpd_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -2909,7 +2909,7 @@ extern "C" {
 			return map_vpd_insertptr_s(spm, key);
 	}
 
-	double *map_vpd_ptr(map_vpd * spm, void *key) {
+	double POSSIBLY_UNUSED(*map_vpd_ptr)(map_vpd * spm, void *key) {
 		map_vpd_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -3084,7 +3084,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_vpvp_remove(map_vpvp * spm, void *key) {
+	mapkit_error POSSIBLY_UNUSED(map_vpvp_remove)(map_vpvp * spm, void *key) {
 		map_vpvp_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -3107,7 +3107,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_vpvp_removeptr(map_vpvp * spm, void **ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_vpvp_removeptr)(map_vpvp * spm, void **ptr) {
 		map_vpvp_storage *sptr = (map_vpvp_storage *) ((char *) ptr - offsetof(map_vpvp_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -3122,7 +3122,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_vpvp_set(map_vpvp * spm, void *key, void *value) {
+	mapkit_error POSSIBLY_UNUSED(map_vpvp_set)(map_vpvp * spm, void *key, void *value) {
 		map_vpvp_storage *contents;
 
 		if (spm->alwaysdefault && ((value) == (spm->defaultvalue)))
@@ -3157,7 +3157,7 @@ extern "C" {
 			return map_vpvp_set_s(spm, key, value);
 	}
 
-	void *map_vpvp_value(map_vpvp * spm, void *key) {
+	void POSSIBLY_UNUSED(*map_vpvp_value)(map_vpvp * spm, void *key) {
 		map_vpvp_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -3177,7 +3177,7 @@ extern "C" {
 			return map_vpvp_value_s(spm, key);
 	}
 
-	mapkit_error map_vpvp_get(map_vpvp * spm, void *key, void **value) {
+	mapkit_error POSSIBLY_UNUSED(map_vpvp_get)(map_vpvp * spm, void *key, void **value) {
 		map_vpvp_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -3199,7 +3199,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	void **map_vpvp_insertptr(map_vpvp * spm, void *key) {
+	void POSSIBLY_UNUSED(**map_vpvp_insertptr)(map_vpvp * spm, void *key) {
 		map_vpvp_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -3227,7 +3227,7 @@ extern "C" {
 			return map_vpvp_insertptr_s(spm, key);
 	}
 
-	void **map_vpvp_ptr(map_vpvp * spm, void *key) {
+	void POSSIBLY_UNUSED(**map_vpvp_ptr)(map_vpvp * spm, void *key) {
 		map_vpvp_storage *contents;
 
 		contents = &(spm->contents[((mapkit_hash_t) key) % spm->size]);
@@ -3402,7 +3402,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_h_vpi_remove(map_h_vpi * spm, void *key) {
+	mapkit_error POSSIBLY_UNUSED(map_h_vpi_remove)(map_h_vpi * spm, void *key) {
 		mapkit_hash_t hash;
 		map_h_vpi_storage *contents;
 
@@ -3426,7 +3426,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_h_vpi_removeptr(map_h_vpi * spm, int *ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_h_vpi_removeptr)(map_h_vpi * spm, int *ptr) {
 		map_h_vpi_storage *sptr = (map_h_vpi_storage *) ((char *) ptr - offsetof(map_h_vpi_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -3441,7 +3441,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_h_vpi_set(map_h_vpi * spm, void *key, int value) {
+	mapkit_error POSSIBLY_UNUSED(map_h_vpi_set)(map_h_vpi * spm, void *key, int value) {
 		mapkit_hash_t hash;
 		map_h_vpi_storage *contents;
 
@@ -3477,7 +3477,7 @@ extern "C" {
 			return map_h_vpi_set_s(spm, key, value, hash);
 	}
 
-	int map_h_vpi_value(map_h_vpi * spm, void *key) {
+	int POSSIBLY_UNUSED(map_h_vpi_value)(map_h_vpi * spm, void *key) {
 		mapkit_hash_t hash;
 		map_h_vpi_storage *contents;
 
@@ -3498,7 +3498,7 @@ extern "C" {
 			return map_h_vpi_value_s(spm, key, hash);
 	}
 
-	mapkit_error map_h_vpi_get(map_h_vpi * spm, void *key, int *value) {
+	mapkit_error POSSIBLY_UNUSED(map_h_vpi_get)(map_h_vpi * spm, void *key, int *value) {
 		mapkit_hash_t hash;
 		map_h_vpi_storage *contents;
 
@@ -3521,7 +3521,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	int *map_h_vpi_insertptr(map_h_vpi * spm, void *key) {
+	int POSSIBLY_UNUSED(*map_h_vpi_insertptr)(map_h_vpi * spm, void *key) {
 		mapkit_hash_t hash;
 		map_h_vpi_storage *contents;
 
@@ -3550,7 +3550,7 @@ extern "C" {
 			return map_h_vpi_insertptr_s(spm, key, hash);
 	}
 
-	int *map_h_vpi_ptr(map_h_vpi * spm, void *key) {
+	int POSSIBLY_UNUSED(*map_h_vpi_ptr)(map_h_vpi * spm, void *key) {
 		mapkit_hash_t hash;
 		map_h_vpi_storage *contents;
 
@@ -3726,7 +3726,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_h_vpd_remove(map_h_vpd * spm, void *key) {
+	mapkit_error POSSIBLY_UNUSED(map_h_vpd_remove)(map_h_vpd * spm, void *key) {
 		mapkit_hash_t hash;
 		map_h_vpd_storage *contents;
 
@@ -3750,7 +3750,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_h_vpd_removeptr(map_h_vpd * spm, double *ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_h_vpd_removeptr)(map_h_vpd * spm, double *ptr) {
 		map_h_vpd_storage *sptr = (map_h_vpd_storage *) ((char *) ptr - offsetof(map_h_vpd_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -3765,7 +3765,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_h_vpd_set(map_h_vpd * spm, void *key, double value) {
+	mapkit_error POSSIBLY_UNUSED(map_h_vpd_set)(map_h_vpd * spm, void *key, double value) {
 		mapkit_hash_t hash;
 		map_h_vpd_storage *contents;
 
@@ -3801,7 +3801,7 @@ extern "C" {
 			return map_h_vpd_set_s(spm, key, value, hash);
 	}
 
-	double map_h_vpd_value(map_h_vpd * spm, void *key) {
+	double POSSIBLY_UNUSED(map_h_vpd_value)(map_h_vpd * spm, void *key) {
 		mapkit_hash_t hash;
 		map_h_vpd_storage *contents;
 
@@ -3822,7 +3822,7 @@ extern "C" {
 			return map_h_vpd_value_s(spm, key, hash);
 	}
 
-	mapkit_error map_h_vpd_get(map_h_vpd * spm, void *key, double *value) {
+	mapkit_error POSSIBLY_UNUSED(map_h_vpd_get)(map_h_vpd * spm, void *key, double *value) {
 		mapkit_hash_t hash;
 		map_h_vpd_storage *contents;
 
@@ -3845,7 +3845,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	double *map_h_vpd_insertptr(map_h_vpd * spm, void *key) {
+	double POSSIBLY_UNUSED(*map_h_vpd_insertptr)(map_h_vpd * spm, void *key) {
 		mapkit_hash_t hash;
 		map_h_vpd_storage *contents;
 
@@ -3874,7 +3874,7 @@ extern "C" {
 			return map_h_vpd_insertptr_s(spm, key, hash);
 	}
 
-	double *map_h_vpd_ptr(map_h_vpd * spm, void *key) {
+	double POSSIBLY_UNUSED(*map_h_vpd_ptr)(map_h_vpd * spm, void *key) {
 		mapkit_hash_t hash;
 		map_h_vpd_storage *contents;
 
@@ -4050,7 +4050,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_h_vpvp_remove(map_h_vpvp * spm, void *key) {
+	mapkit_error POSSIBLY_UNUSED(map_h_vpvp_remove)(map_h_vpvp * spm, void *key) {
 		mapkit_hash_t hash;
 		map_h_vpvp_storage *contents;
 
@@ -4074,7 +4074,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_h_vpvp_removeptr(map_h_vpvp * spm, void **ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_h_vpvp_removeptr)(map_h_vpvp * spm, void **ptr) {
 		map_h_vpvp_storage *sptr = (map_h_vpvp_storage *) ((char *) ptr - offsetof(map_h_vpvp_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -4089,7 +4089,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_h_vpvp_set(map_h_vpvp * spm, void *key, void *value) {
+	mapkit_error POSSIBLY_UNUSED(map_h_vpvp_set)(map_h_vpvp * spm, void *key, void *value) {
 		mapkit_hash_t hash;
 		map_h_vpvp_storage *contents;
 
@@ -4125,7 +4125,7 @@ extern "C" {
 			return map_h_vpvp_set_s(spm, key, value, hash);
 	}
 
-	void *map_h_vpvp_value(map_h_vpvp * spm, void *key) {
+	void POSSIBLY_UNUSED(*map_h_vpvp_value)(map_h_vpvp * spm, void *key) {
 		mapkit_hash_t hash;
 		map_h_vpvp_storage *contents;
 
@@ -4146,7 +4146,7 @@ extern "C" {
 			return map_h_vpvp_value_s(spm, key, hash);
 	}
 
-	mapkit_error map_h_vpvp_get(map_h_vpvp * spm, void *key, void **value) {
+	mapkit_error POSSIBLY_UNUSED(map_h_vpvp_get)(map_h_vpvp * spm, void *key, void **value) {
 		mapkit_hash_t hash;
 		map_h_vpvp_storage *contents;
 
@@ -4169,7 +4169,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	void **map_h_vpvp_insertptr(map_h_vpvp * spm, void *key) {
+	void POSSIBLY_UNUSED(**map_h_vpvp_insertptr)(map_h_vpvp * spm, void *key) {
 		mapkit_hash_t hash;
 		map_h_vpvp_storage *contents;
 
@@ -4198,7 +4198,7 @@ extern "C" {
 			return map_h_vpvp_insertptr_s(spm, key, hash);
 	}
 
-	void **map_h_vpvp_ptr(map_h_vpvp * spm, void *key) {
+	void POSSIBLY_UNUSED(**map_h_vpvp_ptr)(map_h_vpvp * spm, void *key) {
 		mapkit_hash_t hash;
 		map_h_vpvp_storage *contents;
 
@@ -4374,7 +4374,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_stri_remove(map_stri * spm, char *key) {
+	mapkit_error POSSIBLY_UNUSED(map_stri_remove)(map_stri * spm, char *key) {
 		mapkit_hash_t hash;
 		map_stri_storage *contents;
 
@@ -4398,7 +4398,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_stri_removeptr(map_stri * spm, int *ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_stri_removeptr)(map_stri * spm, int *ptr) {
 		map_stri_storage *sptr = (map_stri_storage *) ((char *) ptr - offsetof(map_stri_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -4413,7 +4413,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_stri_set(map_stri * spm, char *key, int value) {
+	mapkit_error POSSIBLY_UNUSED(map_stri_set)(map_stri * spm, char *key, int value) {
 		mapkit_hash_t hash;
 		map_stri_storage *contents;
 
@@ -4449,7 +4449,7 @@ extern "C" {
 			return map_stri_set_s(spm, key, value, hash);
 	}
 
-	int map_stri_value(map_stri * spm, char *key) {
+	int POSSIBLY_UNUSED(map_stri_value)(map_stri * spm, char *key) {
 		mapkit_hash_t hash;
 		map_stri_storage *contents;
 
@@ -4470,7 +4470,7 @@ extern "C" {
 			return map_stri_value_s(spm, key, hash);
 	}
 
-	mapkit_error map_stri_get(map_stri * spm, char *key, int *value) {
+	mapkit_error POSSIBLY_UNUSED(map_stri_get)(map_stri * spm, char *key, int *value) {
 		mapkit_hash_t hash;
 		map_stri_storage *contents;
 
@@ -4493,7 +4493,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	int *map_stri_insertptr(map_stri * spm, char *key) {
+	int POSSIBLY_UNUSED(*map_stri_insertptr)(map_stri * spm, char *key) {
 		mapkit_hash_t hash;
 		map_stri_storage *contents;
 
@@ -4522,7 +4522,7 @@ extern "C" {
 			return map_stri_insertptr_s(spm, key, hash);
 	}
 
-	int *map_stri_ptr(map_stri * spm, char *key) {
+	int POSSIBLY_UNUSED(*map_stri_ptr)(map_stri * spm, char *key) {
 		mapkit_hash_t hash;
 		map_stri_storage *contents;
 
@@ -4698,7 +4698,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_strd_remove(map_strd * spm, char *key) {
+	mapkit_error POSSIBLY_UNUSED(map_strd_remove)(map_strd * spm, char *key) {
 		mapkit_hash_t hash;
 		map_strd_storage *contents;
 
@@ -4722,7 +4722,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_strd_removeptr(map_strd * spm, double *ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_strd_removeptr)(map_strd * spm, double *ptr) {
 		map_strd_storage *sptr = (map_strd_storage *) ((char *) ptr - offsetof(map_strd_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -4737,7 +4737,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_strd_set(map_strd * spm, char *key, double value) {
+	mapkit_error POSSIBLY_UNUSED(map_strd_set)(map_strd * spm, char *key, double value) {
 		mapkit_hash_t hash;
 		map_strd_storage *contents;
 
@@ -4773,7 +4773,7 @@ extern "C" {
 			return map_strd_set_s(spm, key, value, hash);
 	}
 
-	double map_strd_value(map_strd * spm, char *key) {
+	double POSSIBLY_UNUSED(map_strd_value)(map_strd * spm, char *key) {
 		mapkit_hash_t hash;
 		map_strd_storage *contents;
 
@@ -4794,7 +4794,7 @@ extern "C" {
 			return map_strd_value_s(spm, key, hash);
 	}
 
-	mapkit_error map_strd_get(map_strd * spm, char *key, double *value) {
+	mapkit_error POSSIBLY_UNUSED(map_strd_get)(map_strd * spm, char *key, double *value) {
 		mapkit_hash_t hash;
 		map_strd_storage *contents;
 
@@ -4817,7 +4817,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	double *map_strd_insertptr(map_strd * spm, char *key) {
+	double POSSIBLY_UNUSED(*map_strd_insertptr)(map_strd * spm, char *key) {
 		mapkit_hash_t hash;
 		map_strd_storage *contents;
 
@@ -4846,7 +4846,7 @@ extern "C" {
 			return map_strd_insertptr_s(spm, key, hash);
 	}
 
-	double *map_strd_ptr(map_strd * spm, char *key) {
+	double POSSIBLY_UNUSED(*map_strd_ptr)(map_strd * spm, char *key) {
 		mapkit_hash_t hash;
 		map_strd_storage *contents;
 
@@ -5022,7 +5022,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_strvp_remove(map_strvp * spm, char *key) {
+	mapkit_error POSSIBLY_UNUSED(map_strvp_remove)(map_strvp * spm, char *key) {
 		mapkit_hash_t hash;
 		map_strvp_storage *contents;
 
@@ -5046,7 +5046,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_strvp_removeptr(map_strvp * spm, void **ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_strvp_removeptr)(map_strvp * spm, void **ptr) {
 		map_strvp_storage *sptr = (map_strvp_storage *) ((char *) ptr - offsetof(map_strvp_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -5061,7 +5061,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_strvp_set(map_strvp * spm, char *key, void *value) {
+	mapkit_error POSSIBLY_UNUSED(map_strvp_set)(map_strvp * spm, char *key, void *value) {
 		mapkit_hash_t hash;
 		map_strvp_storage *contents;
 
@@ -5097,7 +5097,7 @@ extern "C" {
 			return map_strvp_set_s(spm, key, value, hash);
 	}
 
-	void *map_strvp_value(map_strvp * spm, char *key) {
+	void POSSIBLY_UNUSED(*map_strvp_value)(map_strvp * spm, char *key) {
 		mapkit_hash_t hash;
 		map_strvp_storage *contents;
 
@@ -5118,7 +5118,7 @@ extern "C" {
 			return map_strvp_value_s(spm, key, hash);
 	}
 
-	mapkit_error map_strvp_get(map_strvp * spm, char *key, void **value) {
+	mapkit_error POSSIBLY_UNUSED(map_strvp_get)(map_strvp * spm, char *key, void **value) {
 		mapkit_hash_t hash;
 		map_strvp_storage *contents;
 
@@ -5141,7 +5141,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	void **map_strvp_insertptr(map_strvp * spm, char *key) {
+	void POSSIBLY_UNUSED(**map_strvp_insertptr)(map_strvp * spm, char *key) {
 		mapkit_hash_t hash;
 		map_strvp_storage *contents;
 
@@ -5169,7 +5169,7 @@ extern "C" {
 		} else
 			return map_strvp_insertptr_s(spm, key, hash);
 	}
-	void **map_strvp_ptr(map_strvp * spm, char *key) {
+	void POSSIBLY_UNUSED(**map_strvp_ptr)(map_strvp * spm, char *key) {
 		mapkit_hash_t hash;
 		map_strvp_storage *contents;
 
@@ -5345,7 +5345,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error map_strstr_remove(map_strstr * spm, char *key) {
+	mapkit_error POSSIBLY_UNUSED(map_strstr_remove)(map_strstr * spm, char *key) {
 		mapkit_hash_t hash;
 		map_strstr_storage *contents;
 
@@ -5369,7 +5369,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_strstr_removeptr(map_strstr * spm, char **ptr) {
+	mapkit_error POSSIBLY_UNUSED(map_strstr_removeptr)(map_strstr * spm, char **ptr) {
 		map_strstr_storage *sptr = (map_strstr_storage *) ((char *) ptr - offsetof(map_strstr_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -5384,7 +5384,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error map_strstr_set(map_strstr * spm, char *key, char *value) {
+	mapkit_error POSSIBLY_UNUSED(map_strstr_set)(map_strstr * spm, char *key, char *value) {
 		mapkit_hash_t hash;
 		map_strstr_storage *contents;
 
@@ -5420,7 +5420,7 @@ extern "C" {
 			return map_strstr_set_s(spm, key, value, hash);
 	}
 
-	char *map_strstr_value(map_strstr * spm, char *key) {
+	char POSSIBLY_UNUSED(*map_strstr_value)(map_strstr * spm, char *key) {
 		mapkit_hash_t hash;
 		map_strstr_storage *contents;
 
@@ -5441,7 +5441,7 @@ extern "C" {
 			return map_strstr_value_s(spm, key, hash);
 	}
 
-	mapkit_error map_strstr_get(map_strstr * spm, char *key, char **value) {
+	mapkit_error POSSIBLY_UNUSED(map_strstr_get)(map_strstr * spm, char *key, char **value) {
 		mapkit_hash_t hash;
 		map_strstr_storage *contents;
 
@@ -5464,7 +5464,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	char **map_strstr_insertptr(map_strstr * spm, char *key) {
+	char POSSIBLY_UNUSED(**map_strstr_insertptr)(map_strstr * spm, char *key) {
 		mapkit_hash_t hash;
 		map_strstr_storage *contents;
 
@@ -5493,7 +5493,7 @@ extern "C" {
 			return map_strstr_insertptr_s(spm, key, hash);
 	}
 
-	char **map_strstr_ptr(map_strstr * spm, char *key) {
+	char POSSIBLY_UNUSED(**map_strstr_ptr)(map_strstr * spm, char *key) {
 		mapkit_hash_t hash;
 		map_strstr_storage *contents;
 
@@ -5667,7 +5667,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error spvector_remove(spvector * spm, int key) {
+	mapkit_error POSSIBLY_UNUSED(spvector_remove)(spvector * spm, int key) {
 		spvector_storage *contents;
 
 		/*
@@ -5695,7 +5695,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error spvector_removeptr(spvector * spm, double *ptr) {
+	mapkit_error POSSIBLY_UNUSED(spvector_removeptr)(spvector * spm, double *ptr) {
 		spvector_storage *sptr = (spvector_storage *) ((char *) ptr - offsetof(spvector_storage, value));
 
 		sptr->key = MAPKIT_DELETEDSLOT;
@@ -5710,7 +5710,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error spvector_set(spvector * spm, int key, double value) {
+	mapkit_error POSSIBLY_UNUSED(spvector_set)(spvector * spm, int key, double value) {
 		int ckey;
 		spvector_storage *contents;
 
@@ -5750,7 +5750,7 @@ extern "C" {
 			return spvector_set_s(spm, key, value);
 	}
 
-	double spvector_value(spvector * spm, int key) {
+	double POSSIBLY_UNUSED(spvector_value)(spvector * spm, int key) {
 		spvector_storage *contents;
 		int ckey;
 
@@ -5776,7 +5776,7 @@ extern "C" {
 			return spvector_value_s(spm, key);
 	}
 
-	mapkit_error spvector_get(spvector * spm, int key, double *value) {
+	mapkit_error POSSIBLY_UNUSED(spvector_get)(spvector * spm, int key, double *value) {
 		spvector_storage *contents;
 		int ckey;
 
@@ -5804,7 +5804,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	double *spvector_insertptr(spvector * spm, int key) {
+	double POSSIBLY_UNUSED(*spvector_insertptr)(spvector * spm, int key) {
 		int ckey;
 		spvector_storage *contents;
 
@@ -5839,7 +5839,7 @@ extern "C" {
 			return spvector_insertptr_s(spm, key);
 	}
 
-	double *spvector_ptr(spvector * spm, int key) {
+	double POSSIBLY_UNUSED(*spvector_ptr)(spvector * spm, int key) {
 		int ckey;
 		spvector_storage *contents;
 
@@ -6027,7 +6027,7 @@ extern "C" {
 /* Implementation */
 
 /* INLINEd functions */
-	mapkit_error _spmatrix_remove(_spmatrix * spm, spmatrix_key_pair key) {
+	mapkit_error POSSIBLY_UNUSED(_spmatrix_remove)(_spmatrix * spm, spmatrix_key_pair key) {
 		mapkit_hash_t hash;
 		_spmatrix_storage *contents;
 
@@ -6051,7 +6051,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error _spmatrix_removeptr(_spmatrix * spm, double *ptr) {
+	mapkit_error POSSIBLY_UNUSED(_spmatrix_removeptr)(_spmatrix * spm, double *ptr) {
 		_spmatrix_storage *sptr = (_spmatrix_storage *) ((char *) ptr - offsetof(_spmatrix_storage, value));
 
 		sptr->state = MAPKIT_DELETEDSLOT;
@@ -6066,7 +6066,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	mapkit_error _spmatrix_set(_spmatrix * spm, spmatrix_key_pair key, double value) {
+	mapkit_error POSSIBLY_UNUSED(_spmatrix_set)(_spmatrix * spm, spmatrix_key_pair key, double value) {
 		mapkit_hash_t hash;
 		_spmatrix_storage *contents;
 
@@ -6102,7 +6102,7 @@ extern "C" {
 			return _spmatrix_set_s(spm, key, value, hash);
 	}
 
-	double _spmatrix_value(_spmatrix * spm, spmatrix_key_pair key) {
+	double POSSIBLY_UNUSED(_spmatrix_value)(_spmatrix * spm, spmatrix_key_pair key) {
 		mapkit_hash_t hash;
 		_spmatrix_storage *contents;
 
@@ -6123,7 +6123,7 @@ extern "C" {
 			return _spmatrix_value_s(spm, key, hash);
 	}
 
-	mapkit_error _spmatrix_get(_spmatrix * spm, spmatrix_key_pair key, double *value) {
+	mapkit_error POSSIBLY_UNUSED(_spmatrix_get)(_spmatrix * spm, spmatrix_key_pair key, double *value) {
 		mapkit_hash_t hash;
 		_spmatrix_storage *contents;
 
@@ -6146,7 +6146,7 @@ extern "C" {
 		return MAPKIT_OK;
 	}
 
-	double *_spmatrix_insertptr(_spmatrix * spm, spmatrix_key_pair key) {
+	double POSSIBLY_UNUSED(*_spmatrix_insertptr)(_spmatrix * spm, spmatrix_key_pair key) {
 		mapkit_hash_t hash;
 		_spmatrix_storage *contents;
 
@@ -6175,7 +6175,7 @@ extern "C" {
 			return _spmatrix_insertptr_s(spm, key, hash);
 	}
 
-	double *_spmatrix_ptr(_spmatrix * spm, spmatrix_key_pair key) {
+	double POSSIBLY_UNUSED(*_spmatrix_ptr)(_spmatrix * spm, spmatrix_key_pair key) {
 		mapkit_hash_t hash;
 		_spmatrix_storage *contents;
 
@@ -6316,57 +6316,57 @@ extern "C" {
 
 /* Inlined functions */
 
-	double spmatrix_value(spmatrix * spm, int key1, int key2) {
+	double POSSIBLY_UNUSED(spmatrix_value)(spmatrix * spm, int key1, int key2) {
 		spmatrix_key_pair key;
 
 		(((key).key1 = key1), ((key).key2 = key2));
 		return _spmatrix_value(spm, key);
 	}
 
-	mapkit_error spmatrix_get(spmatrix * spm, int key1, int key2, double *value) {
+	mapkit_error POSSIBLY_UNUSED(spmatrix_get)(spmatrix * spm, int key1, int key2, double *value) {
 		spmatrix_key_pair key;
 
 		(((key).key1 = key1), ((key).key2 = key2));
 		return _spmatrix_get(spm, key, value);
 	}
 
-	mapkit_error spmatrix_set(spmatrix * spm, int key1, int key2, double value) {
+	mapkit_error POSSIBLY_UNUSED(spmatrix_set)(spmatrix * spm, int key1, int key2, double value) {
 		spmatrix_key_pair key;
 
 		(((key).key1 = key1), ((key).key2 = key2));
 		return _spmatrix_set(spm, key, value);
 	}
 
-	mapkit_error spmatrix_remove(spmatrix * spm, int key1, int key2) {
+	mapkit_error POSSIBLY_UNUSED(spmatrix_remove)(spmatrix * spm, int key1, int key2) {
 		spmatrix_key_pair key;
 
 		(((key).key1 = key1), ((key).key2 = key2));
 		return _spmatrix_remove(spm, key);
 	}
 
-	double *spmatrix_insertptr(spmatrix * spm, int key1, int key2) {
+	double POSSIBLY_UNUSED(*spmatrix_insertptr)(spmatrix * spm, int key1, int key2) {
 		spmatrix_key_pair key;
 
 		(((key).key1 = key1), ((key).key2 = key2));
 		return _spmatrix_insertptr(spm, key);
 	}
 
-	double *spmatrix_ptr(spmatrix * spm, int key1, int key2) {
+	double POSSIBLY_UNUSED(*spmatrix_ptr)(spmatrix * spm, int key1, int key2) {
 		spmatrix_key_pair key;
 
 		(((key).key1 = key1), ((key).key2 = key2));
 		return _spmatrix_ptr(spm, key);
 	}
 
-	mapkit_error spmatrix_removeptr(spmatrix * spm, double *ptr) {
+	mapkit_error POSSIBLY_UNUSED(spmatrix_removeptr)(spmatrix * spm, double *ptr) {
 		return _spmatrix_removeptr(spm, ptr);
 	}
 
-	mapkit_size_t spmatrix_next(spmatrix * spm, mapkit_size_t iindex) {
+	mapkit_size_t POSSIBLY_UNUSED(spmatrix_next)(spmatrix * spm, mapkit_size_t iindex) {
 		return _spmatrix_next(spm, iindex);
 	}
 
-	spmatrix_storage *spmatrix_nextptr(spmatrix * spm, spmatrix_storage * pos_contents) {
+	spmatrix_storage POSSIBLY_UNUSED(*spmatrix_nextptr)(spmatrix * spm, spmatrix_storage * pos_contents) {
 		return _spmatrix_nextptr(spm, pos_contents);
 	}
 

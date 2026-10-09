@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -23,7 +24,8 @@ void inla_cgeneric_mapper_list(FILE *fp)
 	int i = 0;
 
 	while (table_cgeneric[i].name && table_cgeneric[i].func) {
-		fprintf(fp, "\ttable_cgeneric[%1d] = { name = %s, func.ptr = %p }\n", i, table_cgeneric[i].name, (void *) table_cgeneric[i].func);
+		fprintf(fp, "\ttable_cgeneric[%1d] = { name = %s, func.ptr = %p }\n", i, table_cgeneric[i].name,
+			(void *) (intptr_t) table_cgeneric[i].func);
 		i++;
 	}
 }
@@ -47,7 +49,8 @@ void inla_cloglike_mapper_list(FILE *fp)
 	int i = 0;
 
 	while (table_cloglike[i].name && table_cloglike[i].func) {
-		fprintf(fp, "\ttable_cloglike[%1d] = { name = %s, func.ptr = %p }\n", i, table_cloglike[i].name, (void *) table_cloglike[i].func);
+		fprintf(fp, "\ttable_cloglike[%1d] = { name = %s, func.ptr = %p }\n", i, table_cloglike[i].name,
+			(void *) (intptr_t) table_cloglike[i].func);
 		i++;
 	}
 }

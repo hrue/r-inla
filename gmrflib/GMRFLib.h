@@ -17,13 +17,17 @@
 
 #       include "GMRFLib/alloc.h"
 
+#if !defined(_DEFAULT_SOURCE)
+#define _DEFAULT_SOURCE
+#endif
+#include <stdlib.h>
+
 #       include <stdalign.h>
 #       include <errno.h>
 #       include <assert.h>
 #       include <stddef.h>
 #       include <math.h>
 #       include <stdio.h>
-#       include <stdlib.h>
 #       include <stdint.h>
 #       include <inttypes.h>
 #       include <stdbool.h>

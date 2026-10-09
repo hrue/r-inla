@@ -1,12 +1,12 @@
+#include "GMRFLib/GMRFLib.h"
+
 #include <assert.h>
 #include <omp.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <strings.h>
 #include <time.h>
 
-#include "GMRFLib/GMRFLib.h"
 
 #if !defined(_WIN32)
 #       include <unistd.h>

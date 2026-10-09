@@ -48,8 +48,13 @@ __BEGIN_DECLS
 #              define POSSIBLY_UNUSED(x) x
 #       endif
 #       if 1
-#              define aligned_double alignas(64) double
-#              define aligned_int    alignas(64) int
+#ifdef __cplusplus
+#  define aligned_double double __attribute__((aligned(64)))
+#  define aligned_int double __attribute__((aligned(64)))
+#else
+#  define aligned_double alignas(64) double
+#  define aligned_int alignas(64) int
+#endif
 #       else
 #              define aligned_double double
 #              define aligned_int    int
@@ -835,7 +840,8 @@ typedef enum {
 #       endif
 #       if defined __GNUC__
 #              if defined __cplusplus ? __GNUC_PREREQ (2, 6) : __GNUC_PREREQ (2, 4)
-#                     define  __GMRFLib_FuncName   __FUNCTION__
+//#                     define  __GMRFLib_FuncName   __FUNCTION__
+#                     define  __GMRFLib_FuncName   __func__
 #              else
 #                     if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
 #                            define __GMRFLib_FuncName  __func__

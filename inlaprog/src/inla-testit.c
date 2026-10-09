@@ -1465,7 +1465,7 @@ int testit(int argc, char **argv)
 
 		lt_dlinit();
 		handle = lt_dlopen(NULL);
-		fun = (fun_tp *) lt_dlsym(handle, "sin_intern");
+		fun = (fun_tp *) (intptr_t) lt_dlsym(handle, "sin_intern");
 		if (!fun)
 			FIXME("sin_intern not found using ltdl");
 #       if defined(_WIN32)
@@ -1486,7 +1486,7 @@ int testit(int argc, char **argv)
 		printf("Using sin_intern()\n");
 		P(fun(x));
 
-		fun = (fun_tp *) lt_dlsym(handle, "sin");
+		fun = (fun_tp *) (intptr_t) lt_dlsym(handle, "sin");
 		if (!fun)
 			FIXME("sin not found using ltdl");
 #       if defined(_WIN32)
@@ -1777,7 +1777,7 @@ int testit(int argc, char **argv)
 		}
 		lt_dlerror();
 
-		fun = (fun_tp *) lt_dlsym(handle, args[0]);
+		fun = (fun_tp *) (intptr_t) lt_dlsym(handle, args[0]);
 		if ((error = lt_dlerror()) != NULL) {
 			fprintf(stderr, "%s\n", error);
 			exit(1);
@@ -4481,7 +4481,7 @@ int testit(int argc, char **argv)
 		}
 		lt_dlerror();				       /* Clear any existing error */
 
-		fun = (double (*)(double)) lt_dlsym(handle, "fun");
+		fun = (double (*)(double)) (intptr_t) lt_dlsym(handle, "fun");
 		if ((error = lt_dlerror()) != NULL) {
 			fprintf(stderr, "%s\n", error);
 			exit(1);

@@ -12,10 +12,12 @@
 #       endif
 
 __BEGIN_DECLS
+
+//
 #       if !defined(_GNU_SOURCE)
 #              define _GNU_SOURCE
 #       endif
-//
+
 #       include "fast-math/special-functions.h"
 #       include "iniparser.h"
 #       include "dictionary.h"
