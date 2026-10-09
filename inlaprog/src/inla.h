@@ -2291,6 +2291,7 @@ int inla_sread_ints_q(int **x, int *nx, const char *str);
 int inla_sread_q(void **x, int *nx, const char *str, int code);
 int inla_sread_str_int(char **tag, int *i, const char *str);
 int inla_sread_str_str(char **tag, int nmax, char *str);
+int inla_sread_str_str_rprior(char **tag, int nmax, char *str);
 int inla_tolower(char *string);
 int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);
