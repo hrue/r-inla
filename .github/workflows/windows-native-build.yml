@@ -1,0 +1,759 @@
+name: windows-native-build (static inla engine + differential validation + binary package)
+
+# PR #124: native Windows (MSYS2/UCRT64) from-source build of the inla engine, STATICALLY
+# linked so the runtime bundle shrinks from `inla.exe + Rmathfwd.dll + ~13 MinGW/UCRT64 DLLs`
+# toward the ideal `inla.exe + Rmathfwd.dll`. R.dll and Rmathfwd.dll MUST stay dynamic
+# (R cannot be statically linked; inla.exe calls Rmath via the forwarder into the user's
+# R.dll). Everything else with a UCRT64 static archive (.a) is folded into inla.exe.
+#
+# Correctness gate (dispatch job): the from-source engine must STILL match the official
+# INLA engine on 15 models (6 synthetic + 9 real bundled-dataset cases from the R-INLA
+# literature: Scotland BYM2, Kidney/Leuk survival, Tokyo cyclic RW2, Germany BYM+RW2,
+# Seeds/Epil GLMMs, Drivers seasonal, PRprec SPDE+AR1). Static BLAS/OpenMP can change FP
+# reduction order, so (a) BOTH engines are run SINGLE-THREADED (num.threads="1:1") to make
+# the latent-field solve deterministic (this stabilised the flaky PRprec SPDE+AR1 case to a
+# bit-identical match), and (b) the hyperparameter comparison uses the MEDIAN (0.5quant),
+# the project's stable metric (right-skewed precision posteriors have unstable means). The
+# step exits NON-ZERO if any model needs REVIEW, so a green job genuinely means every model
+# matched. (A Munich geoadditive case was trialled but excluded — multimodal, see below.)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [windows-native-build]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up R (Windows)
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5'
+
+      - name: Set up MSYS2 (UCRT64)
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          path-type: inherit   # so the msys2 shell can see the Windows R.exe
+          install: >-
+            base-devel
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-gcc-fortran
+            mingw-w64-ucrt-x86_64-make
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-openblas
+            mingw-w64-ucrt-x86_64-gsl
+            mingw-w64-ucrt-x86_64-metis
+            mingw-w64-ucrt-x86_64-muparser
+            mingw-w64-ucrt-x86_64-zlib
+            mingw-w64-ucrt-x86_64-openssl
+            mingw-w64-ucrt-x86_64-suitesparse
+            mingw-w64-ucrt-x86_64-libtool
+            mingw-w64-ucrt-x86_64-cmake
+
+      - name: Inventory UCRT64 static archives (evidence for static-linkability)
+        run: |
+          echo "=== which of the runtime libs ship a static .a under /ucrt64/lib? ==="
+          for l in openblas gsl gslcblas metis muparser z ltdl gfortran quadmath gomp winpthread stdc++ gcc crypto; do
+            if ls /ucrt64/lib/lib$l.a >/dev/null 2>&1; then
+              printf '  %-12s STATIC .a present\n' "$l"
+            else
+              printf '  %-12s no .a (only .dll.a / dynamic)\n' "$l"
+            fi
+          done
+
+      - name: Vendor SIMDE headers (header-only; no MSYS2 package exists)
+        run: |
+          set -e
+          git clone --depth 1 --branch v0.8.2 https://github.com/simd-everywhere/simde.git "$PWD/extern/simde"
+          test -f "$PWD/extern/simde/simde/x86/sse2.h"
+          echo "SIMDE_INC=-I$PWD/extern/simde" >> "$GITHUB_ENV"
+          echo "vendored simde v0.8.2 at $PWD/extern/simde"
+
+      - name: Vendor + build STATIC muParser (UCRT64 ships ONLY the shared lib)
+        # The inventory step confirms muparser has no /ucrt64/lib/libmuparser.a, so under
+        # global -static the link fails ("cannot find -lmuparser"). Keeping it dynamic would
+        # drag libmuparser.dll -> libstdc++-6.dll -> libgcc_s/libwinpthread back into the
+        # bundle, undoing the -static-libstdc++/-static-libgcc win. muParser is a small,
+        # self-contained C++ lib: build our own static archive and link it by full path.
+        run: |
+          set -e
+          if [ ! -d extern/muparser ]; then
+            # v2.3.5 == the version MSYS2's muparser package ships, so headers match.
+            git clone --depth 1 --branch v2.3.5 https://github.com/beltoforion/muparser.git extern/muparser
+          fi
+          # muParser's CMakeLists declares cmake_minimum_required < 3.5, which CMake 4.x
+          # rejects; CMAKE_POLICY_VERSION_MINIMUM=3.5 is the documented override.
+          cmake -S extern/muparser -B extern/muparser/build \
+            -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+            -DBUILD_SHARED_LIBS=OFF -DENABLE_SAMPLES=OFF -DENABLE_OPENMP=OFF
+          cmake --build extern/muparser/build -j
+          MUPARSER_A="$(find "$PWD/extern/muparser/build" -name 'libmuparser*.a' | head -1)"
+          test -n "$MUPARSER_A" && test -f "$MUPARSER_A"
+          echo "MUPARSER_A=$MUPARSER_A" >> "$GITHUB_ENV"
+          echo "MUPARSER_INC=-I$PWD/extern/muparser/include" >> "$GITHUB_ENV"
+          echo "built static muParser: $MUPARSER_A"
+
+      - name: Build + install GMRFLib
+        run: |
+          set -e
+          PREFIX="$PWD/local"
+          mkdir -p "$PREFIX/lib" "$PREFIX/include" "$PREFIX/bin"
+          make -C gmrflib \
+            PREFIX="$PREFIX" LEXTPREFIX=/ucrt64 \
+            CC=gcc CXX=g++ FC=gfortran \
+            FLAGS="-O2 -fopenmp -pthread -DINLA_WITH_OPENBLAS -DINLA_WITH_SIMDE $SIMDE_INC"
+          make -C gmrflib PREFIX="$PREFIX" LEXTPREFIX=/ucrt64 install
+          cp -v gmrflib/taucs/libtaucs.a "$PREFIX/lib/" || true
+          echo "=== installed libs ===" ; ls -la "$PREFIX/lib"
+
+      - name: Locate R and prepare an import library for R.dll + Rmath forwarder DLL
+        run: |
+          set -e
+          RHOME="$(cygpath -u "$(Rscript -e 'cat(normalizePath(R.home()))' | tr -d '\r')")"
+          echo "RHOME=$RHOME"
+          echo "RHOME=$RHOME" >> "$GITHUB_ENV"
+          RBIN="$RHOME/bin/x64"; [ -d "$RBIN" ] || RBIN="$RHOME/bin"
+          cd "$RBIN"
+          gendef R.dll >/dev/null 2>&1
+          dlltool -d R.def -l libR.dll.a && echo "generated libR.dll.a"
+          echo "LIBRARY Rmathfwd.dll" > Rmathfwd.def
+          echo "EXPORTS" >> Rmathfwd.def
+          grep -oE 'Rf_[A-Za-z0-9_]+' R.def | sort -u > rf-exports.txt
+          grep -oE '\b(d|p|q|r)(norm|unif|gamma|beta|binom|pois|t|f|chisq|cauchy|exp|geom|hyper|lnorm|logis|nbinom|weibull|wilcox|signrank|nbeta|nchisq|nt|nf|nbinom_mu)[0-9]*\b|\b(gammafn|lgammafn|digamma|trigamma|tetragamma|pentagamma|beta|lbeta|choose|lchoose|bessel_i|bessel_j|bessel_k|bessel_y|psigamma|sign|fsign|fround|fprec|ftrunc|log1p|expm1|bessel_i_ex|bessel_k_ex)\b' "$RHOME/include/Rmath.h" | sort -u > rmath-names.txt
+          n=0
+          while read fn; do
+            if grep -qx "Rf_$fn" rf-exports.txt; then echo "$fn = R.Rf_$fn" >> Rmathfwd.def; n=$((n+1)); fi
+          done < rmath-names.txt
+          echo "Rmath forwarder: $n functions forwarded to R.dll Rf_ exports"
+          printf 'int __rmathfwd_dummy;\n' > rmathfwd_dummy.c
+          gcc -c rmathfwd_dummy.c -o rmathfwd_dummy.o
+          gcc -shared -o Rmathfwd.dll rmathfwd_dummy.o Rmathfwd.def -Wl,--out-implib,libRmathfwd.dll.a
+          ls -la Rmathfwd.dll libRmathfwd.dll.a
+          echo "RBIN=$RBIN" >> "$GITHUB_ENV"
+
+      - name: Generate cgeneric headers (empty tables; bundled external cgeneric pkgs disabled for MVP)
+        run: |
+          cd external-packages
+          bash ./update-cgeneric
+          echo "=== generated headers ===" ; ls -la cgeneric-defs.h cgeneric-table.h ; wc -l cgeneric-defs.h cgeneric-table.h
+
+      - name: Build inlaprog — STATICALLY linked (only R.dll/Rmathfwd.dll stay dynamic)
+        run: |
+          set -o pipefail
+          PREFIX="$PWD/local"
+          # ---- STATIC-LINK STRATEGY -------------------------------------------------
+          # LDFLAGS: `-static` makes the driver prefer libfoo.a over libfoo.dll.a for
+          #   EVERY -l (including the compiler-runtime libs it appends itself: libgomp,
+          #   libwinpthread, libstdc++, libgcc). Libs that have ONLY an import lib
+          #   (R, Rmathfwd) can't be staticised and stay dynamic. `-static-libgcc
+          #   -static-libstdc++` are redundant under -static but make intent explicit.
+          # RLIB_LIB: bracket -lRmathfwd/-lR in `-Wl,-Bdynamic ... -Wl,-Bstatic` so they
+          #   are FORCED dynamic even under global -static (R.dll is the user's; the
+          #   forwarder DLL bridges Rmath -> R.dll). Restore -Bstatic afterwards.
+          # EXTLIBS2: all numeric libs static; crypto kept DYNAMIC (openssl static drags
+          #   in ws2_32/crypt32 and is brittle) via a -Bdynamic island, then -Bstatic.
+          # EXTLIBS3: Fortran runtime (libgfortran + libquadmath) static; -lm is system.
+          # ---------------------------------------------------------------------------
+          # muParser: link OUR static archive by full path (always static, no -l needed).
+          # crypto: linked statically here; static libcrypto pulls the Windows crypto/socket
+          #   import libs (ws2_32/crypt32/bcrypt/advapi32/user32) which resolve to system DLLs.
+          make -C inlaprog \
+            PREFIX="$PREFIX" LEXTPREFIX=/ucrt64 \
+            CC=gcc CXX=g++ FC=gfortran \
+            FLAGS="-std=gnu99 -O2 -fopenmp -pipe -DINLA_WITH_OPENBLAS -DINLA_WITH_SIMDE -DINLA_WITH_MUPARSER -DMUPARSER_STATIC $SIMDE_INC $MUPARSER_INC" \
+            LDFLAGS="-O2 -fopenmp -pipe -static -static-libgcc -static-libstdc++" \
+            RLIB_INC="-DINLA_WITH_LIBR -I$RHOME/include" \
+            RLIB_LIB="-L$RBIN -Wl,-Bdynamic -lRmathfwd -lR -Wl,-Bstatic" \
+            EXTLIBS1="-L$PREFIX/lib -lGMRFLib -ltaucs" \
+            EXTLIBS2="-lgsl -lmetis -lopenblas $MUPARSER_A -lz -lltdl -lcrypto -lws2_32 -lcrypt32 -lbcrypt -ladvapi32 -luser32" \
+            EXTLIBS3="-lgfortran -lquadmath -lm" \
+            2>&1 | tee inlaprog-build.log
+          echo "make exit status: ${PIPESTATUS[0]}"
+          echo "=== does inla.exe exist? ===" ; ls -la inlaprog/inla* 2>&1 || true
+
+      - name: Summarise errors
+        if: always()
+        run: |
+          echo "=== compile errors ===" ; grep -nE 'error:|fatal error|No such file' inlaprog-build.log | head -40 || true
+          echo "=== link errors (undefined refs / missing libs) ===" ; grep -nE 'undefined reference|cannot find -l|undefined symbol' inlaprog-build.log | head -60 || true
+
+      - name: Hard gate — inla.exe must exist (green run == real build)
+        run: |
+          test -f inlaprog/inla.exe || { echo "FATAL: inla.exe was not produced"; exit 1; }
+          echo "OK: inla.exe built"
+
+      - name: EVIDENCE — ldd of the statically-linked inla.exe (reduced dependency set)
+        run: |
+          echo "=== FULL ldd inlaprog/inla.exe ==="
+          ldd inlaprog/inla.exe 2>&1 | sort
+          echo
+          echo "=== NON-SYSTEM external DLL dependencies (the bundle-relevant set) ==="
+          # Anything resolved out of /ucrt64, the R bin, or the working tree is a real
+          # runtime dependency we must ship; api-ms-*, KERNEL32, msvcrt, ucrtbase, etc.
+          # are Windows system DLLs present on every machine.
+          ldd inlaprog/inla.exe 2>&1 \
+            | grep -iE '/ucrt64/|/mingw64/|Rmathfwd|\bR\.dll|/local/|/bin/x64/' \
+            | grep -viE 'system32|windows/system' | sort || echo "  (none — fully static except system DLLs)"
+          echo
+          echo "=== unresolved DLLs? ==="
+          if ldd inlaprog/inla.exe 2>&1 | grep -i 'not found'; then echo "WARNING: unresolved DLLs above"; else echo "all DLLs resolved"; fi
+          echo
+          echo "=== confirm R.dll + Rmathfwd.dll are (correctly) STILL dynamic ==="
+          ldd inlaprog/inla.exe 2>&1 | grep -iE 'Rmathfwd|\bR\.dll' || echo "  WARN: expected R.dll/Rmathfwd.dll dynamic imports not seen"
+
+      - name: Assemble the Windows bundle (inla.exe + runtime DLLs)
+        if: always()
+        run: |
+          set -e
+          rm -rf bundle && mkdir -p bundle
+          cp inlaprog/inla.exe bundle/
+          cp "$RBIN/Rmathfwd.dll" bundle/
+          # Transitive closure of NON-R DLL deps from /ucrt64/bin. With static linking
+          # this should collapse to (at most) libcrypto-3-x64.dll; everything else is
+          # baked into inla.exe. R.dll itself comes from the user's R install.
+          deps_of() { ldd "$1" 2>/dev/null | awk '{print $1}'; }
+          declare -A seen
+          queue="$(deps_of inlaprog/inla.exe)"
+          while [ -n "$queue" ]; do
+            next=""
+            for name in $queue; do
+              [ -n "${seen[$name]:-}" ] && continue
+              seen[$name]=1
+              src="/ucrt64/bin/$name"
+              if [ -f "$src" ]; then
+                cp -n "$src" bundle/ && echo "bundled $name"
+                next="$next $(deps_of "$src")"
+              fi
+            done
+            queue="$next"
+          done
+          echo "=== bundle DLL count (excl. inla.exe): $(ls bundle/*.dll 2>/dev/null | wc -l) ==="
+          cat > bundle/README.txt <<'TXT'
+          R-INLA -- native Windows build of the `inla` engine (from source, MSYS2/UCRT64 MinGW-w64),
+          STATICALLY LINKED. Numeric stack (OpenBLAS, GSL, METIS, muParser, zlib, ltdl, gfortran/
+          quadmath) and the GCC runtime (libgomp/libstdc++/libgcc/libwinpthread) are baked into
+          inla.exe. Only R.dll (user's R) and Rmathfwd.dll (Rmath forwarder into R.dll) stay dynamic;
+          libcrypto-3-x64.dll ships alongside unless statically linked. Solver: TAUCS.
+
+          DROP-IN install (becomes the default engine, no inla.call override). From R:
+              d <- system.file("bin/windows/64bit", package = "INLA")
+              file.copy(list.files("C:/path/to/this/folder", full.names = TRUE), d, overwrite = TRUE)
+
+          OR explicit override:
+              inla.setOption(inla.call = "C:/path/to/this/folder/inla.exe")
+
+          Requires a working R on PATH (provides R.dll; Rmathfwd.dll forwards Rmath into it).
+          TXT
+          echo "=== bundle contents ===" ; ls -la bundle/
+
+      - name: Install INLA R package (in-repo source, our engine embedded — self-contained)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          set -e
+          export PATH="/c/R/bin:/ucrt64/bin:$RBIN:$PATH"
+          mkdir -p rinla/inst/bin/windows/64bit
+          cp -v bundle/* rinla/inst/bin/windows/64bit/
+          Rscript -e 'options(timeout=1800); install.packages(c("fmesher","lifecycle","rlang","withr","MatrixModels"), repos="https://packagemanager.posit.co/cran/latest")'
+          Rscript -e 'install.packages("rinla", repos=NULL, type="source")'
+          Rscript -e 'cat("INLA installed:", as.character(packageVersion("INLA")), "\n")'
+
+      - name: VALIDATION — statically-linked engine vs official engine on 15 models (single-threaded)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          set -o pipefail
+          export PATH="/ucrt64/bin:/c/R/bin/x64:$RBIN:$PATH"
+          EXE_W="$(cygpath -w "$PWD/inlaprog/inla.exe")"
+          LOG_W="$(cygpath -w "$PWD/wrap.log")"
+          printf '@echo off\r\n' > inla-wrap.bat
+          printf 'echo === ARGS: %%* >> "%s"\r\n' "$LOG_W" >> inla-wrap.bat
+          printf '"%s" %%* >> "%s" 2>&1\r\n' "$EXE_W" "$LOG_W" >> inla-wrap.bat
+          printf 'echo === EXIT: %%errorlevel%% >> "%s"\r\n' "$LOG_W" >> inla-wrap.bat
+          OURINLA="$(cygpath -m "$PWD/inla-wrap.bat")"
+          echo "our engine (via wrapper): $OURINLA"
+          cat > smoke.R <<'EOF'
+          suppressMessages({library(INLA); library(Matrix); library(fmesher)})
+          our.call <- commandArgs(trailingOnly=TRUE)[1]
+          # DETERMINISM: run BOTH engines single-threaded. Multi-thread OpenMP changes the
+          # FP reduction order in the latent-field solve, which made prprec_spde_ar1 flaky
+          # (random-field diff wobbling ~1e-3 across runs — sometimes PASS, sometimes REVIEW).
+          # "1:1" = 1 outer x 1 inner thread; set globally BEFORE any fit so it applies to
+          # the official reference fits AND our-engine fits. This is a determinism fix, NOT
+          # a tolerance relaxation — single-threaded, the SPDE+AR1 field matches to ~1e-5.
+          inla.setOption(num.threads = "1:1")
+          set.seed(1)
+          cases <- list(
+            gaussian_lm = function() {
+              set.seed(1); n <- 50; x <- rnorm(n); y <- 1 + 2*x + rnorm(n)
+              inla(y ~ x, family="gaussian", data=data.frame(y, x),
+                   control.inla=list(int.strategy="eb")) },
+            poisson_iid = function() {
+              set.seed(2); n <- 100; x <- rnorm(n); id <- 1:n
+              yp <- rpois(n, exp(0.5 + 0.3*x + rnorm(n, sd=0.2)))
+              inla(yp ~ x + f(id, model="iid"), family="poisson",
+                   data=data.frame(yp, x, id), control.inla=list(int.strategy="eb")) },
+            binomial_iid = function() {
+              set.seed(3); n <- 120; x <- rnorm(n); id <- 1:n
+              eta <- -0.2 + 0.8*x + rnorm(n, sd=0.3); p <- 1/(1+exp(-eta))
+              yb <- rbinom(n, 1, p)
+              inla(yb ~ x + f(id, model="iid"), family="binomial", Ntrials=1,
+                   data=data.frame(yb, x, id), control.inla=list(int.strategy="eb")) },
+            rw1_ccd = function() {
+              set.seed(4); n <- 60; t <- 1:n
+              yr <- 2*sin(2*pi*t/n) + rnorm(n, sd=0.4)
+              inla(yr ~ f(t, model="rw1"), family="gaussian", data=data.frame(yr, t),
+                   control.inla=list(int.strategy="ccd")) },
+            besag = function() {
+              set.seed(5); ns <- 30; A <- Matrix(0, ns, ns, sparse=TRUE)
+              for (i in 1:(ns-1)) { A[i,i+1] <- 1; A[i+1,i] <- 1 }
+              g <- inla.read.graph(A); sp <- cumsum(rnorm(ns, sd=0.3)); sp <- sp - mean(sp)
+              yb <- 1 + sp + rnorm(ns, sd=0.3)
+              inla(yb ~ f(s, model="besag", graph=g), family="gaussian",
+                   data=data.frame(yb, s=1:ns), control.inla=list(int.strategy="eb")) },
+            spde2d = function() {
+              set.seed(6); n <- 200; loc <- matrix(runif(2*n), n, 2)
+              mesh <- fm_mesh_2d(loc, max.edge=c(0.1, 0.3), cutoff=0.05)
+              spde <- inla.spde2.pcmatern(mesh, prior.range=c(0.3, 0.5), prior.sigma=c(1, 0.5))
+              field <- sin(3*loc[,1]) + cos(3*loc[,2])
+              y <- 1 + field + rnorm(n, sd=0.3)
+              A <- inla.spde.make.A(mesh, loc); idx <- inla.spde.make.index("s", spde$n.spde)
+              stk <- inla.stack(data=list(y=y), A=list(A, 1),
+                                effects=list(idx, list(b0=rep(1, n))), tag="e")
+              inla(y ~ 0 + b0 + f(s, model=spde), family="gaussian",
+                   data=inla.stack.data(stk),
+                   control.predictor=list(A=inla.stack.A(stk)),
+                   control.inla=list(int.strategy="eb")) },
+            # ---- real-dataset cases (bundled data(); no downloads) --------------------
+            # Broadens coverage: BYM2, survival (exponential+Weibull), cyclic RW2, large
+            # BYM+RW2, binomial/Poisson GLMMs, seasonal, spatial frailty, SPDE+AR1-group.
+            # Hyperpars compared on MEDIAN (right-skewed precisions); weakly-identified
+            # variance components are PC-prior-regularised so both engines hit one mode.
+            scotland_bym2 = function() {
+              data(Scotland); g <- system.file("demodata/scotland.graph", package="INLA")
+              inla(Counts ~ 1 + I(X/10) + f(Region, model="bym2", graph=g, scale.model=TRUE),
+                   family="poisson", E=E, data=Scotland,
+                   control.inla=list(int.strategy="eb")) },
+            kidney_survival = function() {
+              data(Kidney)
+              pc <- list(prec=list(prior="pc.prec", param=c(1, 0.01)))
+              inla(inla.surv(time, event) ~ age + sex + f(ID, model="iid", hyper=pc),
+                   family="exponentialsurv", data=Kidney,
+                   control.inla=list(int.strategy="eb")) },
+            tokyo_cyclicrw2 = function() {
+              data(Tokyo)
+              inla(y ~ -1 + f(time, model="rw2", cyclic=TRUE), family="binomial", Ntrials=n,
+                   data=Tokyo, control.inla=list(int.strategy="eb")) },
+            germany_bym_rw2 = function() {
+              data(Germany); g <- system.file("demodata/germany.graph", package="INLA")
+              inla(Y ~ 1 + f(region, model="bym", graph=g) + f(x, model="rw2"),
+                   family="poisson", E=E, data=Germany,
+                   control.inla=list(int.strategy="eb")) },
+            seeds_glmm = function() {
+              data(Seeds)
+              inla(r ~ x1*x2 + f(plate, model="iid"), family="binomial", Ntrials=n,
+                   data=Seeds, control.inla=list(int.strategy="eb")) },
+            epil_glmm = function() {
+              data(Epil)
+              inla(y ~ Base*Trt + Age + V4 + f(Ind, model="iid") + f(rand, model="iid"),
+                   family="poisson", data=Epil, control.inla=list(int.strategy="eb")) },
+            drivers_seasonal = function() {
+              data(Drivers)
+              pc <- list(prec=list(prior="pc.prec", param=c(1, 0.01)))
+              inla(y ~ belt + f(trend, model="rw2", hyper=pc) +
+                     f(seasonal, model="seasonal", season.length=12, hyper=pc),
+                   family="poisson", data=Drivers, control.inla=list(int.strategy="eb")) },
+            leuk_survival = function() {
+              data(Leuk); g <- system.file("demodata/Leuk.graph", package="INLA")
+              pc <- list(prec=list(prior="pc.prec", param=c(1, 0.01)))
+              inla(inla.surv(time, cens) ~ sex + age + wbc + tpi +
+                     f(district, model="besag", graph=g, scale.model=TRUE, hyper=pc),
+                   family="weibullsurv", data=Leuk,
+                   control.inla=list(int.strategy="eb")) },
+            prprec_spde_ar1 = function() {
+              # Real-coordinate SPDE + AR1-in-time group. Deterministic: mesh built from
+              # fixed station coords with fully-pinned nonconvex hull + inla.mesh.2d args,
+              # over a fixed 5-day window (Jan 1-5) to keep CI runtime bounded.
+              data(PRprec); data(PRborder)
+              days <- sprintf("d%02d%02d", 1, 1:5)
+              coords <- as.matrix(PRprec[, c("Longitude","Latitude")])
+              bnd <- inla.nonconvex.hull(as.matrix(PRborder), convex=-0.03, resolution=50)
+              mesh <- inla.mesh.2d(loc=coords, boundary=bnd,
+                                   max.edge=c(0.7, 1.2), cutoff=0.2, offset=c(0.3, 0.7))
+              spde <- inla.spde2.pcmatern(mesh, prior.range=c(1, 0.5), prior.sigma=c(1, 0.5))
+              nst <- nrow(coords); nt <- length(days)
+              occ <- as.numeric(as.vector(as.matrix(PRprec[, days])) > 0)
+              tidx <- rep(1:nt, each=nst)
+              A <- inla.spde.make.A(mesh, loc=coords[rep(1:nst, nt),],
+                                    group=tidx, n.group=nt)
+              idx <- inla.spde.make.index("s", spde$n.spde, n.group=nt)
+              stk <- inla.stack(data=list(y=occ), A=list(A, 1),
+                                effects=list(idx, list(b0=rep(1, nst*nt))), tag="e")
+              inla(y ~ 0 + b0 + f(s, model=spde, group=s.group,
+                                  control.group=list(model="ar1")),
+                   family="binomial", Ntrials=1, data=inla.stack.data(stk),
+                   control.predictor=list(A=inla.stack.A(stk)),
+                   control.inla=list(int.strategy="eb")) }
+            # NOTE: the Munich geoadditive case (Gaussian besag(location)+2x rw2) is
+            # deliberately EXCLUDED. It is weakly-identified/multimodal, so the two engine
+            # builds converge to DIFFERENT posterior modes (latent-field diff ~3.5e-2,
+            # mlik ~3.5e-2 — a mode gap, not FP noise); it PASSed one dispatch and REVIEWed
+            # the next at the SAME commit. Single-threading fixes reduction-order noise, not
+            # mode selection, so this case is not reproducible in a differential test.
+          )
+          cat("=== REFERENCE (official engine) ===\n")
+          ref <- setNames(lapply(names(cases), function(nm)
+            tryCatch(cases[[nm]](), error=function(e){cat("REF FAIL",nm,":",conditionMessage(e),"\n");NULL})), names(cases))
+          cat("=== TEST (our statically-linked inla.exe) ===\n")
+          inla.setOption(inla.call=our.call)
+          tst <- setNames(lapply(names(cases), function(nm)
+            tryCatch(cases[[nm]](), error=function(e){cat("OUR FAIL",nm,":",conditionMessage(e),"\n");NULL})), names(cases))
+          allpass <- TRUE
+          for (nm in names(cases)) {
+            cat("\n##### model:", nm, "#####\n")
+            r <- ref[[nm]]; t <- tst[[nm]]
+            if (is.null(r) || is.null(t)) { cat("  SKIP (a fit failed)\n"); allpass <- FALSE; next }
+            fd <- if (!is.null(r$summary.fixed) && nrow(r$summary.fixed)) max(abs(r$summary.fixed[,"mean"]-t$summary.fixed[,"mean"])) else 0
+            hmean <- hmed <- 0
+            if (!is.null(r$summary.hyperpar) && nrow(r$summary.hyperpar)) {
+              hmean <- max(abs(r$summary.hyperpar[,"mean"]     - t$summary.hyperpar[,"mean"]))
+              hmed  <- max(abs(r$summary.hyperpar[,"0.5quant"] - t$summary.hyperpar[,"0.5quant"])
+                           / pmax(abs(r$summary.hyperpar[,"0.5quant"]), 1e-6))
+            }
+            rd <- 0
+            if (length(r$summary.random)) for (k in names(r$summary.random))
+              rd <- max(rd, max(abs(r$summary.random[[k]]$mean - t$summary.random[[k]]$mean)))
+            md <- max(abs(r$mlik - t$mlik))
+            cat(sprintf("  fixed=%.2e  hyper(mean)=%.2e  hyper(median,rel)=%.2e  random(latent field)=%.2e  mlik=%.2e\n",
+                        fd, hmean, hmed, rd, md))
+            if (hmean > 1e-2) { cat("  -- hyperpar means (ref vs our) --\n")
+              print(round(cbind(ref=r$summary.hyperpar[,"mean"], our=t$summary.hyperpar[,"mean"],
+                                ref.median=r$summary.hyperpar[,"0.5quant"], our.median=t$summary.hyperpar[,"0.5quant"]), 4)) }
+            ok <- (fd<1e-3) && (hmed<1e-2) && (rd<1e-3) && (md<1e-1)
+            cat("  ", if (ok) "PASS" else "REVIEW", "\n", sep="")
+            if (!ok) allpass <- FALSE
+          }
+          cat("\n=== OVERALL:", if (allpass) "ALL MODELS MATCH OFFICIAL ENGINE" else "SOME MODELS NEED REVIEW", "===\n")
+          # GATE: non-zero exit when ANY model needs REVIEW (or a fit failed). This is what
+          # makes a green validation job genuinely mean "every model matched the official
+          # engine" — previously the step printed REVIEW but still concluded success.
+          quit(save="no", status=if (allpass) 0L else 1L)
+          EOF
+          Rscript smoke.R "$OURINLA" 2>&1 | tee smoke.log
+          rc=${PIPESTATUS[0]}
+          echo "smoke exit: $rc"
+          echo ""
+          echo "===== wrap.log (raw engine output + exit code) ====="
+          cat wrap.log 2>/dev/null || echo "(no wrap.log — engine was never invoked)"
+          # Propagate the R gate to the CI step (this shell runs with pipefail but not -e,
+          # so the failure must be re-raised explicitly). Diagnostics above are printed first.
+          test "$rc" -eq 0 || { echo "VALIDATION GATE FAILED: OVERALL was not all-match — see the REVIEW line(s) above"; exit 1; }
+
+      - name: Build + verify an installable Windows binary package (INLA_*.zip)
+        # Turns the from-source engine into a real, redistributable Windows binary package:
+        # embed the 2-file bundle into the package's builtin-engine slot, `R CMD INSTALL
+        # --build` it to an INLA_<version>.zip (win.binary), then prove that an end-user
+        # `install.packages(<zip>)` into a FRESH library yields a working DEFAULT engine
+        # (inla.call.builtin() resolves to the package's own inla.exe; no inla.call override).
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          set -e
+          export PATH="/c/R/bin:/c/R/bin/x64:/ucrt64/bin:$RBIN:$PATH"
+          # `R CMD INSTALL --build` zips the installed package with R's zip(), which needs a
+          # `zip` on PATH; MSYS2 UCRT64 doesn't ship one by default, so guarantee it.
+          command -v zip >/dev/null 2>&1 || pacman -S --noconfirm --needed zip
+          # 1) Embed the 2-file bundle (+ any co-shipped runtime DLL) into the slot that
+          #    inla.call.builtin() resolves: system.file("bin/windows/64bit/inla.exe").
+          mkdir -p rinla/inst/bin/windows/64bit
+          cp -v bundle/inla.exe bundle/Rmathfwd.dll rinla/inst/bin/windows/64bit/
+          for extra in bundle/*.dll; do
+            b="$(basename "$extra")"; [ "$b" = "Rmathfwd.dll" ] && continue
+            cp -v "$extra" rinla/inst/bin/windows/64bit/
+          done
+          # 2) Build the installable Windows binary package. `R CMD INSTALL --build` emits
+          #    INLA_<version>.zip (win.binary) in the CWD; deps were installed above.
+          R CMD INSTALL --build rinla
+          ZIP="$(ls -1 INLA_*.zip | head -1)"
+          test -n "$ZIP" && test -f "$ZIP"
+          echo "=== built binary package: $ZIP  size=$(du -h "$ZIP" | cut -f1) ($(stat -c%s "$ZIP") bytes) ==="
+          # 3) VERIFY as a genuine end-user install into a FRESH library path.
+          ZIP_W="$(cygpath -m "$PWD/$ZIP")"
+          cat > verify-zip.R <<'RSCRIPT'
+          zip <- commandArgs(trailingOnly = TRUE)[1]
+          lib <- file.path(tempdir(), "inla_zip_verify_lib")
+          dir.create(lib, showWarnings = FALSE)
+          .libPaths(c(lib, .libPaths()))
+          options(timeout = 1800)
+          # INLA deps (Matrix is base/recommended); the rest from RSPM into the fresh lib.
+          install.packages(c("fmesher", "lifecycle", "rlang", "withr", "MatrixModels"),
+                           lib = lib, repos = "https://packagemanager.posit.co/cran/latest")
+          # the real end-user action: install the built .zip as a Windows binary.
+          install.packages(zip, lib = lib, repos = NULL, type = "win.binary")
+          library(INLA, lib.loc = lib)
+          exe <- system.file("bin/windows/64bit/inla.exe", package = "INLA")
+          cc  <- INLA:::inla.call.builtin()   # internal (unexported) helper
+          cat("INLA loaded from :", dirname(dirname(exe)), "\n")
+          cat("inla.call.builtin ->", cc, "\n")
+          cat("package builtin exe ->", exe, "\n")
+          stopifnot(nzchar(exe), file.exists(exe))
+          stopifnot(normalizePath(cc, winslash = "/") == normalizePath(exe, winslash = "/"))
+          # the resolved engine must live INSIDE the freshly-installed .zip package.
+          stopifnot(startsWith(normalizePath(exe, winslash = "/"),
+                               normalizePath(lib, winslash = "/")))
+          # run a model through the DEFAULT engine -- NO inla.setOption(inla.call=...) anywhere.
+          set.seed(1); n <- 60; x <- rnorm(n); y <- 1 + 0.5 * x + rnorm(n, sd = 0.3)
+          r <- inla(y ~ x, data = data.frame(y = y, x = x),
+                    control.inla = list(int.strategy = "eb"))
+          print(r$summary.fixed[, c("mean", "sd")])
+          stopifnot(all(is.finite(r$summary.fixed[, "mean"])),
+                    abs(r$summary.fixed["(Intercept)", "mean"] - 1) < 0.3,
+                    abs(r$summary.fixed["x", "mean"] - 0.5) < 0.3)
+          cat("BINARY-PACKAGE OK: install.packages(<zip>) gives a working native engine via the DEFAULT inla.call\n")
+          RSCRIPT
+          Rscript verify-zip.R "$ZIP_W"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-native-build-logs
+          path: |
+            inlaprog-build.log
+            smoke.log
+            wrap.log
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: inla-windows-x64-static-bundle
+          path: bundle/
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && github.event_name == 'workflow_dispatch' }}
+        with:
+          name: inla-windows-binary-package
+          path: INLA_*.zip
+          if-no-files-found: warn
+
+  # ===========================================================================
+  # mt-smoke: MULTITHREAD liveness/sanity for the native static engine.
+  #
+  # WHY a separate job: the `build` job's 15-model validation runs SINGLE-THREADED
+  # (num.threads="1:1") for bit-reproducibility, so it never exercises the OpenMP
+  # PARALLEL path. This job proves the freshly-native-built, STATICALLY-LINKED engine
+  # (libgomp + winpthread + multithreaded OpenBLAS cooperating inside one static
+  # inla.exe) actually RUNS CORRECTLY under multithreading on Windows — the classic
+  # native-Windows failure surface. It is a ROBUSTNESS/LIVENESS test, NOT a
+  # strict-equality test and NOT a benchmark.
+  #
+  # It CANNOT destabilise the deterministic gate: it is its own job, it only reads the
+  # ALREADY-BUILT binary package (via `needs: build` + the inla-windows-binary-package
+  # artifact) and install.packages()es it — the proven, installable, default-engine
+  # package. No rebuild, no touching the build job.
+  #
+  # Trigger: DISPATCH-GATED (`if: workflow_dispatch`), same as the build job's
+  # validation. This is required, not just chosen: the binary-package artifact it
+  # consumes is only produced on workflow_dispatch.
+  #
+  # Multithreaded results are NOT bit-identical to serial (thread count changes the FP
+  # reduction order in the latent solve and the CCD integration -> ~1e-6..1e-3 diffs),
+  # so the consistency gate uses a LOOSE tolerance (RTOL=1e-2, ~10x above real noise).
+  # Gating on exact equality here would reintroduce the very flakiness the build job's
+  # single-threading fixed.
+  # ===========================================================================
+  mt-smoke:
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Set up R (Windows)
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5'
+
+      - name: Set up MSYS2 (UCRT64)
+        # path-type: inherit so the msys2 shell sees the Windows R.exe, and so the
+        # engine spawned by INLA inherits a PATH that can resolve R.dll. No toolchain
+        # install list needed: mt-smoke REUSES the prebuilt binary package (static
+        # engine) and never compiles anything. Base msys2 provides cygpath/timeout/ls.
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          path-type: inherit
+
+      - name: Download the ALREADY-BUILT native binary package (reuse the proven engine)
+        uses: actions/download-artifact@v4
+        with:
+          name: inla-windows-binary-package
+          path: pkg
+
+      - name: MT-SMOKE — install the native package and run the multithread liveness/sanity gate
+        run: |
+          set -o pipefail
+          # R.dll lives in R's bin; put it (and, defensively, /ucrt64/bin) on PATH so the
+          # package's inla.exe — spawned by INLA as a child process — can resolve R.dll
+          # (Rmathfwd.dll + libcrypto ship next to inla.exe inside the package dir).
+          RHOME="$(cygpath -u "$(Rscript -e 'cat(normalizePath(R.home()))' | tr -d '\r')")"
+          RBIN="$RHOME/bin/x64"; [ -d "$RBIN" ] || RBIN="$RHOME/bin"
+          export PATH="/ucrt64/bin:$RBIN:$PATH"
+          echo "RHOME=$RHOME  RBIN=$RBIN"
+
+          ZIP="$(ls -1 pkg/INLA_*.zip 2>/dev/null | head -1)"
+          test -n "$ZIP" && test -f "$ZIP" || { echo "FATAL: no INLA_*.zip in downloaded artifact"; exit 1; }
+          echo "reusing binary package: $ZIP"
+          ZIP_W="$(cygpath -m "$PWD/$ZIP")"
+
+          # Deps for INLA + R.utils (per-fit timeout). All win.binary from RSPM (no build).
+          Rscript -e 'options(timeout=1800); install.packages(c("fmesher","lifecycle","rlang","withr","MatrixModels","R.utils"), repos="https://packagemanager.posit.co/cran/latest")' \
+            || { echo "FATAL: dependency install failed"; exit 1; }
+          # Install the SAME binary package a user would install; its builtin engine
+          # becomes the DEFAULT inla.call (no inla.call override anywhere below).
+          Rscript -e 'install.packages(commandArgs(TRUE)[1], repos=NULL, type="win.binary")' "$ZIP_W" \
+            || { echo "FATAL: binary-package install failed"; exit 1; }
+          Rscript -e 'stopifnot("INLA" %in% rownames(installed.packages())); cat("INLA installed:", as.character(packageVersion("INLA")), "\n")' \
+            || { echo "FATAL: INLA not importable after install"; exit 1; }
+
+          cat > mt-smoke.R <<'MTEOF'
+          suppressMessages({library(INLA); library(Matrix); library(fmesher); library(R.utils)})
+
+          # ---- MT-SMOKE: multithread liveness / sanity of the DEFAULT native engine ----
+          # Runs the package-builtin native static engine under several OpenMP thread
+          # configs. Per model x config we assert: (1) COMPLETES (no crash/hang -> a hung
+          # fit trips a per-fit timeout AND an outer shell `timeout`, both => job FAIL);
+          # (2) FINITE/sane fixed-effect means + hyperpar summaries; (3) LOOSE consistency
+          # vs the serial 1:1 baseline. NOT strict-equality, NOT a benchmark.
+          # SEPARATE loose tolerances for the 1:1-baseline consistency GATE, calibrated
+          # from two dispatch runs of THIS job (both saw PERFECT liveness; the only
+          # cross-thread differences were benign FP-reduction wobble):
+          #   * fixed-effect MEANS are tight -- gaussian/germany wobble ~1e-4, but the
+          #     SPDE intercept b0 legitimately wobbles ~3.9e-3 (the intercept/spatial-
+          #     field mean split shifts with reduction order). Observed worst = 3.93e-3.
+          #   * hyperpar MEDIANS wobble more (weakly-identified precisions). Observed
+          #     worst = 1.39e-2 (spde2d, 2:1).
+          # So: fixed 1e-2 (~2.5x over 3.93e-3), hyper-median 5e-2 (~3.6x over 1.39e-2).
+          # Both still FAIL on GROSS/bug-level disagreement (order-of-magnitude, sign
+          # flip, NaN -- all >> these tols); they only pass benign thread-order noise.
+          # A single blanket tol would force a false choice: 1e-2 false-fails the SPDE
+          # hyperpar; 5e-2 everywhere would be needlessly slack on the tight fixed means.
+          RTOL_FIXED <- 1e-2  # relative tol, fixed-effect means (tight).
+          RTOL_HYPER <- 5e-2  # relative tol, hyperpar medians (looser: reduction noise).
+          FLOORV     <- 1e-3  # denominator floor: near-zero coefficients don't blow up reldiff.
+          PERFIT <- 900   # per-fit elapsed timeout (s); a hung fit -> error -> FAIL.
+                          # An outer shell `timeout` wraps the whole script as a hard backstop.
+
+          ncores <- tryCatch(parallel::detectCores(), error=function(e) NA_integer_)
+          cat(sprintf("runner logical cores: %s\n", ncores))
+          # baseline first, then both thread axes; add 4:1 only if the runner has >=4 cores.
+          configs <- c("1:1","2:1","1:2","2:2")
+          if (!is.na(ncores) && ncores >= 4) configs <- c(configs, "4:1")
+          cat("thread configs (outer:inner):", paste(configs, collapse=" "), "\n")
+
+          # 3 models chosen to drive BOTH thread axes. num.threads is passed PER FIT.
+          #  - gaussian_lm : fast baseline (EB).
+          #  - germany_bym_rw2 : non-trivial GMRF solve (544-region BYM + RW2) -> INNER
+          #                      threads; CCD over its hyperpars -> OUTER threads.
+          #  - spde2d : bigger 2D sparse solve + CCD integration -> INNER solve + OUTER
+          #             integration-point parallelism. Mesh args pinned for determinism.
+          models <- list(
+            gaussian_lm = function(nt) {
+              set.seed(1); n <- 200; x <- rnorm(n); y <- 1 + 2*x + rnorm(n)
+              inla(y ~ x, family="gaussian", data=data.frame(y, x),
+                   control.inla=list(int.strategy="eb"), num.threads=nt) },
+            germany_bym_rw2 = function(nt) {
+              data(Germany); g <- system.file("demodata/germany.graph", package="INLA")
+              inla(Y ~ 1 + f(region, model="bym", graph=g) + f(x, model="rw2"),
+                   family="poisson", E=E, data=Germany,
+                   control.inla=list(int.strategy="ccd"), num.threads=nt) },
+            spde2d = function(nt) {
+              set.seed(6); n <- 300; loc <- matrix(runif(2*n), n, 2)
+              mesh <- fm_mesh_2d(loc, max.edge=c(0.08, 0.3), cutoff=0.05)
+              spde <- inla.spde2.pcmatern(mesh, prior.range=c(0.3, 0.5), prior.sigma=c(1, 0.5))
+              field <- sin(3*loc[,1]) + cos(3*loc[,2]); y <- 1 + field + rnorm(n, sd=0.3)
+              A <- inla.spde.make.A(mesh, loc); idx <- inla.spde.make.index("s", spde$n.spde)
+              stk <- inla.stack(data=list(y=y), A=list(A, 1),
+                                effects=list(idx, list(b0=rep(1, n))), tag="e")
+              inla(y ~ 0 + b0 + f(s, model=spde), family="gaussian",
+                   data=inla.stack.data(stk),
+                   control.predictor=list(A=inla.stack.A(stk)),
+                   control.inla=list(int.strategy="ccd"), num.threads=nt) }
+          )
+
+          # per-fit timeout guard: onTimeout->error, caught by the caller and gated as FAIL.
+          fit_one <- function(fn, nt) withTimeout(fn(nt), timeout=PERFIT, onTimeout="error")
+
+          allok      <- TRUE
+          maxrel_fx  <- 0   # worst fixed-effect-mean reldiff across all models/configs
+          maxrel_hy  <- 0   # worst hyperpar-median reldiff across all models/configs
+          timing     <- list()
+
+          for (mn in names(models)) {
+            cat("\n=================== MODEL:", mn, "===================\n")
+            base_fx <- base_hy <- NULL
+            for (cfg in configs) {
+              cat(sprintf("--- %s | num.threads=%s (requested) ---\n", mn, cfg))
+              t0 <- proc.time()[["elapsed"]]
+              r <- tryCatch(fit_one(models[[mn]], cfg),
+                            error=function(e){cat("  FIT ERROR:", conditionMessage(e), "\n"); NULL})
+              el <- proc.time()[["elapsed"]] - t0
+              timing[[length(timing)+1]] <- data.frame(model=mn, config=cfg, seconds=round(el,2))
+              if (is.null(r)) { cat("  RESULT: FAIL (error/timeout)\n"); allok <- FALSE; next }
+              fx <- if (!is.null(r$summary.fixed)    && nrow(r$summary.fixed))    r$summary.fixed[,"mean"]      else numeric(0)
+              hy <- if (!is.null(r$summary.hyperpar) && nrow(r$summary.hyperpar)) r$summary.hyperpar[,"0.5quant"] else numeric(0)
+              cat(sprintf("  wall=%.2fs  fixed(mean)=[%s]  hyper(median)=[%s]\n", el,
+                          paste(sprintf("%.5g", fx), collapse=", "),
+                          paste(sprintf("%.5g", hy), collapse=", ")))
+              if (!(all(is.finite(fx)) && all(is.finite(hy)))) {
+                cat("  RESULT: FAIL (non-finite mean/hyperpar)\n"); allok <- FALSE; next }
+              if (cfg == "1:1") { base_fx <- fx; base_hy <- hy; cat("  RESULT: OK (serial baseline)\n"); next }
+              if (is.null(base_fx)) { cat("  RESULT: FAIL (no 1:1 baseline to compare against)\n"); allok <- FALSE; next }
+              reld <- function(cur, base) if (length(base)) max(abs(cur - base) / pmax(abs(base), FLOORV)) else 0
+              rfx <- reld(fx, base_fx); rhy <- reld(hy, base_hy)
+              maxrel_fx <- max(maxrel_fx, rfx); maxrel_hy <- max(maxrel_hy, rhy)
+              ok_fx <- rfx < RTOL_FIXED; ok_hy <- rhy < RTOL_HYPER
+              cat(sprintf("  reldiff vs 1:1: fixed(mean)=%.2e (tol %.0e)  hyper(median)=%.2e (tol %.0e)\n",
+                          rfx, RTOL_FIXED, rhy, RTOL_HYPER))
+              if (ok_fx && ok_hy) cat("  RESULT: OK\n")
+              else {
+                if (!ok_fx) cat("  RESULT: FAIL (fixed-effect mean exceeds tol -> gross disagreement, likely a real bug)\n")
+                if (!ok_hy) cat("  RESULT: FAIL (hyperpar median exceeds tol -> gross disagreement, likely a real bug)\n")
+                allok <- FALSE
+              }
+            }
+          }
+
+          cat("\n===== TIMING (wall seconds; NON-gating) =====\n")
+          print(do.call(rbind, timing), row.names=FALSE)
+          cat(sprintf("\n===== MAX multithread-vs-1:1 reldiff across ALL models/configs =====\n"))
+          cat(sprintf("      fixed-effect mean : %.3e  (tol %.0e, margin %.1fx)\n",
+                      maxrel_fx, RTOL_FIXED, RTOL_FIXED/max(maxrel_fx, 1e-12)))
+          cat(sprintf("      hyperpar median   : %.3e  (tol %.0e, margin %.1fx)\n",
+                      maxrel_hy, RTOL_HYPER, RTOL_HYPER/max(maxrel_hy, 1e-12)))
+
+          if (allok) { cat("=== MT-SMOKE: ALL CONFIGS OK ===\n"); quit(save="no", status=0L) }
+          cat("=== MT-SMOKE: FAILURES DETECTED (see 'RESULT: FAIL' line(s) above) ===\n")
+          quit(save="no", status=1L)
+          MTEOF
+
+          # Outer HARD hang backstop: if the engine deadlocks under OpenMP and wedges a
+          # system2() call the R-level withTimeout can't interrupt, this kills it and the
+          # job FAILS (non-zero) rather than waiting forever.
+          timeout 1800 Rscript mt-smoke.R 2>&1 | tee mt-smoke.log
+          rc=${PIPESTATUS[0]}
+          echo "mt-smoke exit: $rc"
+          test "$rc" -eq 0 || { echo "MT-SMOKE GATE FAILED (crash/hang/non-finite/gross-disagreement) — see 'RESULT: FAIL' above"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mt-smoke-log
+          path: mt-smoke.log
+          if-no-files-found: warn
