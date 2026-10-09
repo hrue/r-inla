@@ -193,6 +193,7 @@ int inla_sread_str_int(char **tag, int *i, const char *str)
 
 int inla_sread_str_str(char **tag, int nmax, char *str)
 {
+	// TAG0:TAG1:TAG2
 	char *strtok_ptr = NULL, *token = NULL;
 	const char *delim = ":";
 	char *p = Strdup(str);
@@ -201,6 +202,26 @@ int inla_sread_str_str(char **tag, int nmax, char *str)
 	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
 		p = NULL;
 		tag[i++] = Strdup(token);
+		if (i == nmax)
+			break;
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int inla_sread_str_str_rprior(char **tag, int nmax, char *str)
+{
+	// TAG0:TAG1|TAG2
+	char *strtok_ptr = NULL, *token = NULL;
+	char *delim1 = ":";
+	char *delim2 = "|";
+	char *delim = delim1;
+	char *p = Strdup(str);
+	int i = 0;
+
+	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
+		p = NULL;
+		tag[i++] = Strdup(token);
+		delim = delim2;
 		if (i == nmax)
 			break;
 	}

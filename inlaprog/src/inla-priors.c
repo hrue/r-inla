@@ -1581,7 +1581,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 	} else if (!strncasecmp(prior->name, "RPRIOR:", strlen("RPRIOR:"))) {
 		prior->id = P_RPRIOR;
 		char *tag[3] = { NULL, NULL, NULL, };
-		inla_sread_str_str(tag, 3, prior->name);       // rprior:RPRIOR_FUNCTION:FILENAME
+		inla_sread_str_str_rprior(tag, 3, prior->name);       // rprior:RPRIOR_FUNCTION|FILENAME
 		prior->rprior = Strdup(tag[1]);
 		GMRFLib_sprintf(&(prior->name), "%s:%s", tag[0], tag[1]);
 		GMRFLib_sprintf(&(prior->expression), "%s:%s", tag[0], tag[1]);

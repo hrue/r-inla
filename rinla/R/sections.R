@@ -124,7 +124,7 @@ inla.parse.Bmatrix.test <- function() {
                             sep = ""
                             ))
             fnm <- gsub(data.dir, "$inladatadir", file.rprior, fixed = TRUE)
-            cat(prefix, "prior", suff, " = ", "rprior:", prior.name, ":", fnm, "\n", sep = "", file = file, append = TRUE)
+            cat(prefix, "prior", suff, " = ", "rprior:", prior.name, "|", fnm, "\n", sep = "", file = file, append = TRUE)
             rm(prior.name) 
             cat(prefix, "parameters", suff, " = ", "", "\n", file = file, append = TRUE, sep = "")
         } else {
