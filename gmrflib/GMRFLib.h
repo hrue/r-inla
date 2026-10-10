@@ -200,7 +200,6 @@
 #       include "GMRFLib/fit-sn.h"
 
 __BEGIN_DECLS
-
 #       if defined(INLA_WITH_MKL)
 void vdPowx(int n, const double *x, const double a, double *y);
 void vdAbs(int, const double *, double *);

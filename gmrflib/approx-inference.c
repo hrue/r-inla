@@ -1560,7 +1560,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 									    "*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
 								    fprintf(stderr,
 									    "*** Please rerun with possible improved initial values or do other changes!!!\n");
-								    fprintf(stderr, "***\n"); fprintf(stderr, "\n\n"););
+								    fprintf(stderr, "***\n");
+								    fprintf(stderr, "\n\n");
+						    );
 						break;
 						// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter,
 						// GMRFLib_EMISC);
@@ -1659,7 +1661,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 							    fprintf(stderr,
 								    "\t*** WARNING *** This have consequence for the accurancy of the hyperpar\n");
 							    fprintf(stderr, "\t*** WARNING *** Continue with a diagonal Hessian.\n");
-							    fprintf(stderr, "\n"););
+							    fprintf(stderr, "\n");
+					    );
 					char *msg = NULL;
 					GMRFLib_sprintf(&msg,
 							"Hessian.eigen.value[%1d] = %.3f < 0. This is usually a sign of a ill-defined model and/or non-informative data.",
@@ -7898,7 +7901,8 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp **density, int idx,
 				{
 					LOG_WARNING_WRAPPER(fprintf(stderr, "\n\tGMRFLib_ai_marginal_one_hyperparamter: warning:\n");
 							    fprintf(stderr, "\t\tMaximum number of function evaluations is reached\n");
-							    fprintf(stderr, "\t\ti=%1d, point=%g, thread=%1d\n", i, points[i], thread););
+							    fprintf(stderr, "\t\ti=%1d, point=%g, thread=%1d\n", i, points[i], thread);
+					    );
 				}
 			}
 			// printf("eval points %.12g ldens %.12g REF %.12g\n", points[i], ldens_values[i], -0.5*SQR(points[i]));

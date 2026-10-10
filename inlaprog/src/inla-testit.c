@@ -111,10 +111,10 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 	return (i == j ? 2 * g->n : -1.0);
 }
 
-#if !defined(__cplusplus)
+#       if !defined(__cplusplus)
 // Force the compiler to keep this symbol even with aggressive LTO enabled
 __attribute__((used)) __attribute__((visibility("default")))
-#endif
+#       endif
 #       if defined(__cplusplus)
 extern "C"
 #       endif
@@ -4124,10 +4124,10 @@ int testit(int argc, char **argv)
 		const int m = sizeof(a) / sizeof(double);
 		double yy[n], aa[m];
 
-		for(int i = 0; i < n; i++){
+		for (int i = 0; i < n; i++) {
 			iainv[ia[i]] = i;
 		}
-		
+
 		GMRFLib_pack(n, a, ia, iainv, yy);
 		for (int i = 0; i < n; i++) {
 			printf("pack: i %d y %g yy %g\n", i, y[i], yy[i]);
@@ -7191,21 +7191,21 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 217: 
+	case 217:
 	{
 		const char *text = "hello world";
 		uint8_t buf[GMRFLib_SHA_DIGEST_LEN];
 		GMRFLib_SHA_TP ctx;
-		
+
 		GMRFLib_SHA_Init(&ctx);
 		GMRFLib_SHA_Update(&ctx, (const uint8_t *) text, strlen(text));
 		GMRFLib_SHA_Final(&ctx, buf);
 
-#if defined(INLA_WITH_OPENSSL)
+#       if defined(INLA_WITH_OPENSSL)
 		printf("Use openssl depreciated functions\n");
-#else		
+#       else
 		printf("Use stand-alone implementation\n");
-#endif
+#       endif
 		printf("Result is       SHA256: ");
 		for (int i = 0; i < GMRFLib_SHA_DIGEST_LEN; i++) {
 			printf("%02x", buf[i]);
@@ -7215,8 +7215,8 @@ int testit(int argc, char **argv)
 		printf("\necho -n hello world | sha256sum' gives: \n");
 		int POSSIBLY_UNUSED(ret) = system("echo -n '                        '; echo -n hello world | sha256sum");
 	}
-	break;
-		
+		break;
+
 	default:
 	{
 		printf("\nNo such test: %d\n", test_no);

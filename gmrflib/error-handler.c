@@ -64,7 +64,8 @@ int GMRFLib_error_handler(const char *reason, const char *UNUSED(file), const ch
 	 */
 #pragma omp critical (Name_4453a13661839971e03f4d0f5d5428b0e548a84a)
 	{
-		LOG_ERROR_WRAPPER(fprintf(stderr, "\n\n\tGitId: %s\n", __GMRFLib_symbol_to_string(GITCOMMIT)); if (reason) {
+		LOG_ERROR_WRAPPER(fprintf(stderr, "\n\n\tGitId: %s\n", __GMRFLib_symbol_to_string(GITCOMMIT));
+				  if (reason) {
 				  fprintf(stderr, "\tError:%1d Reason: %s\n", errorno, reason);}
 				  if (msg) {
 				  fprintf(stderr, "\tMessage: %s\n", msg);}

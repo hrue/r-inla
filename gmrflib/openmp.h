@@ -24,7 +24,7 @@
 #                     include <omp.h>
 #              endif
 #       else
-#              include <omp.h> 
+#              include <omp.h>
 #       endif
 
 __BEGIN_DECLS typedef struct {
