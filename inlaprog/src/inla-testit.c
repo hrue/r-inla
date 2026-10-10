@@ -7217,6 +7217,29 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+        case 218:
+        {
+                LOG_INFO("This is a info statement: %d\n", 1);
+                LOG_WARNING("This is a warning statement: %d\n", 2);
+                LOG_ERROR("This is an error statement: %d\n", 3);
+
+                LOG_INFO_WRAPPER(
+                        fprintf(stderr, "Wrap info line 1\n");
+                        fprintf(stderr, "Wrap info line 2\n");
+                        );
+
+                LOG_WARNING_WRAPPER(
+                        fprintf(stderr, "Wrap warning line 1\n");
+                        fprintf(stderr, "Wrap warning line 2\n");
+                        );
+
+                LOG_ERROR_WRAPPER(
+                        fprintf(stderr, "Wrap error line 1\n");
+                        fprintf(stderr, "Wrap error line 2\n");
+                        );
+        }
+	break;
+	
 	default:
 	{
 		printf("\nNo such test: %d\n", test_no);
