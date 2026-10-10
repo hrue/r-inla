@@ -65,9 +65,8 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 double GMRFLib_dsum_ext(int n, double *x)
 {
-#if defined(INLA_WITH_OPENBLAS) || defined(INLA_WITH_DSUM)
+#if defined(INLA_WITH_OPENBLAS)
 	double cblas_dsum(int, double *, int);
-
 	return cblas_dsum(n, x, 1);
 #elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
 	double alignas(64) r0 = 0.0;

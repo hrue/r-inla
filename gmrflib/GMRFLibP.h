@@ -24,7 +24,7 @@
 #       endif
 
 __BEGIN_DECLS
-#       if defined(INLA_WITH_COLORS)
+#       if defined(INLA_WITH_COLOR)
 // not sure this is a good idea
 #              if !defined(NDEBUG)
 #                     define ASSERT(expr) if (!(expr)) {	\
