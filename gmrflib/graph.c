@@ -168,9 +168,9 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 		/*
 		 * then there is something wrong; write a message and say so 
 		 */
-		fprintf(stderr, "\n\n\n");
-		fprintf(stderr, " *** Error in graph: n=%1d but min_node=%1d and max_node=%1d\n", (*graph)->n, min_node, max_node);
-		fprintf(stderr, " *** The position in reported in the file is not correct...\n");
+		LOG_ERROR_WRAPPER(fprintf
+				  (stderr, " *** Error in graph: n=%1d but min_node=%1d and max_node=%1d\n", (*graph)->n, min_node, max_node);
+				  fprintf(stderr, " *** The position in reported in the file is not correct...\n"););
 		GMRFLib_io_error(io, GMRFLib_IO_ERR_READLINE);
 		return GMRFLib_EREADFILE;
 	}
@@ -195,7 +195,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 			}
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
+	GMRFLib_graph_validate(stderr, *graph);
 
 	GMRFLib_graph_prepare(*graph);			       /* prepare the graph for computations */
 #undef TO_INT
@@ -374,7 +374,7 @@ int GMRFLib_graph_read_binary(GMRFLib_graph_tp **graph, const char *filename)
 		 * ok 
 		 */
 	} else {
-		fprintf(stderr, "\n\nmin_node = %1d max_node = %1d. this should not happen.\n", min_node, max_node);
+		LOG_ERROR("min_node = %1d max_node = %1d. this should not happen.\n", min_node, max_node);
 		GMRFLib_ERROR(GMRFLib_ESNH);
 	}
 

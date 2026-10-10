@@ -27,6 +27,21 @@ __BEGIN_DECLS
 
 /* 
  */
+#if defined(INLA_WITH_COLORS)
+#       if !defined(NDEBUG)
+#              define ASSERT(expr) if (!(expr)) {	\
+		GMRFLib_color_start_error();		\
+		assert(expr);				\
+		GMRFLib_color_reset();			\
+	}
+#       else
+#              define ASSERT(...) assert(__VA_ARGS__)
+#       endif
+#else
+#              define ASSERT(...) assert(__VA_ARGS__)
+#endif
+
+// 
 #       if __GNUC__ > 7
 #              define FORTRAN_CHARLEN_T size_t
 #       else
@@ -48,13 +63,13 @@ __BEGIN_DECLS
 #              define POSSIBLY_UNUSED(x) x
 #       endif
 #       if 1
-#ifdef __cplusplus
-#  define aligned_double double __attribute__((aligned(64)))
-#  define aligned_int double __attribute__((aligned(64)))
-#else
-#  define aligned_double alignas(64) double
-#  define aligned_int alignas(64) int
-#endif
+#              ifdef __cplusplus
+#                     define aligned_double double __attribute__((aligned(64)))
+#                     define aligned_int double __attribute__((aligned(64)))
+#              else
+#                     define aligned_double alignas(64) double
+#                     define aligned_int alignas(64) int
+#              endif
 #       else
 #              define aligned_double double
 #              define aligned_int    int

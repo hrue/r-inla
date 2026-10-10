@@ -34,38 +34,46 @@ void set_terminal_color(TerminalColor color)
 		}
 #endif
 	} else {
+		// Use modern high-intensity ANSI strings (Works on macOS, Linux, and Modern Windows CMD)
 		switch (color) {
-		case COLOR_STRONG_RED:
-			fprintf(stderr, "\x1b[1;31m");
+		case COLOR_BG_RED_FG_WHITE:
+			fprintf(stderr, "\x1b[41m\x1b[1;97m"); // Red Background + Bold White Text
 			break;
-		case COLOR_STRONG_BLUE:
-			fprintf(stderr, "\x1b[94m");
+		case COLOR_BG_BLUE_FG_WHITE:
+			fprintf(stderr, "\x1b[44m\x1b[1;97m"); // Blue Background + Bold White Text
 			break;
 		case COLOR_RESET:
 		default:
-			fprintf(stderr, "\x1b[0m");
+			fprintf(stderr, "\x1b[0m");           // Full style reset
 			break;
 		}
 	}
 }
 
 // 3. The Core Quality Logging Macros
-// Strong Red Logging Wrapper
+// Error Macro: Full red background block with bold white text
 #define LOG_ERROR(fmt, ...) do {					\
-		set_terminal_color(COLOR_STRONG_RED);			\
-		fprintf(stderr, "***ERROR*** " fmt "\n", ##__VA_ARGS__); \
+		set_terminal_color(COLOR_BG_RED_FG_WHITE);		\
+		fprintf(stderr, " ERROR  " fmt " ", ##__VA_ARGS__);	\
 		set_terminal_color(COLOR_RESET);			\
+		fprintf(stderr, "\n");					\
 	} while(0)
 
-// Strong Blue Logging Wrapper
-#define LOG_WARNING(fmt, ...) do {						\
-		set_terminal_color(COLOR_STRONG_BLUE);			\
-		fprintf(stderr, "***INFO***  " fmt "\n", ##__VA_ARGS__); \
+// Warning/Info Macro: Full blue background block with bold white text
+#define LOG_WARNING(fmt, ...) do {					\
+		set_terminal_color(COLOR_BG_BLUE_FG_WHITE);		\
+		fprintf(stderr, "  INFO  " fmt " ", ##__VA_ARGS__);	\
 		set_terminal_color(COLOR_RESET);			\
+		fprintf(stderr, "\n");					\
 	} while(0)
 
 int main()
 {
+	// Initialize Windows Console Mode for ANSI sequences if applicable
+	if (PLATFORM_WINDOWS) {
+		init_terminal_processing();
+	}
+
 	// Dynamic initialization variables for simulation
 	char *subsystem = "GMRFLib";
 	int connection_id = 1047;

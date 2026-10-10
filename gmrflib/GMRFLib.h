@@ -17,10 +17,10 @@
 
 #       include "GMRFLib/alloc.h"
 
-#if !defined(_DEFAULT_SOURCE)
-#define _DEFAULT_SOURCE
-#endif
-#include <stdlib.h>
+#       if !defined(_DEFAULT_SOURCE)
+#              define _DEFAULT_SOURCE
+#       endif
+#       include <stdlib.h>
 
 #       include <stdalign.h>
 #       include <errno.h>
@@ -150,6 +150,7 @@
 
 #       include "GMRFLib/GMRFLibP.h"
 #       include "GMRFLib/alloc.h"
+#       include "GMRFLib/color.h"
 #       include "GMRFLib/sha.h"
 #       include "GMRFLib/init.h"
 #       include "GMRFLib/fsort.h"
@@ -199,6 +200,7 @@
 #       include "GMRFLib/fit-sn.h"
 
 __BEGIN_DECLS
+
 #       if defined(INLA_WITH_MKL)
 void vdPowx(int n, const double *x, const double a, double *y);
 void vdAbs(int, const double *, double *);
