@@ -39,13 +39,11 @@ extern char *GMRFLib_tmpdir;
 
 __BEGIN_DECLS
 //
-
 #define MATHLIB_STANDALONE
 #if defined(ISNAN)
-#undef ISNAN
+#       undef ISNAN
 #endif
-#include <Rmath.h> // define gammafn/bessel_k
-
+#include <Rmath.h>					       // define gammafn/bessel_k
 char *Strdup(const char *s);
 int my_file_exists(const char *filename);
 int my_dir_exists(const char *filename);
@@ -173,7 +171,7 @@ static void inla_R_dlopen_(void)
 	p_Rf_ScalarLogical = (SEXP(*)(int)) (intptr_t) inla_R_dlsym_("Rf_ScalarLogical", NULL);
 	p_Rf_allocVector = (SEXP(*)(unsigned int, R_xlen_t)) (intptr_t) inla_R_dlsym_("Rf_allocVector", NULL);
 	p_R_tryEval = (SEXP(*)(SEXP, SEXP, int *)) (intptr_t) inla_R_dlsym_("R_tryEval", NULL);
-	p_REAL = (double *(*)(SEXP)) (intptr_t) inla_R_dlsym_("REAL", NULL);
+	p_REAL = (double *(*)(SEXP))(intptr_t) inla_R_dlsym_("REAL", NULL);
 	p_XLENGTH = (R_xlen_t(*)(SEXP)) (intptr_t) inla_R_dlsym_("XLENGTH", "Rf_xlength");
 	p_SET_STRING_ELT = (void (*)(SEXP, R_xlen_t, SEXP)) (intptr_t) inla_R_dlsym_("SET_STRING_ELT", NULL);
 	p_Rf_initEmbeddedR = (int (*)(int, char **)) (intptr_t) inla_R_dlsym_("Rf_initEmbeddedR", NULL);
@@ -196,7 +194,7 @@ static void inla_R_dlopen_(void)
 double Rf_gammafn(double x)
 {
 	return gammafn(x);
-	//return exp(lgamma(x));
+	// return exp(lgamma(x));
 }
 
 double Rf_bessel_k(double x, double alpha, double expo)

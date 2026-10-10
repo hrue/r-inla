@@ -1535,31 +1535,34 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 					if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
 						if (ai_par->fp_log) {
-							fprintf(stderr,
-								"\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break\n");
+							LOG_WARNING("Mode is not accurate yet but we have reached the rounding error level. Break");
 						}
 						break;
 					}
 
 					if (log_dens_mode_save == log_dens_mode) {
 						if (ai_par->fp_log) {
-							fprintf(stderr, "\n\n*** Hessian failed but no better mode found\n");
+							LOG_WARNING("Hessian failed but no better mode found");
 						}
 					}
 					// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
 					log_dens_mode_save = log_dens_mode;
 
 					if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
-						fprintf(stderr, "\n\n");
-						fprintf(stderr, "***\n");
-						fprintf(stderr, "*** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
-						fprintf(stderr, "***\n");
-						fprintf(stderr, "*** Mode not found using the stupid local search strategy; I give up.\n");
-						fprintf(stderr,
-							"*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
-						fprintf(stderr, "*** Please rerun with possible improved initial values or do other changes!!!\n");
-						fprintf(stderr, "***\n");
-						fprintf(stderr, "\n\n");
+						LOG_WARNING_WRAPPER(fprintf(stderr, "\n\n");
+								    fprintf(stderr, "***\n");
+								    fprintf(stderr,
+									    "*** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
+								    fprintf(stderr, "***\n");
+								    fprintf(stderr,
+									    "*** Mode not found using the stupid local search strategy; I give up.\n");
+								    fprintf(stderr,
+									    "*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
+								    fprintf(stderr,
+									    "*** Please rerun with possible improved initial values or do other changes!!!\n");
+								    fprintf(stderr, "***\n");
+								    fprintf(stderr, "\n\n");
+						    );
 						break;
 						// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter,
 						// GMRFLib_EMISC);
@@ -1652,13 +1655,15 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			if (eigv < 0.0) {
 #pragma omp critical (Name_5de6e658f0ecd07258a12caddb9702c5fdf878dc)
 				{
-					fprintf(stderr, "\n");
-					fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
-					fprintf(stderr, "\t*** WARNING *** This have consequence for the accurancy of the hyperpar\n");
-					fprintf(stderr, "\t*** WARNING *** Continue with a diagonal Hessian.\n");
-					fprintf(stderr, "\n");
+					LOG_WARNING_WRAPPER(fprintf(stderr, "\n");
+							    fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i,
+								    eigv);
+							    fprintf(stderr,
+								    "\t*** WARNING *** This have consequence for the accurancy of the hyperpar\n");
+							    fprintf(stderr, "\t*** WARNING *** Continue with a diagonal Hessian.\n");
+							    fprintf(stderr, "\n");
+					    );
 					char *msg = NULL;
-
 					GMRFLib_sprintf(&msg,
 							"Hessian.eigen.value[%1d] = %.3f < 0. This is usually a sign of a ill-defined model and/or non-informative data.",
 							i, eigv);
@@ -1695,8 +1700,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				 * if all eigenvalues are negative, just set the Hessian to a diagonal matrix, and go on... 
 				 */
 
-				fprintf(stderr,
-					"\n\t*** WARNING *** R-inla: All eigenvalues of the Hessian are negative. Move on with Hessian = Identity\n\n");
+				LOG_WARNING("All eigenvalues of the Hessian are negative. Move on with Hessian = Identity");
 				GMRFLib_dfill(ISQR(nhyper), 0.0, hessian);
 				for (int i = 0; i < nhyper; i++)
 					hessian[i + i * nhyper] = 1.0;
@@ -7895,9 +7899,10 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp **density, int idx,
 			if (retval) {
 #pragma omp critical (Name_8a7281e161252d30ef221c00a3554c5a81e762b4)
 				{
-					fprintf(stderr, "\n\tGMRFLib_ai_marginal_one_hyperparamter: warning:\n");
-					fprintf(stderr, "\t\tMaximum number of function evaluations is reached\n");
-					fprintf(stderr, "\t\ti=%1d, point=%g, thread=%1d\n", i, points[i], thread);
+					LOG_WARNING_WRAPPER(fprintf(stderr, "\n\tGMRFLib_ai_marginal_one_hyperparamter: warning:\n");
+							    fprintf(stderr, "\t\tMaximum number of function evaluations is reached\n");
+							    fprintf(stderr, "\t\ti=%1d, point=%g, thread=%1d\n", i, points[i], thread);
+					    );
 				}
 			}
 			// printf("eval points %.12g ldens %.12g REF %.12g\n", points[i], ldens_values[i], -0.5*SQR(points[i]));

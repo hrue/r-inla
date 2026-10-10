@@ -314,7 +314,7 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 
 #if defined(INLA_WITH_OPENSSL)
 		printf("\t\tSHA256: Use implementation in openssl-library libcrypto\n");
-#else		
+#else
 		printf("\t\tSHA256: Use internal implementation\n");
 #endif
 

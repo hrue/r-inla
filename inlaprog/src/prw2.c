@@ -386,7 +386,7 @@ __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 {
 #define MVAL 4L
-	
+
 	// return Q with prec = 1
 	int n = arg->n;
 	double range = GMRFLib_SET_RANGE(arg);
@@ -479,7 +479,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	}
 #endif
 
-	double correction[MVAL*MVAL] = { 0 };
+	double correction[MVAL * MVAL] = { 0 };
 	for (int i = 0; i < MVAL; i++) {
 		for (int j = i; j < MVAL; j++) {
 			double sum = 0.0;

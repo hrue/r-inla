@@ -111,11 +111,9 @@ extern char *GMRFLib_tmpdir;
 
 extern double GMRFLib_overall_cpu[8];
 
-extern int GMRFLib_daxpy_cutoff; 
+extern int GMRFLib_daxpy_cutoff;
 extern int GMRFLib_ddot_cutoff;
-extern int GMRFLib_dscale_cutoff; 
-
-
+extern int GMRFLib_dscale_cutoff;
 
 #       endif
 __END_DECLS

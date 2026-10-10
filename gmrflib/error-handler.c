@@ -62,18 +62,17 @@ int GMRFLib_error_handler(const char *reason, const char *UNUSED(file), const ch
 	/*
 	 * this is the default error-handler 
 	 */
-	fprintf(stderr, "\n\n\tGitId: %s\n", __GMRFLib_symbol_to_string(GITCOMMIT));
-	if (reason) {
-		fprintf(stderr, "\tError:%1d Reason: %s\n", errorno, reason);
+#pragma omp critical (Name_4453a13661839971e03f4d0f5d5428b0e548a84a)
+	{
+		LOG_ERROR_WRAPPER(fprintf(stderr, "\n\n\tGitId: %s\n", __GMRFLib_symbol_to_string(GITCOMMIT));
+				  if (reason) {
+				  fprintf(stderr, "\tError:%1d Reason: %s\n", errorno, reason);}
+				  if (msg) {
+				  fprintf(stderr, "\tMessage: %s\n", msg);}
+				  if (function) {
+				  fprintf(stderr, "\tLine:%1d Function: %s\n", line, function);}
+		);
 	}
-	if (msg) {
-		fprintf(stderr, "\tMessage: %s\n", msg);
-	}
-	if (function) {
-		fprintf(stderr, "\tLine:%1d Function: %s\n", line, function);
-	}
-	fprintf(stderr, "\n");
-
 	if (errorno != GMRFLib_SUCCESS) {
 		abort();				       /* no reason to abort if ok */
 	}
@@ -81,15 +80,10 @@ int GMRFLib_error_handler(const char *reason, const char *UNUSED(file), const ch
 	return errorno;
 }
 
-int GMRFLib_error_handler_null(const char *reason, const char *file, const char *function, int line, int errorno, const char *msg)
+int GMRFLib_error_handler_null(const char *UNUSED(reason), const char *UNUSED(file), const char *UNUSED(function),
+			       int UNUSED(line), int errorno, const char *UNUSED(msg))
 {
-	/*
-	 * gcc produce warnings here, so i have to fake some code to make them go away 
-	 */
-
-	int dummy = (reason || file || function || line == 0 || msg);
-
-	return (dummy ? errorno : errorno);
+	return errorno;
 }
 
 GMRFLib_error_handler_tp *GMRFLib_set_error_handler_off(void)

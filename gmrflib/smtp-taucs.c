@@ -964,7 +964,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 
 		if (!fast_copy) {
 			int *inv = Malloc(nnz, int);
-			for(int i = 0; i < nnz; i++) {
+			for (int i = 0; i < nnz; i++) {
 				inv[vperm[i]] = i;
 			}
 			cache->vperm = vperm;
@@ -1211,11 +1211,11 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 		// code, 25 is just a number, but it corresponds to: 'GMRFLib_idxval_tp *v = A_idx(node)', so in that respect its
 		// high. we should revisit this value later.
 		const int num = 25;
-		int nidx_lim = num * nrhs + 1;	
+		int nidx_lim = num * nrhs + 1;
 		int idx[nidx_lim];
 		int nidx = 0;
 		int small_N = (N <= 1E4);
-		
+
 		if (!small_N) {
 			for (int i = 0; i < N && nidx < nidx_lim; i++) {
 				if (!ISZERO(rhs[i])) {
@@ -1227,7 +1227,7 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 		if (!small_N && nidx < nidx_lim) {
 			// we have an almost-zero 'rhs' and we are in a 'non-small N'-case, so we just reorder the non-zero terms
 			GMRFLib_dfill(N, 0.0, work);
-			for(int i = 0; i < nidx; i++) {
+			for (int i = 0; i < nidx; i++) {
 				int k = idx[i];
 				work[r[k]] = rhs[k];
 			}
@@ -1236,7 +1236,7 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 			// enable this to check that the result above, 'work', is correct. DO NOT REMOVE
 			double *wtest = Calloc(N, double);
 			GMRFLib_convert_from_mapped(wtest, rhs, &g, rinv, r);
-			for(int i = 0; i < N; i++) {
+			for (int i = 0; i < N; i++) {
 				assert(wtest[i] == work[i]);
 			}
 			Free(wtest);
@@ -1911,7 +1911,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *RESTRICT vL, double *RESTRICT x, int 
 		GMRFLib_dscale2(nrhs, iAii, yy, xx);
 	}
 	Free(sum);
-	
+
 	if (!skip_reordering) {
 		Memcpy(work, x, n * nrhs * sizeof(double));
 		int ione = 1;

@@ -10,7 +10,6 @@
 #include <strings.h>
 #include <time.h>
 
-
 static GMRFLib_opt_arg_tp G;				       /* hold arguments */
 static int opt_setup = 0;
 
@@ -1034,8 +1033,10 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			 * There is a change 
 			 */
 			if (debug) {
-				fprintf(stderr, "\n%s: (II) Mode not found sufficiently accurate %.8g %.8g\n", __GMRFLib_FuncName, f_best_save,
-					B.f_best);
+				LOG_WARNING_WRAPPER(fprintf
+						    (stderr, "\n%s: (II) Mode not found sufficiently accurate %.8g %.8g\n", __GMRFLib_FuncName,
+						     f_best_save, B.f_best);
+				    );
 			}
 			ok = 0;
 		} else {
@@ -1310,8 +1311,11 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 				if (Adir->size1 == G.directions->size1 && Adir->size2 == G.directions->size2) {
 					gsl_matrix_memcpy(Adir, G.directions);
 				} else {
-					fprintf(stderr, "Direction matrix has wrong dimension, ignore. [(%1d,%1d) != (%1d,%1d)]\n",
-						(int) G.directions->size1, (int) G.directions->size2, (int) Adir->size1, (int) Adir->size2);
+					LOG_WARNING_WRAPPER(fprintf
+							    (stderr, "Direction matrix has wrong dimension, ignore. [(%1d,%1d) != (%1d,%1d)]\n",
+							     (int) G.directions->size1, (int) G.directions->size2, (int) Adir->size1,
+							     (int) Adir->size2);
+					    );
 				}
 			}
 			gsl_matrix_memcpy(A, Adir);

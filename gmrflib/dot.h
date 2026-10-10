@@ -21,8 +21,6 @@ __BEGIN_DECLS
 #       if defined(INLA_WITH_ARMPL)
 #              include "armpl_sparse.h"
 #       endif
-
-
 double GMRFLib_dsum(int n, double *x);
 double GMRFLib_dsum_ext(int n, double *x);
 double GMRFLib_sparse_ddot(int n, double *RESTRICT v, double *RESTRICT a, int *RESTRICT idx);
@@ -45,14 +43,14 @@ int GMRFLib_isum(int n, int *ix);
 static FORCEINLINE double GMRFLib_sparse_dsum_INLINE(int n, double *RESTRICT a, int *RESTRICT idx)
 {
 	double res = 0.0;
-#pragma omp simd reduction(+: res)
+#       pragma omp simd reduction(+: res)
 	for (int i = 0; i < n; i++) {
 		res += a[idx[i]];
 	}
 	return res;
 }
 
-#define SPARSE_DOT()					\
+#       define SPARSE_DOT()					\
 	double res = 0.0;				\
 	_Pragma("omp simd reduction(+:res)")		\
 	for (int i = 0; i < n; i++) {			\
@@ -63,12 +61,12 @@ static FORCEINLINE double GMRFLib_sparse_dsum_INLINE(int n, double *RESTRICT a, 
 static FORCEINLINE double GMRFLib_sparse_ddot_INLINE(int n, double *RESTRICT v, double *RESTRICT a, int *RESTRICT idx)
 {
 	// sum_i v[i] * a[idx[i]]
-#if defined(INLA_WITH_MKL)
+#       if defined(INLA_WITH_MKL)
 	if (n > 256) {
 		double cblas_ddoti(const int nz, const double *x, const int *indx, const double *y);
 		return cblas_ddoti(n, v, idx, a);
 	}
-#endif
+#       endif
 	SPARSE_DOT();
 }
 
