@@ -2952,7 +2952,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
 
     res <- rep(list(list()), length(models))
     
-    if (inla.os("windows")) {
+    if (inla.os("windows") || (interactive() && Sys.getenv("POSITRON") == "1")) {
         for(i in seq_along(models)) {
             res[[i]] <- inla.collect.results(models[i])
         }
