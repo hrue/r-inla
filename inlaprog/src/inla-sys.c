@@ -114,6 +114,7 @@ void inla_signal_func(int signum)
 		LOG_INFO("set GMRFLib_write_state = 1");
 		break;
 	default: 
+		break;
 	}
 }
 
