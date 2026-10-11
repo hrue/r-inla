@@ -26,6 +26,7 @@ __BEGIN_DECLS
 } GMRFLib_color_tp;
 
 // not yet convinced that this is the way to do this
+#if defined(INLA_WITH_COLOR)
 #       if defined(NDEBUG)
 #              define _assert(condition) ((void)0)
 #       else
@@ -34,6 +35,9 @@ __BEGIN_DECLS
 						  assert(condition), \
 						  0)))
 #       endif
+#else
+#define _assert(...) assert(__VA_ARGS__)
+#endif
 
 void GMRFLib_color_start_error(void);
 void GMRFLib_color_start_warning(void);
