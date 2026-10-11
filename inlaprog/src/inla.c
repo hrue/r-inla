@@ -7418,16 +7418,6 @@ double inla_sn_intercept(double intern_quantile, double skew)
 	return (map_invsn(intern_quantile, MAP_FORWARD, (void *) a3));
 }
 
-int inla_reset(void)
-{
-	// reset static variables various places as need need to call _ai_INLA() twice in preopt_mode
-
-	GMRFLib_opt_exit();
-	R_rgeneric_cputime = 0.0;
-
-	return GMRFLib_SUCCESS;
-}
-
 int main(int argc, char **argv)
 {
 #define _USAGE_intern(fp)  fprintf(fp, "\nUsage: %s [-v] [-V] [-h] [-f] [-eVAR=VALUE] [-tA:B] [-mMODE] FILE.INI\n", program)
@@ -7464,6 +7454,23 @@ int main(int argc, char **argv)
 	int disable_output = 0;
 	int num_p_cores = inla_num_p_cores();
 
+	atexit(inla_at_exit);
+
+#if defined(_WIN32)
+	SetConsoleCtrlHandler(inla_signal_func, TRUE);
+#else
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = inla_signal_func;
+	sigemptyset(&sa.sa_mask);
+	sigaction(SIGTERM, &sa, NULL);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+	sigaction(SIGABRT, &sa, NULL);
+	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGUSR2, &sa, NULL);
+#endif
+	
 	GMRFLib_numa_init();				       /* must init */
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = host_max_threads;	       // might be revised lated
@@ -7515,11 +7522,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-#if !defined(_WIN32)
-	signal(SIGUSR1, inla_signal);
-	signal(SIGUSR2, inla_signal);
-	signal(SIGINT, inla_signal);
-#endif
 	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:cpLP:WC")) != -1) {
 		switch (opt) {
 		case 'C':

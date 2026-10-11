@@ -2468,6 +2468,8 @@ int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);
 unsigned long long getTotalSystemMemory();
 void inla_signal(int sig);
+const char * inla_signal_name(int signum);
+
 
 int inla_theta_all_get_n(void);
 void inla_theta_all_init(inla_tp * mb);

@@ -43,27 +43,30 @@ void GMRFLib_color_reset(void);
 #       define LOG_ERROR(fmt, ...)					\
 	do {								\
 		GMRFLib_color_start_error();				\
-		fprintf(stderr, "***ERROR*** [%1d] %s:%1d (%s)\n",	\
+		fprintf(stderr, "*** ERROR *** [%1d] %s:%1d (%s)\n",	\
 			omp_get_thread_num(), __FILE__,  __LINE__, __GMRFLib_FuncName); \
-		fprintf(stderr, "***ERROR*** " fmt "", ##__VA_ARGS__); \
+		fprintf(stderr, "*** ERROR *** " fmt "", ##__VA_ARGS__); \
+		fprintf(stderr, "\n");					\
 		GMRFLib_color_reset();					\
 	} while(0)
 
 #       define LOG_WARNING(fmt, ...)					\
 	do {								\
 		GMRFLib_color_start_warning();				\
-		fprintf(stderr, "***WARNING*** [%1d] %s:%1d (%s)\n", omp_get_thread_num(), \
+		fprintf(stderr, "*** WARNING *** [%1d] %s:%1d (%s)\n", omp_get_thread_num(), \
 			__FILE__,  __LINE__, __GMRFLib_FuncName);	\
-		fprintf(stderr, "***WARNING*** " fmt "", ##__VA_ARGS__); \
+		fprintf(stderr, "*** WARNING *** " fmt "", ##__VA_ARGS__); \
+		fprintf(stderr, "\n");					\
 		GMRFLib_color_reset();					\
 	} while(0)
 
 #       define LOG_INFO(fmt, ...)					\
 	do {								\
 		GMRFLib_color_start_info();				\
-		fprintf(stderr, "***INFO*** [%1d] %s:%1d (%s)\n", omp_get_thread_num(), \
+		fprintf(stderr, "*** INFO *** [%1d] %s:%1d (%s)\n", omp_get_thread_num(), \
 			__FILE__,  __LINE__, __GMRFLib_FuncName);	\
-		fprintf(stderr, "***INFO*** " fmt "", ##__VA_ARGS__);	\
+		fprintf(stderr, "*** INFO *** " fmt "", ##__VA_ARGS__);	\
+		fprintf(stderr, "\n");					\
 		GMRFLib_color_reset();					\
 	} while(0)
 

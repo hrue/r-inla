@@ -84,29 +84,136 @@ unsigned long long getTotalSystemMemory()
 #endif
 
 #if defined(_WIN32)
-void inla_signal(int UNUSED(sig))
+
+BOOL WINAPI inla__signal_func(DWORD ctrl_type)
 {
-	/*
-	 * ... 
-	 */
-}
-#else
-void inla_signal(int sig)
-{
-	switch (sig) {
-	case SIGUSR1:
-		GMRFLib_write_state = 1;
-		fprintf(stdout, "\n\n*** set GMRFLib_write_state = 1\n\n");
-		break;
-	case SIGUSR2:
-		break;
-	default:
-		_exit(sig);
-		break;
+	if (ctrl_type == CTRL_C_EVENT || ctrl_type == CTRL_CLOSE_EVENT) {
+		GMRFLib_color_reset();
+		ExitProcess(EXIT_FAILURE); 
+		return TRUE;
 	}
-	return;
+	return FALSE;
 }
+
+#else
+
+void inla_signal_func(int signum)
+{
+	LOG_INFO("recieve signal %1d [%s]", signum, inla_signal_name(signum));
+	switch(signum) {
+	case SIGINT: 
+	case SIGQUIT: 
+	case SIGTERM: 
+	case SIGABRT: 
+		GMRFLib_color_reset();
+		_Exit(EXIT_FAILURE); 
+		break;
+	case SIGUSR1:
+	case SIGUSR2:
+		GMRFLib_write_state = 1;
+		LOG_INFO("set GMRFLib_write_state = 1");
+		break;
+	default: 
+	}
+}
+
 #endif
+
+const char * inla_signal_name(int signum) 
+{
+#define SIGNUM_MAX 64
+	static const char *signal_name[SIGNUM_MAX + 1];
+	int first = 1;
+	if (first) {
+#pragma omp critical (Name_402e8fe639d48275a2d0cf548398de05903335a5)
+		if (first) {
+			signal_name[0] = NULL;
+			signal_name[1] = "SIGHUP";
+			signal_name[2] = "SIGINT";
+			signal_name[3] = "SIGQUIT";
+			signal_name[4] = "SIGILL";
+			signal_name[5] = "SIGTRAP";
+			signal_name[6] = "SIGABRT";
+			signal_name[7] = "SIGBUS";
+			signal_name[8] = "SIGFPE";
+			signal_name[9] = "SIGKILL";
+			signal_name[10] = "SIGUSR1";
+			signal_name[11] = "SIGSEGV";
+			signal_name[12] = "SIGUSR2";
+			signal_name[13] = "SIGPIPE";
+			signal_name[14] = "SIGALRM";
+			signal_name[15] = "SIGTERM";
+			signal_name[16] = "SIGSTKFLT";
+			signal_name[17] = "SIGCHLD";
+			signal_name[18] = "SIGCONT";
+			signal_name[19] = "SIGSTOP";
+			signal_name[20] = "SIGTSTP";
+			signal_name[21] = "SIGTTIN";
+			signal_name[22] = "SIGTTOU";
+			signal_name[23] = "SIGURG";
+			signal_name[24] = "SIGXCPU";
+			signal_name[25] = "SIGXFSZ";
+			signal_name[26] = "SIGVTALRM";
+			signal_name[27] = "SIGPROF";
+			signal_name[28] = "SIGWINCH";
+			signal_name[29] = "SIGIO";
+			signal_name[30] = "SIGPWR";
+			signal_name[31] = "SIGSYS";
+			signal_name[34] = "SIGRTMIN";
+			signal_name[35] = "SIGRTMIN+1";
+			signal_name[36] = "SIGRTMIN+2";
+			signal_name[37] = "SIGRTMIN+3";
+			signal_name[38] = "SIGRTMIN+4";
+			signal_name[39] = "SIGRTMIN+5";
+			signal_name[40] = "SIGRTMIN+6";
+			signal_name[41] = "SIGRTMIN+7";
+			signal_name[42] = "SIGRTMIN+8";
+			signal_name[43] = "SIGRTMIN+9";
+			signal_name[44] = "SIGRTMIN+10";
+			signal_name[45] = "SIGRTMIN+11";
+			signal_name[46] = "SIGRTMIN+12";
+			signal_name[47] = "SIGRTMIN+13";
+			signal_name[48] = "SIGRTMIN+14";
+			signal_name[49] = "SIGRTMIN+15";
+			signal_name[50] = "SIGRTMAX-14";
+			signal_name[51] = "SIGRTMAX-13";
+			signal_name[52] = "SIGRTMAX-12";
+			signal_name[53] = "SIGRTMAX-11";
+			signal_name[54] = "SIGRTMAX-10";
+			signal_name[55] = "SIGRTMAX-9";
+			signal_name[56] = "SIGRTMAX-8";
+			signal_name[57] = "SIGRTMAX-7";
+			signal_name[58] = "SIGRTMAX-6";
+			signal_name[59] = "SIGRTMAX-5";
+			signal_name[60] = "SIGRTMAX-4";
+			signal_name[61] = "SIGRTMAX-3";
+			signal_name[62] = "SIGRTMAX-2";
+			signal_name[63] = "SIGRTMAX-1";
+			signal_name[64] = "SIGRTMAX";
+			first = 0;
+		}
+	}
+
+	if (signum >= 1 && signum <= SIGNUM_MAX) {
+		return signal_name[signum];
+	}
+	return NULL;
+}
+	
+int inla_reset(void)
+{
+	// reset static variables various places as need need to call _ai_INLA() twice in preopt_mode
+
+	GMRFLib_opt_exit();
+	R_rgeneric_cputime = 0.0;
+
+	return GMRFLib_SUCCESS;
+}
+
+void inla_at_exit(void)
+{
+	GMRFLib_color_reset();
+}
 
 int inla_endian(void)
 {
