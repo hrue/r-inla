@@ -20100,6 +20100,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			 * make required changes.  oops, the rankdef is for the size-n model, not the size-N one! 
 			 */
 			int ng = mb->f_ngroup[mb->nf];
+			_assert(ng > 0);
+
 			int Norig = mb->f_N[mb->nf];
 			GMRFLib_graph_tp *g = NULL;
 
