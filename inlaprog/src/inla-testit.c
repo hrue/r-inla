@@ -2,7 +2,7 @@
 
 int testit(int UNUSED(argc), char **UNUSED(argv))
 {
-	fprintf(stderr, "\n*** No testing-functions included in this build.\n\n");
+	fprintf(stderr, "\n*** No testing-functions are included in this build.\n\n");
 	return 0;
 }
 
@@ -7237,6 +7237,11 @@ int testit(int argc, char **argv)
                         fprintf(stderr, "Wrap error line 1\n");
                         fprintf(stderr, "Wrap error line 2\n");
                         );
+
+		FIXME("assert should not trigger");
+		_assert(1 == 1);
+		FIXME("assert should trigger");
+		_assert(1 == 0 && "1 == 0");
         }
 	break;
 	

@@ -6,7 +6,7 @@
 #include <string.h>
 
 // need FORTRAN_CHARLEN_T
-#include "GMRFLib/GMRFLibP.h"
+#include "GMRFLib/GMRFLib.h"
 
 void xerbla_(char *srname, int *info, FORTRAN_CHARLEN_T len)
 {

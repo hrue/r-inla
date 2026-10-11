@@ -4,6 +4,7 @@
 #       include <time.h>
 #       include <math.h>
 #       include <stdlib.h>
+#       include <assert.h>
 
 #       undef __BEGIN_DECLS
 #       undef __END_DECLS
@@ -24,33 +25,20 @@ __BEGIN_DECLS
 	COLOR_BG_GREEN_FG_WHITE
 } GMRFLib_color_tp;
 
-#       define GMRFLib_color_start_error()		  \
-	do {						  \
-		GMRFLib_color_set(COLOR_BG_RED_FG_WHITE); \
-		fprintf(stderr, "\n\n");		  \
-		fflush(stderr);				  \
-	} while (0)
+// not yet convinced that this is the way to do this
+#       if defined(NDEBUG)
+#              define _assert(condition) ((void)0)
+#       else
+#              define _assert(condition) ((void)((condition) ? 0 : \
+						 (GMRFLib_color_start_error(), \
+						  assert(condition), \
+						  0)))
+#       endif
 
-#       define GMRFLib_color_start_warning()		   \
-	do {						   \
-		GMRFLib_color_set(COLOR_BG_BLUE_FG_WHITE); \
-		fprintf(stderr, "\n\n");		   \
-		fflush(stderr);				   \
-	} while (0)
-
-#       define GMRFLib_color_start_info()			\
-	do {							\
-		GMRFLib_color_set(COLOR_BG_GREEN_FG_WHITE);	\
-		fprintf(stderr, "\n\n");			\
-		fflush(stderr);					\
-	} while (0)
-
-#       define GMRFLib_color_reset()		\
-	do {					\
-		GMRFLib_color_set(COLOR_RESET); \
-		fprintf(stderr, "\n\n");	\
-		fflush(stderr);			\
-	} while(0)
+void GMRFLib_color_start_error(void);
+void GMRFLib_color_start_warning(void);
+void GMRFLib_color_start_info(void);
+void GMRFLib_color_reset(void);
 
 #       define LOG_ERROR(fmt, ...)					\
 	do {								\
@@ -64,7 +52,8 @@ __BEGIN_DECLS
 #       define LOG_WARNING(fmt, ...)					\
 	do {								\
 		GMRFLib_color_start_warning();				\
-		fprintf(stderr, "***WARNING*** [%1d] %s:%1d (%s)\n", omp_get_thread_num(), __FILE__,  __LINE__, __GMRFLib_FuncName); \
+		fprintf(stderr, "***WARNING*** [%1d] %s:%1d (%s)\n", omp_get_thread_num(), \
+			__FILE__,  __LINE__, __GMRFLib_FuncName);	\
 		fprintf(stderr, "***WARNING*** " fmt "", ##__VA_ARGS__); \
 		GMRFLib_color_reset();					\
 	} while(0)
@@ -72,7 +61,8 @@ __BEGIN_DECLS
 #       define LOG_INFO(fmt, ...)					\
 	do {								\
 		GMRFLib_color_start_info();				\
-		fprintf(stderr, "***INFO*** [%1d] %s:%1d (%s)\n", omp_get_thread_num(), __FILE__,  __LINE__, __GMRFLib_FuncName); \
+		fprintf(stderr, "***INFO*** [%1d] %s:%1d (%s)\n", omp_get_thread_num(), \
+			__FILE__,  __LINE__, __GMRFLib_FuncName);	\
 		fprintf(stderr, "***INFO*** " fmt "", ##__VA_ARGS__);	\
 		GMRFLib_color_reset();					\
 	} while(0)

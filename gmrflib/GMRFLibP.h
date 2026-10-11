@@ -24,20 +24,6 @@
 #       endif
 
 __BEGIN_DECLS
-#       if defined(INLA_WITH_COLOR)
-// not sure this is a good idea
-#              if !defined(NDEBUG)
-#                     define ASSERT(expr) if (!(expr)) {	\
-		GMRFLib_color_start_error();			\
-		assert(expr);					\
-		GMRFLib_color_reset();				\
-	}
-#              else
-#                     define ASSERT(...) assert(__VA_ARGS__)
-#              endif
-#       else
-#              define ASSERT(...) assert(__VA_ARGS__)
-#       endif
 // 
 #       if __GNUC__ > 7
 #              define FORTRAN_CHARLEN_T size_t

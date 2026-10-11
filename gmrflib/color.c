@@ -12,6 +12,34 @@
 #endif
 
 #if defined(INLA_WITH_COLOR)
+
+void GMRFLib_color_core(GMRFLib_color_tp color)
+{
+	GMRFLib_color_set(color);
+	fprintf(stderr, "\n\n");
+	fflush(stderr);
+}
+
+void GMRFLib_color_start_error(void)
+{
+	GMRFLib_color_core(COLOR_BG_RED_FG_WHITE);
+}
+
+void GMRFLib_color_start_warning(void)
+{
+	GMRFLib_color_core(COLOR_BG_BLUE_FG_WHITE);
+}
+
+void GMRFLib_color_start_info(void)
+{
+	GMRFLib_color_core(COLOR_BG_GREEN_FG_WHITE);
+}
+
+void GMRFLib_color_reset(void)
+{
+	GMRFLib_color_core(COLOR_RESET);
+}
+
 int windows_ansi_ready = 0;
 void GMRFLib_color_init(void)
 {
@@ -96,7 +124,23 @@ void GMRFLib_color_set(GMRFLib_color_tp color)
 
 #else
 
-//  no colors, just use empty functions
+//  no colors, just define empty functions
+
+void GMRFLib_color_start_error(void)
+{
+}
+
+void GMRFLib_color_start_warning(void)
+{
+}
+
+void GMRFLib_color_start_info(void)
+{
+}
+
+void GMRFLib_color_reset(void)
+{
+}
 
 void GMRFLib_color_init(void)
 {
@@ -105,4 +149,5 @@ void GMRFLib_color_init(void)
 void GMRFLib_color_set(GMRFLib_color_tp UNUSED(color))
 {
 }
+
 #endif

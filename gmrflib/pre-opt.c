@@ -311,7 +311,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 				if (iv) {
 					if (iv->n && !LEGAL(iv->idx[iv->n - 1], nn)) {
 						LOG_ERROR("Illegal index in Alocal: idx.f = %1d idx = %1d n = %1d", jj, iv->idx[iv->n - 1], nn);
-						ASSERT(LEGAL(iv->idx[iv->n - 1], nn));
+						assert(LEGAL(iv->idx[iv->n - 1], nn));
 					}
 
 					for (int ii = 0; ii < iv->n; ii++) {
