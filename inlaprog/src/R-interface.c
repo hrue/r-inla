@@ -313,7 +313,7 @@ int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *
 			break;
 
 		default:
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 
 		R_rgeneric_cputime += GMRFLib_timer();
@@ -609,7 +609,7 @@ int inla_R_funcall2_(int *n_out, double **x_out, const char *function, const cha
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	assert(*n_out >= 0);
+	_assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {
@@ -661,7 +661,7 @@ int inla_R_funcall_jp_(int *n_out, double **x_out, const char *function, int *n,
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	assert(*n_out >= 0);
+	_assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {
@@ -738,7 +738,7 @@ int inla_R_get_(int *n_out, double **x_out, const char *variable)
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	assert(*n_out >= 0);
+	_assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {
@@ -787,7 +787,7 @@ int inla_R_rgeneric_(int *n_out, double **x_out, const char *cmd, const char *mo
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	assert(*n_out >= 0);
+	_assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {

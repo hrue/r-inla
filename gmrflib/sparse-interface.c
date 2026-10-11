@@ -111,7 +111,7 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 			Memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->s->na) * sizeof(double));
 		}
 	} else {
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -119,8 +119,8 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 
 int GMRFLib_csr_check(GMRFLib_csr_tp *M)
 {
-	assert(M->s->ia1 == NULL);
-	assert(M->s->ja1 == NULL);
+	_assert(M->s->ia1 == NULL);
+	_assert(M->s->ja1 == NULL);
 	return GMRFLib_SUCCESS;
 }
 
@@ -178,7 +178,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 		k += graph->lnnbs[i];
 		Ms->ia[i + 1] = Ms->ia[i] + (1 + graph->lnnbs[i]);
 	}
-	assert(Ms->ia[n] == na);
+	_assert(Ms->ia[n] == na);
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\
@@ -394,7 +394,7 @@ int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp **Qtab, GMRFLib_graph_tp **graph, GM
 			k++;
 		}
 	}
-	assert(k == csr->s->na);
+	_assert(k == csr->s->na);
 	GMRFLib_tabulate_Qfunc_from_list(Qtab, graph, csr->s->na, iarr, jarr, arr, csr->s->n, NULL);
 
 	Free(iarr);
@@ -461,7 +461,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *gr
 					break;
 				}
 			}
-			assert(k >= 0);
+			_assert(k >= 0);
 
 			GMRFLib_stiles_idx_tp stiles_idx = { k, 0, 0 };
 			sm_fact->remap = Malloc(graph->n, int);
@@ -564,7 +564,7 @@ int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRF
 		if (problem->stiles_idx->within_group < 0) {
 			problem->stiles_idx->within_group = omp_get_thread_num();
 		}
-		assert(problem->stiles_idx->within_group == omp_get_thread_num());
+		_assert(problem->stiles_idx->within_group == omp_get_thread_num());
 
 		ret = GMRFLib_stiles_build(problem->stiles_idx, thread_id, Qfunc, Qfunc_arg);
 		if (ret != GMRFLib_SUCCESS) {
@@ -910,7 +910,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			// printf("CALL with nrhs %1d and ntt_orig %1d ntt %1d\n", nrhs, ntt_orig, ntt);
 			// for(int i = 0; i < ntt_orig; i++) printf("\tthread %1d nrhs %1d\n", i, csize[i]);
 
-			assert(GMRFLib_isum(ntt, csize) == nrhs);
+			_assert(GMRFLib_isum(ntt, csize) == nrhs);
 			offset[0] = 0;
 			for (int i = 1; i < ntt; i++) {
 				offset[i] = offset[i - 1] + csize[i - 1] * graph->n;
@@ -975,7 +975,7 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_
 
 	case GMRFLib_SMTP_STILES:
 	{
-		assert(0 == 1 && "this case should not be relevant for stiles");
+		_assert(0 == 1 && "this case should not be relevant for stiles");
 		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, -1, 1 };
 		GMRFLib_stiles_set_idx(&stiles_idx, 1);
 		GMRFLib_stiles_solve_LLT(&stiles_idx, rhs);
@@ -1130,7 +1130,7 @@ int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, in
 
 	case GMRFLib_SMTP_STILES:
 	{
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 		break;
 

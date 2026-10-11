@@ -655,7 +655,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 #if defined(INLA_WITH_ARMPL)
 			armpl_status_t info = armpl_spvec_create_d(&(h->spvec), 0, h->idx[h->n - 1], h->n, h->idx, h->val, 0);
 
-			assert(info == ARMPL_STATUS_SUCCESS);
+			_assert(info == ARMPL_STATUS_SUCCESS);
 			h->preference = IDXVAL_SERIAL_ARMPL;
 #else
 			h->preference = IDXVAL_SERIAL;
@@ -757,8 +757,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		int len = g_istart[g] - istart;
 
 		if (len) {
-			assert(k + len <= len_i);
-			assert(k + len <= len_d);
+			_assert(k + len <= len_i);
+			_assert(k + len <= len_d);
 			Memcpy(new_idx + k, h->idx + istart, len * sizeof(int));
 			Memcpy(new_val + k, h->val + istart, len * sizeof(double));
 			k += len;
@@ -945,10 +945,10 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 #if defined(INLA_WITH_ARMPL)
 	armpl_status_t info = armpl_spvec_create_d(&(h->spvec), 0, h->idx[h->n - 1], h->n, h->idx, h->val, 0);
 
-	assert(info == ARMPL_STATUS_SUCCESS);
+	_assert(info == ARMPL_STATUS_SUCCESS);
 	if (!simple && (g_len[0] > 0 && g_1[0] == 0)) {
 		info = armpl_spvec_create_d(&(h->spvec_g), 0, h->g_idx[0][h->g_len[0] - 1], h->g_len[0], h->g_idx[0], h->g_val[0], 0);
-		assert(info == ARMPL_STATUS_SUCCESS);
+		_assert(info == ARMPL_STATUS_SUCCESS);
 	}
 #endif
 	for (int time = -ntimes; time < ntimes; time++) {
@@ -996,7 +996,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			P(value[0]);
 			P(value[1]);
 
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 	}
 
@@ -1023,7 +1023,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		h->dot_product_func = (GMRFLib_dot_product_tp *) ddot_group;
 		break;
 	default:
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	if (!GMRFLib_testit_mode) {
@@ -1186,12 +1186,12 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp *hold)
 		if (hold->spvec) {
 			armpl_status_t info = armpl_spvec_destroy(hold->spvec);
 
-			assert(info == ARMPL_STATUS_SUCCESS);
+			_assert(info == ARMPL_STATUS_SUCCESS);
 		}
 		if (hold->spvec_g) {
 			armpl_status_t info = armpl_spvec_destroy(hold->spvec_g);
 
-			assert(info == ARMPL_STATUS_SUCCESS);
+			_assert(info == ARMPL_STATUS_SUCCESS);
 		}
 #endif
 		Free(hold);
@@ -1223,7 +1223,7 @@ int GMRFLib_idx_nadd(GMRFLib_idx_tp **hold, int n, int *idx)
 		(*hold)->n_alloc += IMAX(n, IDX_ALLOC_INCREASE((*hold)->n));
 		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
 
-		assert((*hold)->idx);
+		_assert((*hold)->idx);
 	}
 	Memcpy((*hold)->idx + (*hold)->n, idx, n * sizeof(int));
 	(*hold)->n += n;
@@ -1329,8 +1329,8 @@ int GMRFLib_idx_overlap(GMRFLib_idx_tp *idx1, GMRFLib_idx_tp *idx2)
 
 	if (debug) {
 		FIXME("idx_overlap: check if sorted as debug = 1");
-		assert(GMRFLib_is_sorted_iinc(idx1->n, idx1->idx));
-		assert(GMRFLib_is_sorted_iinc(idx2->n, idx2->idx));
+		_assert(GMRFLib_is_sorted_iinc(idx1->n, idx1->idx));
+		_assert(GMRFLib_is_sorted_iinc(idx2->n, idx2->idx));
 	}
 	// this is fast check MAX(idx1) < MIN(idx2) or opposite
 	if ((idx1->idx[idx1->n - 1] < idx2->idx[0]) || (idx2->idx[idx2->n - 1] < idx1->idx[0])) {
@@ -1572,7 +1572,7 @@ GMRFLib_ptr_tp *GMRFLib_idx_split(GMRFLib_idx_tp *sel, int size)
 		GMRFLib_idx_nadd(&idx, d.rem, sel->idx + d.quot * size);
 		GMRFLib_ptr_add(&ptr, (void *) idx);
 	}
-	assert(ptr->n == NN);
+	_assert(ptr->n == NN);
 
 	return ptr;
 }
@@ -1664,7 +1664,7 @@ __attribute__((optimize("O3")))
 GMRFLib_idx_bitmap_tp *GMRFLib_idx_bitmap_get_core(int n, int *RESTRICT idx)
 {
 	// Return a alloced bitmap for IDX. ASSUME IDX is sorted.
-	assert(sizeof(size_t) == 8);
+	_assert(sizeof(size_t) == 8);
 
 	if (!idx || n == 0)
 		return NULL;
@@ -1801,7 +1801,7 @@ int GMRFLib_idx_ge_match_core(const int n, const int *RESTRICT idx, const GMRFLi
 	int r2 = GMRFLib_idx_ge_match_core_NEW(n, idx, bm, nmatches);
 
 	tref[1] += GMRFLib_timer();
-	assert(r1 == r2);
+	_assert(r1 == r2);
 
 	P(tref[1] / (tref[0] + tref[1]));
 	return r1;

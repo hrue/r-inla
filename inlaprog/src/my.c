@@ -96,7 +96,7 @@ double my_gsl_sf_lnfact(int x)
 		return lng[x];
 	}
 
-	assert(0 == 1);
+	_assert(0 == 1);
 	return NAN;
 }
 
@@ -122,7 +122,7 @@ int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result *result)
 {
 	// copy of gsl_sf_lnchoose_e
 
-	assert(m <= n);
+	_assert(m <= n);
 	if (m == n || m == 0) {
 		result->val = 0.0;
 		result->err = 0.0;
@@ -489,7 +489,7 @@ void my_lambert_W0s(int m, double *y, double *res)
 			if (ISZERO(y[k]) || ISNAN(y[k])) {
 				res[k] = y[k];
 			} else {
-				assert(0 == 1);
+				_assert(0 == 1);
 			}
 		}
 	}

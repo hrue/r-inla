@@ -19,9 +19,9 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 	int n = (int) A->size1;
 	int m = (int) A->size2;
 
-	assert((int) A->tda == m);
-	assert((int) B->tda == n);
-	assert((int) C->tda == n);
+	_assert((int) A->tda == m);
+	_assert((int) B->tda == n);
+	_assert((int) C->tda == n);
 	gsl_matrix_set_zero(C);
 
 	int block_m;
@@ -101,7 +101,7 @@ double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 {
 	size_t n = Q->size1;
 
-	assert(n == Q->size2);
+	_assert(n == Q->size2);
 	double sqr, sqr2;
 
 	sqr = 0.0;
@@ -166,7 +166,7 @@ double GMRFLib_gsl_ldnorm_x(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_
 		} else if (x) {
 			n = x->size;
 		} else {
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 		log_det_Q = 1.0;
 	} else {
@@ -276,7 +276,7 @@ int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix *S, 
 		gsl_matrix_set(M_, j_, i_, val_); \
 	}
 
-	assert(S->size1 == S->size2);
+	_assert(S->size1 == S->size2);
 	if (S->size1 == 0) {
 		return GMRFLib_SUCCESS;
 	}
@@ -558,7 +558,7 @@ double GMRFLib_gsl_rms(gsl_vector *a, gsl_vector *b)
 			rms += SQR(gsl_vector_get(a, i) - gsl_vector_get(b, i));
 		}
 	} else {
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 	return sqrt(rms / a->size);
 }
@@ -641,7 +641,7 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix *A)
 	size_t i;
 
 	L = GMRFLib_gsl_duplicate_matrix(A);
-	assert(L);
+	_assert(L);
 	gsl_linalg_cholesky_decomp(L);
 
 	for (i = 0; i < L->size1; i++) {
@@ -704,7 +704,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 	gsl_vector *x = NULL;
 	size_t i, n;
 
-	assert(A->size1 == A->size2);
+	_assert(A->size1 == A->size2);
 	n = A->size1;
 
 	L = GMRFLib_gsl_duplicate_matrix(A);
@@ -740,7 +740,7 @@ int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 	 * replace n x n matrix A with its generlized inverse.  if TOL > 0, use that tolerance. If rankdef is set, use that. If both are set, give an error.
 	 */
 
-	assert(A && (A->size1 == A->size2));
+	_assert(A && (A->size1 == A->size2));
 
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
 	gsl_matrix *V = gsl_matrix_alloc(A->size1, A->size2);
@@ -758,7 +758,7 @@ int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 	gsl_matrix_set_zero(M1);
 	gsl_matrix_set_zero(M2);
 
-	// assert(!(tol > 0.0 || (rankdef >= 0 && rankdef <= (int) A->size1)));
+	// _assert(!(tol > 0.0 || (rankdef >= 0 && rankdef <= (int) A->size1)));
 	if (tol > 0.0) {
 		for (i = 0; i < A->size1; i++) {
 			double s = gsl_vector_get(S, i);
@@ -770,8 +770,8 @@ int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 			}
 		}
 	} else {
-		assert(rankdef >= 0);
-		assert(rankdef <= (int) A->size1);
+		_assert(rankdef >= 0);
+		_assert(rankdef <= (int) A->size1);
 
 		double first = gsl_vector_get(S, 0);
 		double last = gsl_vector_get(S, A->size1 - 1);
@@ -919,7 +919,7 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 	 * method=1: s=1/max(min,s)
 	 */
 
-	assert(A && (A->size1 == A->size2));
+	_assert(A && (A->size1 == A->size2));
 	gsl_matrix *U = NULL;
 	gsl_vector *S = NULL;
 	gsl_eigen_symmv_workspace *work = NULL;
@@ -1047,7 +1047,7 @@ int GMRFLib_gsl_spd_solve_x(gsl_matrix *A, gsl_vector *b, gsl_vector *x, GMRFLib
 	gsl_vector *S = NULL;
 
 	if (store) {
-		assert(store->L);
+		_assert(store->L);
 		store->L->size1 = A->size1;
 		store->L->size2 = A->size2;
 		L = store->L;
@@ -1087,7 +1087,7 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 	 * try first a regular one, if fail, the try the svd one
 	 */
 
-	assert(A && (A->size1 == A->size2));
+	_assert(A && (A->size1 == A->size2));
 	if (try_first && *try_first) {
 		int ecode = GMRFLib_gsl_spd_solve_x(A, b, x, NULL);
 
@@ -1102,7 +1102,7 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 
 	const int debug = 0;
 
-	assert(tol >= 0.0);
+	_assert(tol >= 0.0);
 
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
 	gsl_vector *S = gsl_vector_alloc(A->size1);
@@ -1169,7 +1169,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 	 * if FORCE, then do not try spd_inverse first
 	 */
 
-	assert(A && (A->size1 == A->size2));
+	_assert(A && (A->size1 == A->size2));
 	if (try_first && *try_first) {
 		int ecode = GMRFLib_gsl_spd_inverse(A);
 
@@ -1184,7 +1184,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 
 	const int debug = 0;
 
-	assert(tol >= 0.0);
+	_assert(tol >= 0.0);
 
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
 	gsl_vector *S = gsl_vector_alloc(A->size1);
@@ -1324,8 +1324,8 @@ gsl_matrix *GMRFLib_gsl_low_rank_x(gsl_matrix *Cov, double tol, gsl_matrix *B, G
 	// Compute the low-rank representation in terms of x=Bz, where Cov(z)=I, from a given possible singular covariance matrix. We ignore
 	// contributions from eigenvalue < tol*max(eigenval)
 
-	assert(Cov && (Cov->size1 == Cov->size2));
-	assert(tol >= 0.0 && tol <= 1.0);
+	_assert(Cov && (Cov->size1 == Cov->size2));
+	_assert(tol >= 0.0 && tol <= 1.0);
 
 	size_t n = Cov->size1;
 	gsl_matrix *U = NULL;
@@ -1359,8 +1359,8 @@ gsl_matrix *GMRFLib_gsl_low_rank_x(gsl_matrix *Cov, double tol, gsl_matrix *B, G
 
 	double s_max = gsl_vector_max(S);
 
-	assert(s_max > 0.0);
-	assert(s_max == gsl_vector_get(S, 0));
+	_assert(s_max > 0.0);
+	_assert(s_max == gsl_vector_get(S, 0));
 
 	size_t m = 0;
 	double s_min = tol * s_max;
@@ -1413,9 +1413,9 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 
 	size_t n = Q_base->size1;
 
-	assert(n == Q_base->size2);
-	assert(n == Q->size2);
-	assert(n == Q->size2);
+	_assert(n == Q_base->size2);
+	_assert(n == Q->size2);
+	_assert(n == Q->size2);
 
 	gsl_matrix *U_base = GMRFLib_gsl_duplicate_matrix(Q_base);
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(Q);
@@ -1877,14 +1877,14 @@ int GMRFLib_ddot_tune(FILE *fp)
 			a = GMRFLib_ddot(n, x, y);
 			aa = GMRFLib_ddot(n, y, x);
 			tref[0] += GMRFLib_timer();
-			assert(ABS(a - aa) / sqrt(n) < FLT_EPSILON);
+			_assert(ABS(a - aa) / sqrt(n) < FLT_EPSILON);
 
 			GMRFLib_ddot_cutoff = 0;
 			tref[1] -= GMRFLib_timer();
 			a = GMRFLib_ddot(n, x, y);
 			aa = GMRFLib_ddot(n, y, x);
 			tref[1] += GMRFLib_timer();
-			assert(ABS(a - aa) / sqrt(n) < FLT_EPSILON);
+			_assert(ABS(a - aa) / sqrt(n) < FLT_EPSILON);
 		}
 
 		if (fp) {

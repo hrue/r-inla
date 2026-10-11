@@ -94,7 +94,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 
 	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
 	GMRFLib_graph_mk_empty(graph);
-	assert(graph);
+	_assert(graph);
 
 	GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &tmp, "%lf"));
 	TO_INT((*graph)->n, tmp);
@@ -103,8 +103,8 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 	(*graph)->nnbs = Calloc((*graph)->n + 1, int);
 	(*graph)->nbs = Calloc((*graph)->n + 1, int *);
 
-	assert((*graph)->nnbs);
-	assert((*graph)->nbs);
+	_assert((*graph)->nnbs);
+	_assert((*graph)->nbs);
 
 	min_node = INT_MAX;
 	max_node = INT_MIN;
@@ -563,7 +563,7 @@ int *GMRFLib_bsearch_5(int key, int n, int *array)
 	while (left <= right) {
 		int mid = left + (right - left) / 2;
 
-		assert(mid < n);
+		_assert(mid < n);
 		if (array[mid] == key) {
 			return array + mid;
 		} else if (array[mid] < key) {
@@ -610,7 +610,7 @@ int *GMRFLib_bsearch_timing(int key, int n, int *array)
 		p5 = GMRFLib_bsearch_5(key, n, array);
 		tref[4] += GMRFLib_timer();
 
-		assert(p1 == p2 && p1 == p3 && p1 == p4 && p1 == p5);
+		_assert(p1 == p2 && p1 == p3 && p1 == p4 && p1 == p5);
 		if (++trefc % 100000 == 0) {
 			double tmin = GMRFLib_min_value(tref, 5, NULL);
 
@@ -708,7 +708,7 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 	int N = graph->n + graph->nnz / 2;
 	int *row2col = Calloc(N, int);
 
-	assert(N > 0);
+	_assert(N > 0);
 
 #if 0
 	int *row = Calloc(graph->n + 1, int);
@@ -825,7 +825,7 @@ int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp *graph)
 		}							\
 		graph->snnbs[i] = k;					\
 		graph->snbs[i] = (k > 0 ? graph->nbs[i] : NULL);	\
-		assert(graph->snnbs[i] + graph->lnnbs[i] == graph->nnbs[i]); \
+		_assert(graph->snnbs[i] + graph->lnnbs[i] == graph->nnbs[i]); \
 	}
 
 	RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
@@ -1143,7 +1143,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 {
 	if (!remove_flag) {
 		if (node_map) {
-			assert(graph->n > 0);
+			_assert(graph->n > 0);
 			*node_map = Calloc(graph->n, int);
 #pragma omp simd
 			for (int i = 0; i < graph->n; i++) {
@@ -1221,7 +1221,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 				sg_iidx[i] = -1;	       /* to force a failure if used wrong */
 			}
 		}
-		assert(k == nn);
+		_assert(k == nn);
 		if (node_map) {
 			*node_map = nmap;
 		}
@@ -1402,14 +1402,14 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 	int run_parallel = (GMRFLib_Qx_strategy != 0);
 	double *values = NULL, res;
 
-	assert(result);
+	_assert(result);
 	GMRFLib_dfill(graph->n, 0.0, result);
 
 	int m = 1 + GMRFLib_graph_max_nnbs(graph);
 
 	Calloc_init(m + (!diag ? graph->n : 0), 2);
 	values = Calloc_get(m);
-	assert(values);
+	_assert(values);
 	if (!diag) {
 		diag = Calloc_get(graph->n);
 	}
@@ -1799,7 +1799,7 @@ int GMRFLib_graph_mk_linear(GMRFLib_graph_tp **graph, int n, int bw, int cyclic_
 {
 	int *hold = NULL;
 
-	assert(n > 0);
+	_assert(n > 0);
 	bw = IMIN(n - 1, IMAX(0, bw));
 	bw = IMAX(0, bw);
 	GMRFLib_graph_mk_empty(graph);
@@ -1870,7 +1870,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *g, GMRFLib_graph
 	newg->nnbs = Calloc(g->n, int);
 	newg->nbs = Calloc(g->n, int *);
 
-	assert(newg->nnbs && newg->nbs);
+	_assert(newg->nnbs && newg->nbs);
 
 	for (int i = 0; i < newg->n; i++) {
 		/*
@@ -1883,7 +1883,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *g, GMRFLib_graph
 		}
 		if (nneig) {
 			newg->nbs[i] = Calloc(nneig, int);
-			assert(newg->nbs[i]);
+			_assert(newg->nbs[i]);
 			newg->nnbs[i] = 0;
 			int k = 0;
 
@@ -1921,11 +1921,11 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *g, GMRFLib_graph
 	int nnb = GMRFLib_isum(newg->n, newg->nnbs);
 	int *hold = Calloc(IMAX(1, nnb), int);
 
-	assert(hold);
+	_assert(hold);
 
 	for (int i = 0, indx = 0; i < newg->n; i++) {
 		if (newg->nnbs[i]) {
-			assert(newg->nbs[i]);
+			_assert(newg->nbs[i]);
 			Memcpy(&hold[indx], newg->nbs[i], newg->nnbs[i] * sizeof(int));
 			Free(newg->nbs[i]);
 			newg->nbs[i] = &hold[indx];
@@ -2096,7 +2096,7 @@ int *GMRFLib_graph_cc(GMRFLib_graph_tp *g)
 	int ccc = -1;					       /* the counter. yes, start at -1 */
 	int *cc = Calloc(n, int);
 	char *visited = Calloc(n, char);
-	assert(visited);
+	_assert(visited);
 
 	for (int i = 0; i < n; i++) {
 		if (!visited[i]) {

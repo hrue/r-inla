@@ -206,7 +206,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 	 * Ensure also that eta_ext elements are set to zero, so we produce the joint graph. yes, we need the hole graph!!!! 
 	 */
 	if (idx_map_eta > 0) {
-		assert(arg->eta_ext_graph);
+		_assert(arg->eta_ext_graph);
 
 		GMRFLib_graph_tp *g = arg->eta_ext_graph;
 
@@ -685,7 +685,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 
 		int thread_id = 0;
 
-		assert(omp_get_thread_num() == 0);
+		_assert(omp_get_thread_num() == 0);
 		GMRFLib_printf_Qfunc(thread_id, stdout, h->graph, h->Qfunc, h->Qfunc_arg);
 	}
 

@@ -395,7 +395,7 @@ int GMRFLib_2order_approx_core(int thread_id, int *lcache_idx, double *a, double
 			break;
 
 		default:
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 	}
 

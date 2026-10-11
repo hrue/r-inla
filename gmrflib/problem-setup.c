@@ -101,7 +101,7 @@ int validate_constr1(GMRFLib_constr_tp *constr, int n)
 	g->n = n;
 
 	GMRFLib_duplicate_constr(&nnew, constr, g);
-	assert(nnew);
+	_assert(nnew);
 	for (int j = 0; j < constr->nc; j++) {
 		if ((nnew->jfirst[j] != constr->jfirst[j]) || (nnew->jlen[j] != constr->jlen[j])) {
 			printf("CONSTR jfirst/jlen ERROR: i= %d nnew->jfirst= %d old->jfirst= %d nnew->jlen= %d old->jlen= %d\n",
@@ -1875,7 +1875,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 		}
 	} else {
 		// DO NOT OPTIMIZE ANY MORE, no point...
-		assert(0 == 1);
+		_assert(0 == 1);
 		static int debug = 0;
 		size_t *nnzs = NULL, nnz_best;
 		int k, n = -1, nk, r, i, ne = 0, use_global_nodes;

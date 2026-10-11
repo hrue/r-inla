@@ -101,14 +101,14 @@ int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev)
 	double *xxp = NULL, *wwp = NULL;
 
 	GMRFLib_ghq(&xxp, &wwp, n);
-	assert(xxp);
-	assert(wwp);
+	_assert(xxp);
+	_assert(wwp);
 
 	*xp = aMalloc(n, double);
 	*wp = aMalloc(n, double);
 
-	assert(*xp);
-	assert(*wp);
+	_assert(*xp);
+	_assert(*wp);
 	for (i = 0; i < n; i++) {
 		(*xp)[i] = xxp[i] * stdev + mean;
 		(*wp)[i] = wwp[i];

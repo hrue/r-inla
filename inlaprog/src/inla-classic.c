@@ -162,7 +162,7 @@ int inla_INLA(inla_tp *mb)
 			b[count] = mb->linear_precision[i] * mb->linear_mean[i];
 			count++;
 		}
-		assert(count == N);
+		_assert(count == N);
 	} else {
 		/*
 		 * as before 
@@ -191,7 +191,7 @@ int inla_INLA(inla_tp *mb)
 		if (count != N) {
 			P(count);
 			P(N);
-			assert(count == N);
+			_assert(count == N);
 		}
 	}
 
@@ -615,7 +615,7 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 	}
 	mb->ai_par->vb_nodes_mean = vb_nodes;
 
-	assert(mb->f_Alocal == NULL);
+	_assert(mb->f_Alocal == NULL);
 
 	double tref = GMRFLib_timer();
 
@@ -627,7 +627,7 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->f_Alocal,
 			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm, mb->global_constr);
 	mb->preopt = preopt;
-	assert(preopt->latent_graph->n == N);
+	_assert(preopt->latent_graph->n == N);
 
 	if (mb->verbose) {
 		printf("\tMode..................... [%s]\n", GMRFLib_MODE_NAME());
@@ -931,7 +931,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 			b[count] = mb->linear_precision[i] * mb->linear_mean[i];
 			count++;
 		}
-		assert(count == N);
+		_assert(count == N);
 	} else {
 		/*
 		 * as before 
@@ -960,7 +960,7 @@ int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 		if (count != N) {
 			P(count);
 			P(N);
-			assert(count == N);
+			_assert(count == N);
 		}
 	}
 

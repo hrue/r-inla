@@ -217,7 +217,7 @@ int GMRFLib_opt_f(int thread_id, double *x, double *fx, int *ierr, GMRFLib_tabul
 	 * this function is called only for thread=0!!! 
 	 */
 	GMRFLib_ENTER_FUNCTION;
-	assert(GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
+	_assert(GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 	GMRFLib_ASSERT(thread_id == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
 	GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);
@@ -826,7 +826,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 				ais = G.ai_store;
 				i2thread[i] = -1;
 			} else {
-				assert(ai_store_reference);
+				_assert(ai_store_reference);
 				if (!ai_store[thread_id]) {
 					ai_store[thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
 				}
@@ -1152,7 +1152,7 @@ void GMRFLib_gsl_df(const gsl_vector *v, void *UNUSED(params), gsl_vector *df)
 	double *x = NULL, *gradx = NULL;
 	int ierr;
 
-	assert(G.nhyper > 0);
+	_assert(G.nhyper > 0);
 	x = Calloc(G.nhyper, double);
 	gradx = Calloc(G.nhyper, double);
 
@@ -1181,7 +1181,7 @@ void GMRFLib_gsl_fdf(const gsl_vector *v, void *UNUSED(params), double *f, gsl_v
 	double *x = NULL, *gradx = NULL;
 	int ierr;
 
-	assert(G.nhyper > 0);
+	_assert(G.nhyper > 0);
 	x = Calloc(G.nhyper, double);
 	gradx = Calloc(G.nhyper, double);
 
@@ -1503,7 +1503,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 
 	if (0) {
 		// take the solution from the minimizer. this we do not do anymore
-		assert(0 == 1);
+		_assert(0 == 1);
 		xx = gsl_multimin_fdfminimizer_x(s);
 		G.fvalue = -gsl_multimin_fdfminimizer_minimum(s);
 
@@ -1613,20 +1613,20 @@ void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, 
 	int fd = mkstemp(templat);
 
 	rval = write(fd, &fval, sizeof(double));
-	assert(rval >= 0);
+	_assert(rval >= 0);
 	rval = write(fd, &nfun, sizeof(int));
-	assert(rval >= 0);
+	_assert(rval >= 0);
 	rval = write(fd, &ntheta, sizeof(int));
-	assert(rval >= 0);
+	_assert(rval >= 0);
 	if (ntheta) {
 		rval = write(fd, theta, ntheta * sizeof(double));
-		assert(rval >= 0);
+		_assert(rval >= 0);
 	}
 	rval = write(fd, &nx, sizeof(int));
-	assert(rval >= 0);
+	_assert(rval >= 0);
 	if (nx) {
 		rval = write(fd, x, nx * sizeof(double));
-		assert(rval >= 0);
+		_assert(rval >= 0);
 	}
 	close(fd);
 

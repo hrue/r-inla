@@ -26,7 +26,7 @@ double *GMRFLib_sn_g_get_coof(double skew, double *cx)
 #define TABLE_C
 #include "GMRFLib/sn-g-tables.h"
 #undef TABLE_C
-			assert(ORDER == 5);
+			_assert(ORDER == 5);
 			GMRFLib_spline_tp **ss = Calloc(ORDER + 1, GMRFLib_spline_tp *);
 			int n = sizeof(table_skew) / sizeof(double);
 
@@ -69,7 +69,7 @@ double *GMRFLib_sn_ginv_get_coof(double skew, double *cx)
 #define TABLE_IC
 #include "GMRFLib/sn-g-tables.h"
 #undef TABLE_IC
-			assert(ORDER == 5);
+			_assert(ORDER == 5);
 			GMRFLib_spline_tp **ss = Calloc(ORDER + 1, GMRFLib_spline_tp *);
 			int n = sizeof(table_skew) / sizeof(double);
 

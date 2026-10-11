@@ -940,7 +940,7 @@ static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rh
 		}
 	}
 	na = j;
-	assert(na > 2);
+	_assert(na > 2);
 
 	// include derivative information within the range of alphas
 	double amax = GMRFLib_max_value(aa, na, NULL);

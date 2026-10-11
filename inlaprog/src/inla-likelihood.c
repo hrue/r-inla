@@ -17,7 +17,7 @@ double inla_compute_saturated_loglik(int thread_id, int *lcache_idx, int idx, GM
 {
 	inla_tp *a = (inla_tp *) arg;
 
-	// assert(loglfunc == loglikelihood_inla);
+	// _assert(loglfunc == loglikelihood_inla);
 	return inla_compute_saturated_loglik_core(thread_id, lcache_idx, idx, a->loglikelihood[idx], x_vec, a->loglikelihood_arg[idx]);
 }
 
@@ -82,7 +82,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	int n_attr = 0;
 
 	inla_read_data_all(&attr, &n_attr, ds->attr_file.name, NULL);
-	assert(n_attr >= 1);
+	_assert(n_attr >= 1);
 	if (n_attr > 0) {
 		n_attr--;
 		attr++;
@@ -103,7 +103,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	 * first read all entries in the file 
 	 */
 	inla_read_data_all(&x, &n, ds->data_file.name, &ncol_data_all);
-	assert(ncol_data_all <= _DIM_A);
+	_assert(ncol_data_all <= _DIM_A);
 
 	if (mb->verbose) {
 		printf("\t\tread n=[%1d] entries from file=[%s]\n", n, ds->data_file.name);
@@ -377,10 +377,10 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		ds->data_observations.weight_gaussian = NULL;
 		ds->data_observations.fmri_scale = NULL;
 
-		assert(ncol_data_all <= 6 + CURE_MAXTHETA && ncol_data_all >= 6);
+		_assert(ncol_data_all <= 6 + CURE_MAXTHETA && ncol_data_all >= 6);
 		idiv = ncol_data_all;
 		na = ds->data_observations.cure_ncov = ncol_data_all - 6;
-		assert(na >= 0);
+		_assert(na >= 0);
 
 		a[0] = ds->data_observations.event = Calloc(mb->predictor_ndata, double);	/* the failure code */
 		a[1] = ds->data_observations.truncation = Calloc(mb->predictor_ndata, double);
@@ -439,7 +439,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		}
 
 		// only this is supported for the moment
-		assert((ds->data_id == L_FL) && (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT));
+		_assert((ds->data_id == L_FL) && (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT));
 	}
 		break;
 
@@ -450,7 +450,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 		// this case is a bit special, as the real data 'y' is fake, and the list
 		// of replicated data is in the 'a' below.
-		assert(ncol_data_all >= 3L + NMIX_MMAX && ncol_data_all < _DIM_A);
+		_assert(ncol_data_all >= 3L + NMIX_MMAX && ncol_data_all < _DIM_A);
 		idiv = ncol_data_all;
 		ds->data_observations.nmix_x = Calloc(NMIX_MMAX, double *);
 
@@ -478,7 +478,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 		int nx = (int) attr[1];
 		int m = nx / ny;
 
-		assert(ny + nx + 2 == ncol_data_all);
+		_assert(ny + nx + 2 == ncol_data_all);
 		idiv = ncol_data_all;
 
 		ds->data_observations.occ_nbeta = m;
@@ -496,7 +496,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	{
 		int ny = (int) attr[0];
 
-		assert(ny + 1 == ncol_data_all);
+		_assert(ny + 1 == ncol_data_all);
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		for (i = 0; i < na; i++) {
@@ -507,7 +507,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	case L_BGEV:
 	{
-		assert(ncol_data_all <= 3 + BGEV_MAXTHETA && ncol_data_all >= 3);
+		_assert(ncol_data_all <= 3 + BGEV_MAXTHETA && ncol_data_all >= 3);
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		ds->data_observations.bgev_x = Calloc(na, double *);
@@ -523,7 +523,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	{
 		int four = 4;
 
-		assert(ncol_data_all == four + 2);
+		_assert(ncol_data_all == four + 2);
 		idiv = ncol_data_all;
 		ds->data_observations.agaussian = Calloc(four, double *);
 
@@ -537,7 +537,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	case L_RCPOISSON:
 	{
-		assert(ncol_data_all <= 5 + RCPOISSON_MAXTHETA && ncol_data_all >= 5);
+		_assert(ncol_data_all <= 5 + RCPOISSON_MAXTHETA && ncol_data_all >= 5);
 		idiv = ncol_data_all;
 		int nbeta = ncol_data_all - 5;
 
@@ -561,7 +561,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	case L_TPOISSON:
 	{
-		assert(ncol_data_all <= 5 + TPOISSON_MAXTHETA && ncol_data_all >= 5);
+		_assert(ncol_data_all <= 5 + TPOISSON_MAXTHETA && ncol_data_all >= 5);
 		idiv = ncol_data_all;
 		int nbeta = ncol_data_all - 5;
 
@@ -585,7 +585,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	case L_GGAUSSIAN:
 	{
-		assert(ncol_data_all <= 3 + GGAUSSIAN_MAXTHETA && ncol_data_all >= 3);
+		_assert(ncol_data_all <= 3 + GGAUSSIAN_MAXTHETA && ncol_data_all >= 3);
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		ds->data_observations.ggaussian_nbeta = na - 1;
@@ -600,7 +600,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	case L_GGAUSSIANS:
 	{
-		assert(ncol_data_all <= 3 + GGAUSSIAN_MAXTHETA && ncol_data_all >= 3);
+		_assert(ncol_data_all <= 3 + GGAUSSIAN_MAXTHETA && ncol_data_all >= 3);
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		ds->data_observations.ggaussian_nbeta = na - 1;
@@ -616,7 +616,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_0POISSON:
 	case L_0POISSONS:
 	{
-		assert(ncol_data_all <= 3 + POISSON0_MAXTHETA && ncol_data_all >= 3);
+		_assert(ncol_data_all <= 3 + POISSON0_MAXTHETA && ncol_data_all >= 3);
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		ds->data_observations.poisson0_nbeta = na - 1;
@@ -632,7 +632,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_1POISSON:
 	case L_1POISSONS:
 	{
-		assert(ncol_data_all <= 3 + POISSON1_MAXTHETA && ncol_data_all >= 3);
+		_assert(ncol_data_all <= 3 + POISSON1_MAXTHETA && ncol_data_all >= 3);
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		ds->data_observations.poisson1_nbeta = na - 1;
@@ -648,7 +648,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_0BINOMIAL:
 	case L_0BINOMIALS:
 	{
-		assert(ncol_data_all <= 3 + BINOMIAL0_MAXTHETA && ncol_data_all >= 3);
+		_assert(ncol_data_all <= 3 + BINOMIAL0_MAXTHETA && ncol_data_all >= 3);
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		ds->data_observations.binomial0_nbeta = na - 1;
@@ -664,7 +664,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_0NBINOMIAL:
 	case L_0NBINOMIALS:
 	{
-		assert(ncol_data_all <= 3 + NBINOMIAL0_MAXTHETA && ncol_data_all >= 3);
+		_assert(ncol_data_all <= 3 + NBINOMIAL0_MAXTHETA && ncol_data_all >= 3);
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		ds->data_observations.nbinomial0_nbeta = na - 1;
@@ -679,7 +679,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	case L_BINOMIALMIX:
 	{
-		assert(ncol_data_all <= BINOMIALMIX_NBETA + 7);
+		_assert(ncol_data_all <= BINOMIALMIX_NBETA + 7);
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
 		for (i = 0; i < na; i++) {
@@ -728,7 +728,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	inla_read_data_all(&w, &nw, ds->weight_file.name, NULL);
 	if (nw) {
 		// P(nw); P(ds->data_observations.ndata); P(mb->predictor_ndata);
-		assert(nw == mb->predictor_ndata);
+		_assert(nw == mb->predictor_ndata);
 	}
 
 	double *lp_scale_d = NULL;			       /* I need a tmp one to be double */
@@ -737,7 +737,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 
 	inla_read_data_all(&lp_scale_d, &n_lp_scale, ds->lp_scale_file.name, NULL);
 	if (n_lp_scale) {
-		assert(n_lp_scale == mb->predictor_ndata);
+		_assert(n_lp_scale == mb->predictor_ndata);
 		for (int i3 = 0; i3 < n_lp_scale; i3++) {
 			lp_scale[i3] = (ISNAN(lp_scale_d[i3]) ? -1 : (int) lp_scale_d[i3] - 1);
 		}
@@ -1775,7 +1775,7 @@ int loglikelihood_fl(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT lo
 
 		VEC_FREE(eta);
 	} else {
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	LINK_END;
@@ -1825,7 +1825,7 @@ int loglikelihood_circular_normal(int thread_id, int *UNUSED(lcache_idx), double
 {
 
 	// this needs to be redone....
-	assert(0 == 1);
+	_assert(0 == 1);
 
 	/*
 	 * y ~ circular normal
@@ -2259,7 +2259,7 @@ int loglikelihood_sn(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT lo
 	param[0] = ds->data_observations.sn_skew[thread_id];
 	param[1] = &nan;
 	inla_get_sn_param(&sn_arg, param);
-	assert(sn_arg.intercept == 0);
+	_assert(sn_arg.intercept == 0);
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -2303,7 +2303,7 @@ int loglikelihood_stochvol_sn(int thread_id, int *UNUSED(lcache_idx), double *RE
 	param[0] = ds->data_observations.sn_skew[thread_id];
 	param[1] = &nan;
 	inla_get_sn_param(&sn_arg, param);
-	assert(sn_arg.intercept == 0.0);
+	_assert(sn_arg.intercept == 0.0);
 	lomega = log(sn_arg.omega);
 
 	if (m > 0) {
@@ -2496,7 +2496,7 @@ int loglikelihood_bgev(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 	if (ISINF(log_xi) < 0) {
 #pragma GCC diagnostic pop
 		xi = 0.0;
-		assert(ds->data_observations.bgev_nbetas[1] == 0);
+		_assert(ds->data_observations.bgev_nbetas[1] == 0);
 	} else {
 		for (int i = 0; i < ds->data_observations.bgev_nbetas[1]; i++) {
 			log_xi += ds->data_observations.bgev_betas[i + ioff][thread_id][0] * ds->data_observations.bgev_x[i + ioff][idx];
@@ -2889,7 +2889,7 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *RESTRI
 				if (ISZERO(y)) {
 					logll[i] = 1.0;
 				} else {
-					assert(ISNONZERO(y));
+					_assert(ISNONZERO(y));
 				}
 			} else {
 				double mean = E * lambda;
@@ -3411,7 +3411,7 @@ int loglikelihood_1poisson(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 	} else {
 		double *yy = (y_cdf ? y_cdf : &y);
 
-		assert(*yy >= 1.0);
+		_assert(*yy >= 1.0);
 		for (int i = 0; i < -m; i++) {
 			double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
 			double mean = E * lambda;
@@ -3476,7 +3476,7 @@ int loglikelihood_1poissonS(int thread_id, int *UNUSED(lcache_idx), double *REST
 	} else {
 		double *yy = (y_cdf ? y_cdf : &y);
 
-		assert(*yy >= 1);
+		_assert(*yy >= 1);
 		double mean = E * lambda;
 		double pois = gsl_cdf_poisson_P((unsigned int) *yy, mean) / (1.0 - exp(-mean));
 
@@ -3721,7 +3721,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *REST
 
 			x_critical = log(my_lambert_W0((1.0 - a) / (a * exp(1.0))) + 1.0);
 		} else {
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 		double x0 = 0.900 * x_critical;
 		double x1 = 0.999 * x_critical;
@@ -4026,8 +4026,8 @@ int loglikelihood_0binomialS(int thread_id, int *UNUSED(lcache_idx), double *RES
 	}
 	double p = ds->data_observations.link_simple_invlinkfunc(thread_id, p_intern, MAP_FORWARD, NULL, NULL);
 
-	// assert(ds->data_observations.link_simple_invlinkfunc == link_logit);
-	// assert(ds->predictor_invlinkfunc == link_cloglog);
+	// _assert(ds->data_observations.link_simple_invlinkfunc == link_logit);
+	// _assert(ds->predictor_invlinkfunc == link_cloglog);
 
 	if (m > 0) {
 		if (y > 0) {
@@ -4115,7 +4115,7 @@ int loglikelihood_binomialmix(int thread_id, int *UNUSED(lcache_idx), double *RE
 	double p12 = w1 * p1 + w2 * p2;
 	double w3 = 1.0 - (w1 + w2);
 
-	assert(w3 >= 0 && w3 <= 1.0);
+	_assert(w3 >= 0 && w3 <= 1.0);
 
 	double offset = off + beta_common * dat[nbeta + 1];
 
@@ -4201,7 +4201,7 @@ int loglikelihood_contpoisson(int thread_id, int *UNUSED(lcache_idx), double *RE
 			      double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	// this model is disabled
-	assert(0 == 1);
+	_assert(0 == 1);
 
 	/*
 	 * y ~ ContPoisson(E*exp(x))
@@ -4240,7 +4240,7 @@ int loglikelihood_qcontpoisson(int thread_id, int *UNUSED(lcache_idx), double *R
 			       double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	// this model is disabled
-	assert(0 == 1);
+	_assert(0 == 1);
 
 	/*
 	 * y ~ ContPoisson(E*exp(x)), also accept E=0, giving the likelihood y * x.  quantile version
@@ -4296,7 +4296,7 @@ double inla_poisson_interval(double mean, int ifrom, int ito)
 			prob_sum = 1.0 - gsl_cdf_poisson_P((unsigned int) (ifrom - 1), mean);
 		}
 	} else {
-		assert(ito >= ifrom);
+		_assert(ito >= ifrom);
 		prob_sum = prob = inla_ipow(mean, ifrom) * exp(-mean - my_gsl_sf_lnfact(ifrom));
 		for (int y = ifrom + 1; y <= ito; y++) {
 			prob *= mean / (double) y;
@@ -4325,7 +4325,7 @@ double inla_negative_binomial_interval(double size, double mu, int y_from, int y
 			p_sum = 1.0 - gsl_cdf_negative_binomial_P((unsigned int) (y_from - 1), prob, size);
 		}
 	} else {
-		assert(y_to >= y_from);
+		_assert(y_to >= y_from);
 		p = p_sum = gsl_ran_negative_binomial_pdf((unsigned int) y_from, prob, size);
 		double pp = 1.0 - prob;
 
@@ -4393,7 +4393,7 @@ int loglikelihood_cenpoisson2(int thread_id, int *UNUSED(lcache_idx), double *RE
 				if (ISZERO(iy)) {
 					logll[i] = 1.0;
 				} else {
-					assert(ISNONZERO(iy));
+					_assert(ISNONZERO(iy));
 				}
 			} else {
 				if (int_low < 0) {
@@ -4461,7 +4461,7 @@ int loglikelihood_cenpoisson(int thread_id, int *UNUSED(lcache_idx), double *RES
 				if (ISZERO(iy)) {
 					logll[i] = 1.0;
 				} else {
-					assert(ISNONZERO(iy));
+					_assert(ISNONZERO(iy));
 				}
 			} else {
 				if (iy < int_low || (int_high >= 0 && iy > int_high)) {
@@ -4716,7 +4716,7 @@ int loglikelihood_pom(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT l
 			}
 		}
 	} else {
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	LINK_END;
@@ -5006,7 +5006,7 @@ double exp_taylor(double x, double x0, int order)
 	int i;
 	double val = 1.0, xx = x - x0;
 
-	assert(order > 0);
+	_assert(order > 0);
 	for (i = order; i >= 1; i--) {
 		val = 1.0 + val * xx / (double) i;
 	}
@@ -5772,7 +5772,7 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 				// neg binomial
 				status = gsl_sf_lnchoose_e((unsigned int) (n - 1.0), (unsigned int) (y - 1.0), &res);
 			}
-			assert(status == GSL_SUCCESS);
+			_assert(status == GSL_SUCCESS);
 			normc = b->normc = res.val;
 		}
 		res.val = normc;
@@ -6033,7 +6033,7 @@ int loglikelihood_xbinomial(int thread_id, int *UNUSED(lcache_idx), double *REST
 				// neg binomial
 				status = gsl_sf_lnchoose_e((unsigned int) (n - 1.0), (unsigned int) (y - 1.0), &res);
 			}
-			assert(status == GSL_SUCCESS);
+			_assert(status == GSL_SUCCESS);
 			G_norm_const[idx] = res.val;
 			G_norm_const_compute[idx] = 0;
 		}
@@ -6087,7 +6087,7 @@ int loglikelihood_nbinomial2(int thread_id, int *UNUSED(lcache_idx), double *RES
 		gsl_sf_result res = { 0, 0 };
 		if (G_norm_const_compute[idx]) {
 			status = gsl_sf_lnchoose_e((unsigned int) (y + n - 1.0), (unsigned int) (n - 1.0), &res);
-			assert(status == GSL_SUCCESS);
+			_assert(status == GSL_SUCCESS);
 			G_norm_const[idx] = res.val;
 			G_norm_const_compute[idx] = 0;
 		}
@@ -6127,7 +6127,7 @@ int loglikelihood_nmix(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 	int n, nmax, ny;
 	double *y = NULL, log_lambda, lambda, normc_poisson, fac, tt, tmp, p;
 
-	assert(ds->data_observations.nmix_m > 0);
+	_assert(ds->data_observations.nmix_m > 0);
 	for (i = 0, log_lambda = 0.0; i < ds->data_observations.nmix_m; i++) {
 		log_lambda += ds->data_observations.nmix_beta[i][thread_id][0] * ds->data_observations.nmix_x[i][idx];
 	}
@@ -6159,7 +6159,7 @@ int loglikelihood_nmix(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 
 	if (m > 0) {
 		n = ds->data_observations.nmix_y[0][idx];
-		assert(!gsl_isnan(ds->data_observations.nmix_y[0][idx]));
+		_assert(!gsl_isnan(ds->data_observations.nmix_y[0][idx]));
 		ny = 1;
 		for (i = 1; i > -1; i++) {
 			if (gsl_isnan(ds->data_observations.nmix_y[i][idx]))
@@ -6223,7 +6223,7 @@ int loglikelihood_nmixnb(int thread_id, int *UNUSED(lcache_idx), double *RESTRIC
 	int n, nmax, ny;
 	double *y = NULL, log_lambda, lambda, normc_nb, fac, tt, tmp, p, q, size;
 
-	assert(ds->data_observations.nmix_m > 0);
+	_assert(ds->data_observations.nmix_m > 0);
 	for (i = 0, log_lambda = 0.0; i < ds->data_observations.nmix_m; i++) {
 		log_lambda += ds->data_observations.nmix_beta[i][thread_id][0] * ds->data_observations.nmix_x[i][idx];
 	}
@@ -6256,7 +6256,7 @@ int loglikelihood_nmixnb(int thread_id, int *UNUSED(lcache_idx), double *RESTRIC
 
 	if (m > 0) {
 		n = ds->data_observations.nmix_y[0][idx];
-		assert(!gsl_isnan(ds->data_observations.nmix_y[0][idx]));
+		_assert(!gsl_isnan(ds->data_observations.nmix_y[0][idx]));
 		ny = 1;
 		for (i = 1; i > -1; i++) {
 			if (gsl_isnan(ds->data_observations.nmix_y[i][idx]))
@@ -6622,7 +6622,7 @@ int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *RESTRICT logl
 			 */
 			func_quadrature(thread_id, lcache_idx, &points, &weights, &np, arg);
 		} else {
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 	}
 		break;
@@ -6635,12 +6635,12 @@ int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *RESTRICT logl
 			 */
 			func_simpson(thread_id, lcache_idx, &points, &weights, &np, arg);
 		} else {
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 	}
 		break;
 	default:
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	mm = np * IABS(m);
@@ -6656,7 +6656,7 @@ int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *RESTRICT logl
 				xx[kk++] = x[i] + points[k];
 			}
 		}
-		assert(kk == mm);
+		_assert(kk == mm);
 		ds->mix_loglikelihood(thread_id, lcache_idx, ll, xx, mm, idx, x_vec, NULL, arg);
 		for (i = 0, kk = 0; i < m; i++) {
 			for (k = 0; k < np; k++) {
@@ -6668,10 +6668,10 @@ int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *RESTRICT logl
 					sum += exp(val[k] - val_max);
 				}
 			}
-			assert(sum > 0.0);
+			_assert(sum > 0.0);
 			logll[i] = log(sum) + val_max;
 		}
-		assert(kk == mm);
+		_assert(kk == mm);
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		for (i = 0, kk = 0; i < -m; i++) {
@@ -6679,7 +6679,7 @@ int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *RESTRICT logl
 				xx[kk++] = x[i] + points[k];
 			}
 		}
-		assert(kk == mm);
+		_assert(kk == mm);
 		ds->mix_loglikelihood(thread_id, lcache_idx, ll, xx, mm, idx, x_vec, NULL, arg);
 		for (i = 0, kk = 0; i < -m; i++) {
 			for (k = 0, sum = 0.0; k < np; k++) {
@@ -6687,7 +6687,7 @@ int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *RESTRICT logl
 			}
 			logll[i] = sum;
 		}
-		assert(kk == mm);
+		_assert(kk == mm);
 	}
 
 	Free(storage);
@@ -6719,7 +6719,7 @@ int loglikelihood_cbinomial(int thread_id, int *UNUSED(lcache_idx), double *REST
 	if (m > 0) {
 		gsl_sf_result res = { 0, 0 };
 		status = gsl_sf_lnchoose_e((unsigned int) k, (unsigned int) y, &res);	/* Yes, its 'k' */
-		assert(status == GSL_SUCCESS);
+		_assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i], off);
 			p = 1.0 - inla_ipow(1.0 - p, n);
@@ -7552,7 +7552,7 @@ int loglikelihood_egp(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT l
 	}
 
 	LINK_INIT;
-	assert(PREDICTOR_SCALE == 1.0);			       /* need to check... */
+	_assert(PREDICTOR_SCALE == 1.0);			       /* need to check... */
 
 	double a = pow(1.0 - pow(alpha, 1.0 / kappa), -xi) - 1.0;
 	double ia = 1.0 / a;
@@ -8420,7 +8420,7 @@ int loglikelihood_generic_surv(int thread_id, int *lcache_idx, double *RESTRICT 
 	double pcure = 0.0, l_1mpcure = NAN;
 	double eps = 0.001 * FLT_EPSILON;
 
-	assert(y_cdf == NULL);				       // I do not think this should be used.
+	_assert(y_cdf == NULL);				       // I do not think this should be used.
 	if (ncov) {
 		double *cov = ds->data_observations.cure_cov + idx * ncov;
 		double sum = 0.0;
@@ -8483,7 +8483,7 @@ int loglikelihood_generic_surv(int thread_id, int *lcache_idx, double *RESTRICT 
 		case SURV_EVENT_RIGHT:
 		{
 			if (ISNONZERO(lower)) {
-				assert(lower >= truncation);
+				_assert(lower >= truncation);
 				loglfun(thread_id, lcache_idx, F_lower, x, -m, idx, x_vec, &lower, arg);
 				SAFEGUARD(F_lower);
 			}
@@ -8517,7 +8517,7 @@ int loglikelihood_generic_surv(int thread_id, int *lcache_idx, double *RESTRICT 
 		case SURV_EVENT_LEFT:
 		{
 			if (!ISINF(upper)) {
-				assert(upper >= truncation);
+				_assert(upper >= truncation);
 				loglfun(thread_id, lcache_idx, F_upper, x, -m, idx, x_vec, &upper, arg);
 				SAFEGUARD(F_upper);
 			}
@@ -8546,12 +8546,12 @@ int loglikelihood_generic_surv(int thread_id, int *lcache_idx, double *RESTRICT 
 		case SURV_EVENT_INTERVAL:
 		{
 			if (ISNONZERO(lower)) {
-				assert(lower >= truncation);
+				_assert(lower >= truncation);
 				loglfun(thread_id, lcache_idx, F_lower, x, -m, idx, x_vec, &lower, arg);
 				SAFEGUARD(F_lower);
 			}
 			if (!ISINF(upper)) {
-				assert(upper >= truncation);
+				_assert(upper >= truncation);
 				loglfun(thread_id, lcache_idx, F_upper, x, -m, idx, x_vec, &upper, arg);
 				SAFEGUARD(F_upper);
 			}
@@ -8584,14 +8584,14 @@ int loglikelihood_generic_surv(int thread_id, int *lcache_idx, double *RESTRICT 
 
 		case SURV_EVENT_ININTERVAL:
 		{
-			assert(lower >= truncation);
+			_assert(lower >= truncation);
 			if (ISNONZERO(lower)) {
-				assert(lower >= truncation);
+				_assert(lower >= truncation);
 				loglfun(thread_id, lcache_idx, F_lower, x, -m, idx, x_vec, &lower, arg);
 				SAFEGUARD(F_lower);
 			}
 			if (!ISINF(upper)) {
-				assert(upper >= truncation);
+				_assert(upper >= truncation);
 				loglfun(thread_id, lcache_idx, F_upper, x, -m, idx, x_vec, &upper, arg);
 				SAFEGUARD(F_upper);
 			}
@@ -8711,7 +8711,7 @@ int loglikelihood_weibull(int thread_id, int *UNUSED(lcache_idx), double *RESTRI
 	}
 		break;
 	default:
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	LINK_END;
@@ -8891,7 +8891,7 @@ int loglikelihood_loglogistic(int thread_id, int *UNUSED(lcache_idx), double *RE
 		break;
 
 	default:
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	if (debug) {
@@ -8979,7 +8979,7 @@ int loglikelihood_qloglogistic(int thread_id, int *UNUSED(lcache_idx), double *R
 		break;
 
 	default:
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	LINK_END;
@@ -9063,7 +9063,7 @@ int loglikelihood_lavm(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 	double prec = map_precision_forward(lprec, NULL, NULL);
 
 	LINK_INIT;
-	assert(PREDICTOR_SCALE == 1.0);			       /* not prepared for this */
+	_assert(PREDICTOR_SCALE == 1.0);			       /* not prepared for this */
 
 	if (m > 0) {
 		double yp = PREDICTOR_LINK_PLAIN(y);
@@ -9093,7 +9093,7 @@ int loglikelihood_vm(int thread_id, int *lcache_idx, double *RESTRICT logll, dou
 	}
 
 	FIXME("THIS FUNCTION NEEDS A REWRITE");
-	assert(0 == 1);
+	_assert(0 == 1);
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
@@ -9162,7 +9162,7 @@ int loglikelihood_nvm(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT l
 	}
 
 	FIXME("THIS FUNCTION NEEDS A REWRITE");
-	assert(0 == 1);
+	_assert(0 == 1);
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
@@ -9257,7 +9257,7 @@ int loglikelihood_cloglike(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 	if (m > 0) {
 		ds->data_observations.cloglike_func(INLA_CLOGLIKE_LOGLIKE, th, ds->data_observations.cloglike_data, ny, Y, mm, xx, logll);
 	} else {
-		assert(y_cdf == NULL);
+		_assert(y_cdf == NULL);
 		ds->data_observations.cloglike_func(INLA_CLOGLIKE_CDF, th, ds->data_observations.cloglike_data, ny, Y, mm, xx, logll);
 	}
 
