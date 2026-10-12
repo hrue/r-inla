@@ -291,11 +291,36 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 		}
 	}
 
+#if 0
 	int nan_error = 0;
-
+	tref[0] -= GMRFLib_timer();
 	for (int i = 0; i < M->s->na; i++) {
 		GMRFLib_STOP_IF_NAN_OR_INF(M->a[i], i, -1);
 		if (nan_error) {
+			GMRFLib_LEAVE_FUNCTION;
+			return !GMRFLib_SUCCESS;
+		}
+	}
+#endif
+	// faster implementation as this occours rarely
+	const int chunk_size = 1024;
+	int k = 0;
+	for(; k < M->s->na - (chunk_size - 1); k += chunk_size){
+		double dsum = GMRFLib_dsum(chunk_size, M->a + k);
+		if (!isfinite(dsum)) {
+			LOG_INFO("Variable evaluates to NAN or INF, for %1d <= idx < %1d. I will try to fix it...",
+				 k, k + chunk_size);
+			GMRFLib_LEAVE_FUNCTION;
+			return !GMRFLib_SUCCESS;
+		}
+	}
+
+	int tail_len = M->s->na - k;
+	if (tail_len > 0) {
+		double dsum = GMRFLib_dsum(tail_len, M->a + k);
+		if (!isfinite(dsum)) {
+			LOG_INFO("Variable evaluates to NAN or INF, for %1d <= idx < %1d. I will try to fix it...",
+				 k, k + tail_len);
 			GMRFLib_LEAVE_FUNCTION;
 			return !GMRFLib_SUCCESS;
 		}

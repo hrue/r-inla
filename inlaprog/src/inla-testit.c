@@ -7245,6 +7245,29 @@ int testit(int argc, char **argv)
         }
 	break;
 	
+	case 219: 
+	{
+		int nn = atoi(args[0]);
+		int mm = atoi(args[1]);
+
+		int m = IMIN(nn, mm);
+		int n = IMAX(nn, mm);
+
+		int i = 0;
+		for(; i < n - (m-1); i += m) {
+			for(int j = 0; j < m; j++){
+				int k = i + j;
+				P(k);
+			}
+		}
+		printf("int the last block %d terms\n", n-i);
+		for(; i < n; i++) {
+			int j = i;
+			P(j);
+		}
+	}
+	break;
+		
 	default:
 	{
 		printf("\nNo such test: %d\n", test_no);

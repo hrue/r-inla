@@ -907,12 +907,10 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 			CODE_BLOCK_INIT();				\
 			int ic = ic_idx[i];				\
 			double val = Qfunc(thread_id, i, i, NULL, Qfunc_arg); \
-			GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);		\
 			Q->values[ic++] = val;				\
 			for (int k = 0; k < graph->snnbs[i]; k++) {	\
 				int j = graph->snbs[i][k];		\
 				val = Qfunc(thread_id, i, j, NULL, Qfunc_arg); \
-				GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);	\
 				Q->values[ic++] = val;			\
 			}						\
 		}

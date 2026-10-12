@@ -550,8 +550,8 @@ typedef enum {
 		nan_error = 1;						\
 	}
 
-#       define GMRFLib_STOP_IF_NAN_OR_INF(value, idx, jdx)			\
-	if (!gsl_finite(value)) {					\
+#       define GMRFLib_STOP_IF_NAN_OR_INF(value, idx, jdx)		\
+	if (!isfinite(value)) {						\
 		if (!nan_error)						\
 			fprintf(stdout,					\
 				"\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
