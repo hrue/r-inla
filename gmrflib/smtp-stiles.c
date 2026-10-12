@@ -801,29 +801,24 @@ void GMRFLib_stiles_bind(GMRFLib_stiles_idx_tp *stiles_idx)
 	if (!store)
 		return;
 
-	GMRFLib_ENTER_FUNCTION;
 	bool *p = &(store->bind_done[stiles_idx->in_group][stiles_idx->within_group]);
 
 	if (*p == false) {
 		sTiles_bind(stiles_idx->in_group, stiles_idx->within_group, &(store->obj));
 		*p = true;
 	}
-	GMRFLib_LEAVE_FUNCTION;
 }
 
 void GMRFLib_stiles_unbind(GMRFLib_stiles_idx_tp *stiles_idx)
 {
 	if (!store)
 		return;
-
-	GMRFLib_ENTER_FUNCTION;
 	bool *p = &(store->bind_done[stiles_idx->in_group][stiles_idx->within_group]);
 
 	if (*p == true) {
 		sTiles_unbind(stiles_idx->in_group, stiles_idx->within_group, &(store->obj));
 		*p = false;
 	}
-	GMRFLib_LEAVE_FUNCTION;
 }
 
 void GMRFLib_stiles_unbind_group(int in_group)
