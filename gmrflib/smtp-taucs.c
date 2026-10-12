@@ -852,11 +852,8 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	}
 	cache = graph->cache[idx];
 
-	int nan_error = 0;
 	int *iperm = remap;
-
 	_assert(iperm);
-
 	int n = graph->n;
 	int nnz = n + graph->nnz / 2;
 
@@ -932,7 +929,6 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 		GMRFLib_pack(nnz, Q->values, cache->vperm, cache->vperminv, (*L)->values);
 	} else {
 		int *vperm = NULL;
-
 		*L = taucs_ccs_permute_symmetrically_NEW(Q, iperm, &vperm);
 
 		if (!cache->rowind) {
@@ -974,7 +970,6 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 		}
 
 		unsigned char *mdc = Strdup_sha(md);
-
 		Free(cache->sha);
 		cache->sha = (unsigned char *) mdc;
 	}

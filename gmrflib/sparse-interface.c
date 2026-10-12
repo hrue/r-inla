@@ -180,17 +180,12 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 	}
 	_assert(Ms->ia[n] == na);
 
-#define CODE_BLOCK							\
-	for (int i = 0; i < n; i++) {					\
-		CODE_BLOCK_INIT();					\
-		if (graph->lnnbs[i]) {					\
-			int k = k_arr[i];				\
-			Memcpy(&(Ms->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int)); \
-		}							\
+	for (int i = 0; i < n; i++) {
+		if (graph->lnnbs[i]) {
+			int k = k_arr[i];
+			Memcpy(&(Ms->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int)); 
+		}
 	}
-
-	RUN_CODE_BLOCK(1, 0, 0);			       /* TO QUICK TO DO IN PARALLEL */
-#undef CODE_BLOCK
 	Free(k_arr);
 
 	if (csr_store_use && graph->sha) {
@@ -213,7 +208,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 	M->s = GMRFLib_csr_skeleton(graph);
 
 	// when this is true, we can just copy the pointer to the matrix.
-	int used_fast_tab = 0;
+	int use_fast_tab = 0;
 
 	if (Qfunc == GMRFLib_tabulate_Qfunction_std) {
 		GMRFLib_tabulate_Qfunc_arg_tp *arg = (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
@@ -222,11 +217,11 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			M->a = arg->Q->a;
 			// mark this a copy only, not to be free'd.
 			M->copy_only = 1;
-			used_fast_tab = 1;
+			use_fast_tab = 1;
 		}
 	}
 
-	if (!used_fast_tab) {
+	if (!use_fast_tab) {
 		M->a = Malloc(M->s->na, double);
 
 		// a bit more manual work
@@ -247,20 +242,25 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 			double tref = -GMRFLib_timer();
 
-#define CODE_BLOCK							\
-			for (int i = 0; i < M->s->n; i++) {		\
-				CODE_BLOCK_INIT();			\
-				for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) { \
-					int j = M->s->ja[k];		\
-					M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg); \
-				}					\
+			if (nt_loc == 1) {
+				for (int i = 0; i < M->s->n; i++) {
+					for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) {
+						int j = M->s->ja[k];
+						M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
+					}
+				}
+			} else {
+#pragma omp parallel for num_threads(nt_loc)
+				for (int i = 0; i < M->s->n; i++) {
+					for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) {
+						int j = M->s->ja[k];
+						M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
+					}
+				}
 			}
 
-			RUN_CODE_BLOCK(nt_loc, 0, 0);
-#undef CODE_BLOCK
 			tref += GMRFLib_timer();
 			GMRFLib_adapt_nt_update(tag, tnum, level, tref);
-
 		} else {
 
 			static char *tag = NULL;
@@ -277,15 +277,19 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 			double tref = -GMRFLib_timer();
 
-#define CODE_BLOCK							\
-			for (int i = 0; i < M->s->n; i++) {		\
-				CODE_BLOCK_INIT();			\
-				int k = M->s->ia[i];			\
-				Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);	\
+			if (nt_loc == 1) {
+				for (int i = 0; i < M->s->n; i++) {
+					int k = M->s->ia[i];
+					Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);
+				}
+			} else {
+#pragma omp parallel for num_threads(nt_loc)
+				for (int i = 0; i < M->s->n; i++) {
+					int k = M->s->ia[i];
+					Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);
+				}
 			}
 
-			RUN_CODE_BLOCK(nt_loc, 0, 0);
-#undef CODE_BLOCK
 			tref += GMRFLib_timer();
 			GMRFLib_adapt_nt_update(tag, tnum, level, tref);
 		}
