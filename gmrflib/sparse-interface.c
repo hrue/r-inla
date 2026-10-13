@@ -207,38 +207,26 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 	M = Calloc(1, GMRFLib_csr_tp);
 	M->s = GMRFLib_csr_skeleton(graph);
 
-	// when this is true, we can just copy the pointer to the matrix.
-	int use_fast_tab = 0;
-
 	if (Qfunc == GMRFLib_tabulate_Qfunction_std) {
 		GMRFLib_tabulate_Qfunc_arg_tp *arg = (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
-
 		if (arg->Q) {
 			M->a = arg->Q->a;
 			// mark this a copy only, not to be free'd.
 			M->copy_only = 1;
-			use_fast_tab = 1;
 		}
 	}
 
-	if (!use_fast_tab) {
-		M->a = Malloc(M->s->na, double);
+	int level = omp_get_level();
+	int tnum = omp_get_thread_num();
+	int num_threads = (level == 0 ? GMRFLib_ADAPTIVE_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
 
-		// a bit more manual work
+	if (M->copy_only == 0) {
+		M->a = Malloc(M->s->na, double);
 		double val = Qfunc(thread_id, 0, -1, &(M->a[0]), Qfunc_arg);
 
 		if (ISNAN(val)) {
-			static char *tag = NULL;
-
-			if (!tag) {
-#pragma omp critical (Name_7600f798b7727e8eb5fbed77a2db305e4db69365)
-				if (!tag) {
-					GMRFLib_sprintf(&tag, "%s:%1d", __FILE__, __LINE__);
-				}
-			}
-			int level = omp_get_level();
-			int tnum = omp_get_thread_num();
-			int num_threads = (level == 0 ? GMRFLib_ADAPTIVE_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
+			char *tag = NULL;
+			GMRFLib_sprintf(&tag, "%s:%1d:%1d", __FILE__, __LINE__, M->s->n);
 			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 			double tref = -GMRFLib_timer();
 
@@ -250,7 +238,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 					}
 				}
 			} else {
-#pragma omp parallel for num_threads(nt_loc)
+#pragma omp parallel for num_threads(nt_loc) 
 				for (int i = 0; i < M->s->n; i++) {
 					for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) {
 						int j = M->s->ja[k];
@@ -261,19 +249,11 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 
 			tref += GMRFLib_timer();
 			GMRFLib_adapt_nt_update(tag, tnum, level, tref);
+			Free(tag);
 		} else {
 
-			static char *tag = NULL;
-
-			if (!tag) {
-#pragma omp critical (Name_5d44f84bdfc2d2b324a71dbddd46ed4c72f4fba7)
-				if (!tag) {
-					GMRFLib_sprintf(&tag, "%s:%1d", __FILE__, __LINE__);
-				}
-			}
-			int level = omp_get_level();
-			int tnum = omp_get_thread_num();
-			int num_threads = (level == 0 ? GMRFLib_ADAPTIVE_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
+			char *tag = NULL;
+			GMRFLib_sprintf(&tag, "%s:%1d:%1d", __FILE__, __LINE__, M->s->n);
 			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 			double tref = -GMRFLib_timer();
 
@@ -292,6 +272,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 
 			tref += GMRFLib_timer();
 			GMRFLib_adapt_nt_update(tag, tnum, level, tref);
+			Free(tag);
 		}
 	}
 
@@ -306,30 +287,56 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 		}
 	}
 #endif
-	// faster implementation as this occours rarely
+
+	char *tag = NULL;
+	GMRFLib_sprintf(&tag, "%s:%1d:%1d", __FILE__, __LINE__, M->s->na);
+	int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
+	double tref = -GMRFLib_timer();
+
+	// faster implementation as NAN/INF occours rarely
 	const int chunk_size = 1024;
-	int k = 0;
-	for(; k < M->s->na - (chunk_size - 1); k += chunk_size){
-		double dsum = GMRFLib_dsum(chunk_size, M->a + k);
+	int fail = 0;
+	int k_fail = 0;
+	div_t d = div(M->s->na, chunk_size);
+
+	// this is not thread-safe: 'fail' might be set without control, but this is all good. we do not need to know exactly where
+	// it fail for the first time, just that it failed. anyhow, we report where we detect it fail
+#pragma omp parallel for num_threads(nt_loc)
+	for(int k = 0; k < d.quot; k++) {
+		if (!fail) {
+			int kk = k * chunk_size;
+			double dsum = GMRFLib_dsum(chunk_size, M->a + kk);
+			if (!isfinite(dsum)) {
+				fail = 1;
+				k_fail = kk;
+			}
+		}
+	}
+	
+	if (fail) {
+		Free(tag);
+		LOG_INFO("Variable evaluates to NAN or INF, for %1d <= idx < %1d. I will try to fix it...",
+			 k_fail, k_fail + chunk_size);
+		GMRFLib_LEAVE_FUNCTION;
+		return !GMRFLib_SUCCESS;
+	}
+
+	// we only update if it does not fail
+	tref += GMRFLib_timer();
+	GMRFLib_adapt_nt_update(tag, tnum, level, tref);
+	Free(tag);
+	
+	if (d.rem > 0) {
+		int tail_start = d.quot * chunk_size;
+		double dsum = GMRFLib_dsum(d.rem, M->a + tail_start);
 		if (!isfinite(dsum)) {
 			LOG_INFO("Variable evaluates to NAN or INF, for %1d <= idx < %1d. I will try to fix it...",
-				 k, k + chunk_size);
+				 tail_start, tail_start + d.rem);
 			GMRFLib_LEAVE_FUNCTION;
 			return !GMRFLib_SUCCESS;
 		}
 	}
-
-	int tail_len = M->s->na - k;
-	if (tail_len > 0) {
-		double dsum = GMRFLib_dsum(tail_len, M->a + k);
-		if (!isfinite(dsum)) {
-			LOG_INFO("Variable evaluates to NAN or INF, for %1d <= idx < %1d. I will try to fix it...",
-				 k, k + tail_len);
-			GMRFLib_LEAVE_FUNCTION;
-			return !GMRFLib_SUCCESS;
-		}
-	}
-
+	
 #undef M
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
