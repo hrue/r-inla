@@ -5916,42 +5916,48 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 		double *x = Calloc(n + 1, double);
-		int *ix = Calloc(n + 1, int);
-
-		double tref[3];
+		double tref[5] = {0};
 
 		GMRFLib_dfill(3, 0.0, tref);
 		double err = 0, ierr = 0;
 
 		for (int i = 0; i < m; i++) {
 			double ref = 0.0;
-			double iref = 0.0;
-
 			for (int j = 0; j < n; j++) {
 				x[j] = GMRFLib_uniform();
-				ix[j] = (int) (1000 * GMRFLib_uniform());
 				ref += x[j];
-				iref += ix[j];
 			}
 
 			tref[0] -= GMRFLib_timer();
-			GMRFLib_dsum(n, x);
+			GMRFLib_dsum_plain(n, x);
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-			GMRFLib_dsum_ext(n, x);
+			GMRFLib_dsum_plain_simd(n, x);
 			tref[1] += GMRFLib_timer();
 
 			tref[2] -= GMRFLib_timer();
-			GMRFLib_isum(n, ix);
+			GMRFLib_dsum_unroll(n, x);
 			tref[2] += GMRFLib_timer();
 
+			tref[3] -= GMRFLib_timer();
+			GMRFLib_dsum_unroll_simd(n, x);
+			tref[3] += GMRFLib_timer();
+
+			tref[4] -= GMRFLib_timer();
+			GMRFLib_dsum_simde(n, x);
+			tref[4] += GMRFLib_timer();
+
 			err += ABS(GMRFLib_dsum(n, x) - ref);
-			ierr += ABS(GMRFLib_isum(n, ix) - iref);
 		}
 		P(err / n);
 		P(ierr / n);
-		printf("dsum %f dsum_ext %f isum %f\n", tref[0], tref[1], tref[2]);
+		printf("dsum plain %f plain.simd %f unroll %f unroll.simd %f simde %f\n",
+		       tref[0] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]), 
+		       tref[1] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]), 
+		       tref[2] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]), 
+		       tref[3] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]), 
+		       tref[4] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]));
 	}
 		break;
 
@@ -7100,7 +7106,7 @@ int testit(int argc, char **argv)
 			tref[1] -= GMRFLib_timer();
 			double ss = 0.0;
 
-			ss = GMRFLib_dsum_ext(n, x);
+			ss = GMRFLib_dsum_simde(n, x);
 			tref[1] += GMRFLib_timer();
 
 			tref[2] -= GMRFLib_timer();

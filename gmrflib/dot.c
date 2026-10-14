@@ -11,7 +11,7 @@
 	}							\
 	return r
 
-#define SUM_CORE(TYPE_, n_)					\
+#define SUM_CORE_PLAIN_SIMD(TYPE_, n_)				\
 	TYPE_ r = 0;						\
 	_Pragma("omp simd reduction(+: r)")			\
 	for (int i = 0; i < n_; i++) {				\
@@ -19,91 +19,116 @@
 	}							\
 	return r
 
-#define SUM_CORE_UNROLL(TYPE_, n_)				\
-	TYPE_ r = 0;						\
-	TYPE_ s0 = 0, s1 = 0, s2 = 0, s3 = 0;			\
-	TYPE_ s4 = 0, s5 = 0, s6 = 0, s7 = 0;			\
-	int i = 0;						\
-	for (; i < (n_) - 8; i += 8) {				\
-		s0 += x[i];					\
-		s1 += x[i + 1];					\
-		s2 += x[i + 2];					\
-		s3 += x[i + 3];					\
-		s4 += x[i + 4];					\
-		s5 += x[i + 5];					\
-		s6 += x[i + 6];					\
-		s7 += x[i + 7];					\
-	}							\
-	for (; i < n_; i++) {					\
-		r += x[i];					\
-	}							\
-	r += (s0 + s1 + s2 + s3) + (s4 + s5 + s6 + s7);		\
+#define SUM_CORE_UNROLL(TYPE_, n_)					\
+	TYPE_ r = 0;							\
+	TYPE_ s0 = 0, s1 = 0, s2 = 0, s3 = 0;				\
+	TYPE_ s4 = 0, s5 = 0, s6 = 0, s7 = 0;				\
+	int i = 0;							\
+	for (i = 0; i < (n_) - 7; i += 8) {				\
+		s0 += x[i];						\
+		s1 += x[i + 1];						\
+		s2 += x[i + 2];						\
+		s3 += x[i + 3];						\
+		s4 += x[i + 4];						\
+		s5 += x[i + 5];						\
+		s6 += x[i + 6];						\
+		s7 += x[i + 7];						\
+	}								\
+	for (; i < n_; i++) {						\
+		r += x[i];						\
+	}								\
+	r += (s0 + s1 + s2 + s3) + (s4 + s5 + s6 + s7);			\
+	return r
+
+#define SUM_CORE_UNROLL_SIMD(TYPE_, n_)					\
+	TYPE_ r = 0;							\
+	TYPE_ s0 = 0, s1 = 0, s2 = 0, s3 = 0;				\
+	TYPE_ s4 = 0, s5 = 0, s6 = 0, s7 = 0;				\
+	int i = 0;							\
+	_Pragma("omp simd reduction(+: s0,s1,s2,s3,s4,s5,s6,s7)")	\
+	for (i = 0; i < (n_) - 7; i += 8) {				\
+		s0 += x[i];						\
+		s1 += x[i + 1];						\
+		s2 += x[i + 2];						\
+		s3 += x[i + 3];						\
+		s4 += x[i + 4];						\
+		s5 += x[i + 5];						\
+		s6 += x[i + 6];						\
+		s7 += x[i + 7];						\
+	}								\
+	for (; i < n_; i++) {						\
+		r += x[i];						\
+	}								\
+	r += (s0 + s1 + s2 + s3) + (s4 + s5 + s6 + s7);			\
 	return r
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-double GMRFLib_dsum(int n, double *x)
+double GMRFLib_dsum_plain(int n, double *x)
 {
-#if defined(__x86_64__)
-	if (n <= 64) {
-		SUM_CORE_UNROLL(double, n);
-	} else {
-		return GMRFLib_dsum_ext(n, x);
-	}
-#else
-	SUM_CORE_UNROLL(double, n);
-#endif
+	SUM_CORE_PLAIN(double, n);
 }
-
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-double GMRFLib_dsum_ext(int n, double *x)
+double GMRFLib_dsum_plain_simd(int n, double *x)
 {
+	SUM_CORE_PLAIN_SIMD(double, n);
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+double GMRFLib_dsum_unroll(int n, double *x)
+{
+	SUM_CORE_UNROLL(double, n);
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+double GMRFLib_dsum_unroll_simd(int n, double *x)
+{
+	SUM_CORE_UNROLL_SIMD(double, n);
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+double GMRFLib_dsum_simde(int n, double *x)
+{
+	// the _UNROLL is good already and the compiler do a good work. the simde one is a little better in some cases, so go
+	// for a generic and simple solution if we are not on x86_64 (or openblas is there, which has _dsum())
 #if defined(INLA_WITH_OPENBLAS)
-	double cblas_dsum(int, double *, int);
+	double cblas_dsum(int n, double *x, int inc);
 	return cblas_dsum(n, x, 1);
-#elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
-	double alignas(64) r0 = 0.0;
-	int k = ((64 - ((uintptr_t) x & 63)) & 63) / sizeof(double);
-
-	for (int i = 0; i < k; i++) {
-		r0 += x[i];
-	}
-	x += k;
-	n -= k;
+#elif defined(INLA_WITH_SIMDE_AVX512F_) && defined(__x86_64__) && defined(__AVX512F__)
+	double r0 = 0.0;
 #       include "intrinsics/simde/dsum-avx512f.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
-	double alignas(32) r0 = 0.0;
-	int k = ((32 - ((uintptr_t) x & 31)) & 31) / sizeof(double);
-
-	for (int i = 0; i < k; i++) {
-		r0 += x[i];
-	}
-	x += k;
-	n -= k;
+#elif defined(INLA_WITH_SIMDE_AVX2_) && defined(__x86_64__) && defined(__AVX2__)
+	double r0 = 0.0;
 #       include "intrinsics/simde/dsum-avx2.h"
-//#elif defined(INLA_WITH_SIMDE)
-//      double alignas(16) r0 = 0.0;
-//      int k = ((16 - ((uintptr_t) x & 15)) & 15) / sizeof(double);
-//
-//      for (int i = 0; i < k; i++) {
-//              r0 += x[i];
-//      }
-//      x += k;
-//      n -= k;
-//#       include "intrinsics/simde/dsum-sse2.h"
 #else
 	SUM_CORE_UNROLL(double, n);
 #endif
 }
-
 #pragma GCC diagnostic pop
+
+double GMRFLib_dsum(int n, double *x)
+{
+	return GMRFLib_dsum_simde(n, x);
+}
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -111,9 +136,8 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_isum(int n, int *x)
 {
-	SUM_CORE(int, n);
+	SUM_CORE_UNROLL(int, n);
 }
-
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push

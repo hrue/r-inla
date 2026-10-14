@@ -21,8 +21,14 @@ __BEGIN_DECLS
 #       if defined(INLA_WITH_ARMPL)
 #              include "armpl_sparse.h"
 #       endif
+
+
 double GMRFLib_dsum(int n, double *x);
-double GMRFLib_dsum_ext(int n, double *x);
+double GMRFLib_dsum_plain(int n, double *x);
+double GMRFLib_dsum_plain_simd(int n, double *x);
+double GMRFLib_dsum_simde(int n, double *x);
+double GMRFLib_dsum_unroll(int n, double *x);
+double GMRFLib_dsum_unroll_simd(int n, double *x);
 double GMRFLib_sparse_ddot(int n, double *RESTRICT v, double *RESTRICT a, int *RESTRICT idx);
 double GMRFLib_sparse_ddot_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
 double GMRFLib_sparse_ddot_ddot_(GMRFLib_idxval_tp * RESTRICT ELM_, double *RESTRICT ARR_);
