@@ -124,6 +124,9 @@ int GMRFLib_csr_check(GMRFLib_csr_tp *M)
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 {
 	GMRFLib_csr_skeleton_tp *Ms = NULL;
@@ -198,7 +201,11 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 
 	return (Ms);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
 	GMRFLib_ENTER_FUNCTION;
@@ -341,6 +348,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp *csr)
 {
