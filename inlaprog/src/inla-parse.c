@@ -3881,9 +3881,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->data_observations.egp_tail_interval[1] = 0.5;
 		}
 
-		if (DMAX(ds->data_observations.egp_tail_interval[0], ds->data_observations.egp_tail_interval[1]) > 0.5 ||
-		    ds->data_observations.egp_tail_interval[0] >= ds->data_observations.egp_tail_interval[1]) {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "TAIL.INTERVAL", ctmp);
+		double a0 = DMIN(ds->data_observations.egp_tail_interval[0], ds->data_observations.egp_tail_interval[1]);
+		double a1 = DMAX(ds->data_observations.egp_tail_interval[0], ds->data_observations.egp_tail_interval[1]);
+		ds->data_observations.egp_tail_interval[0] = a0;
+		ds->data_observations.egp_tail_interval[1] = a1;
+		if (ds->data_observations.egp_tail_interval[1] > 1.0 || ds->data_observations.egp_tail_interval[0] < -0.5) {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "TAIL.INTERVAL extends c=(-0.5, 1.0)", ctmp);
 		}
 		if (mb->verbose) {
 			printf("\t\tegp.tail.interval [%g , %g]\n", ds->data_observations.egp_tail_interval[0],

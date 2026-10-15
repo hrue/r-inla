@@ -2,6 +2,7 @@
 #define gsl_sf_lnbeta(a_, b_) LBETAfn(a_, b_)
 #define my_gsl_sf_lnbeta(a_, b_) LBETAfn(a_, b_)
 
+#define VEC_LIM 4
 #define VEC_LEN_MAX 32
 #define VEC_CREATE(name_, len_)						\
 	int name_ ## _len = len_;					\
@@ -2814,9 +2815,7 @@ int loglikelihood_poisson(int thread_id, int *UNUSED(lcache_idx), double *RESTRI
 
 		if (likely(PREDICTOR_LINK_EQ(link_log))) {
 			if (likely(PREDICTOR_SCALE == 1.0)) {
-				const int mkl_lim = 4L;
-
-				if (likely(m >= mkl_lim)) {
+				if (likely(m >= VEC_LIM)) {
 					VEC_CREATE(xx, m);
 					VEC_CREATE(exp_x, m);
 #pragma omp simd
@@ -3677,11 +3676,10 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *REST
 	}
 
 	if (m > 0) {
-		const int mkl_lim = 4L;
 		double logll0 = 0.0;
 
 		if (PREDICTOR_SIMPLE_LINK_EQ(link_logit)) {
-			if (ny >= mkl_lim) {
+			if (ny >= VEC_LIM) {
 				VEC_CREATE(w, ny);
 				VEC_CREATE(ww, ny);
 				for (int i = 0; i < ny; i++) {
@@ -3732,7 +3730,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *REST
 				if (PREDICTOR_LINK_EQ(link_logit)) {
 					double elogll0 = exp(logll0);
 
-					if (m >= mkl_lim) {
+					if (m >= VEC_LIM) {
 						VEC_CREATE(xx, m);
 						VEC_CREATE(exx, m);
 #pragma omp simd
@@ -3781,7 +3779,7 @@ int loglikelihood_occupancy(int thread_id, int *UNUSED(lcache_idx), double *REST
 				}
 			} else {
 				if (PREDICTOR_LINK_EQ(link_logit)) {
-					if (m >= mkl_lim) {
+					if (m >= VEC_LIM) {
 						inla_llike_log1p_exp_1(m, logll0, off, x, logll);
 					} else {
 #pragma omp simd
@@ -5777,13 +5775,11 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 		}
 		res.val = normc;
 
-		const int mkl_lim = 4L;
 		int fast = (PREDICTOR_SCALE == 1.0);
-
 		// special code for this case
 		if (likely(PREDICTOR_LINK_EQ(link_logit))) {
 			if (ISZERO(y)) {
-				if (likely(m >= mkl_lim)) {
+				if (likely(m >= VEC_LIM)) {
 					VEC_CREATE(v_eta, m);
 					VEC_CREATE(v_lee, m);
 					if (fast) {
@@ -5815,7 +5811,7 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 					}
 				}
 			} else if (ISZERO(ny)) {
-				if (m >= mkl_lim) {
+				if (m >= VEC_LIM) {
 					VEC_CREATE(v_eta, m);
 					VEC_CREATE(v_lee, m);
 					if (fast) {
@@ -5848,7 +5844,7 @@ int loglikelihood_binomial(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 					}
 				}
 			} else {
-				if (likely(m >= mkl_lim)) {
+				if (likely(m >= VEC_LIM)) {
 					aligned_double v_eta[2 * m], v_lee[2 * m];
 					double *v_liee = v_lee + m;
 
@@ -7561,15 +7557,33 @@ int loglikelihood_egp(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT l
 
 	if (m > 0) {
 		if (xi > 0.0) {
-			for (int i = 0; i < m; i++) {
-				double q = PREDICTOR_INVERSE_LINK(x[i], off);
-				double sigma = xi * q * ia;
-				double yy = DMAX(DBL_EPSILON, 1.0 + xi * y / sigma);
-
-				logll[i] = lkappa + (kappa - 1.0) * log1p(-pow(yy, xii)) - log(sigma) + (xii - 1.0) * log(yy);
+			if (likely(m >= VEC_LIM)) {
+				VEC_CREATE(x1, m);
+				VEC_CREATE(x2, m);
+				if (likely(xi > 0 && PREDICTOR_LINK_EQ(link_log))) {
+					// x2[i] = a * exp(b + x[i])
+					// x1[i] = 1 + c / x2[i]
+					inla_llike_egp_1(m, x, xi * ia, off, xi * y, x1, x2);
+				} else {
+					for (int i = 0; i < m; i++) {
+						x2[i] = xi * ia * PREDICTOR_INVERSE_LINK(x[i], off);
+						x1[i] = DMAX(DBL_EPSILON, 1.0 + xi * y / x2[i]);
+					}
+				}
+				// a + b * log1p(-pow(x1[i], c)) - log(x2[i]) + d * log(x1[i])
+				inla_llike_egp_2(m, x1, x2, lkappa, kappa-1.0, xii, xii-1.0, logll);
+				VEC_FREE(x1);
+				VEC_FREE(x2);
+			} else {
+				for (int i = 0; i < m; i++) {
+					double q = PREDICTOR_INVERSE_LINK(x[i], off);
+					double sigma = xi * q * ia;
+					double yy = DMAX(DBL_EPSILON, 1.0 + xi * y / sigma);
+					logll[i] = lkappa + (kappa - 1.0) * log1p(-pow(yy, xii)) - log(sigma) + (xii - 1.0) * log(yy);
+				}
 			}
 		} else {
-			double f[] = { 0.90, 0.99 };
+			const double f[] = { 0.90, 0.99 };
 			double eta_c = log(-y * a);
 			double eta_L, eta_H;
 
@@ -9273,3 +9287,4 @@ int loglikelihood_cloglike(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 #undef VEC_LEN_MAX
 #undef VEC_CREATE
 #undef VEC_FREE
+#undef VEC_LIM

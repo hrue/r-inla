@@ -175,7 +175,8 @@ void inla_llike_log1p_exp(const int m, double *RESTRICT x, double *RESTRICT y)
 	// y[i] = log1p(exp(x[i]))
 #pragma omp simd
 	for (int i = 0; i < m; i++) {
-		y[i] = log1p(exp(x[i]));
+		double a = exp(x[i]);
+		y[i] = log1p(a);
 	}
 }
 #pragma GCC diagnostic pop
@@ -220,6 +221,36 @@ void inla_llike_tweedie2_1(const int n, const double p1, const double p2, const 
 		double a = pow(mu[i], p2);
 		double A = af + bf / mu[i];
 		ldens[i] = a * A + c;
+	}
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void inla_llike_egp_1(const int m, double *RESTRICT x, double a, double b, double c, double *RESTRICT y1, double *RESTRICT y2)
+{
+	// y2[i] = a * exp(b + x[i])
+	// y1[i] = 1 + c / y2[i]
+#pragma omp simd
+	for (int i = 0; i < m; i++) {
+		y2[i] = a * exp(b + x[i]);
+		y1[i] = 1.0 + c / y2[i];
+	}
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+NOINLINE __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
+void inla_llike_egp_2(const int m, double *RESTRICT x1, double *RESTRICT x2, double a, double b, double c, double d, double *RESTRICT y)
+{
+	// y[i] = a + b * log1p(-pow(x1[i], c)) - log(x2[i]) + d * log(x1[i])
+#pragma omp simd
+	for (int i = 0; i < m; i++) {
+		double aa = -pow(x1[i], c);
+		double aaa = log1p(aa);
+		y[i] = a + b * aaa - log(x2[i]) + d * log(x1[i]);
 	}
 }
 #pragma GCC diagnostic pop
