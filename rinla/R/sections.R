@@ -624,7 +624,7 @@ inla.parse.Bmatrix.test <- function() {
     if (!is.null(ngroup) && ngroup > 1) {
         cat("ngroup = ", ngroup, "\n", sep = " ", file = file, append = TRUE)
 
-        if (!inla.one.of(random.spec$model, "copy")) {
+        if (!inla.one.of(random.spec$model, c("copy", "scopy"))) {
             cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file, append = TRUE)
             inla.write.boolean.field("group.cyclic", random.spec$control.group$cyclic, file)
             if (is.null(random.spec$control.group$scale.model)) {
