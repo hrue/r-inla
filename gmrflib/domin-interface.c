@@ -1047,8 +1047,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	GMRFLib_opt_dir_transform_hessian(hessian);
 	if (ok) {
 		char *msg = NULL;
-
-		GMRFLib_ensure_spd(hessian, n, -1.0, &msg);
+		//GMRFLib_ensure_spd(hessian, n, -1.0, &msg);
+		GMRFLib_ensure_spd(hessian, n, FLT_EPSILON, &msg);
 		if (msg) {
 			if (G.ai_par->fp_log || debug) {
 				fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "%s: ensure spd for Hessian: mode seems fine\n",

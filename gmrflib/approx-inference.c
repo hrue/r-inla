@@ -1571,6 +1571,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 		}
 
+
 		GMRFLib_overall_cpu[4] = GMRFLib_timer();
 
 		ai_par->hessian_forward_finite_difference = fd_save;
@@ -1618,6 +1619,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				gsl_matrix_set(H, (size_t) i, (size_t) j, hessian[i + nhyper * j]);
 			}
 		}
+		GMRFLib_gsl_force_symmetric(H);
+
 		work = gsl_eigen_symmv_alloc((size_t) nhyper);
 		eigen_vectors = gsl_matrix_calloc((size_t) nhyper, (size_t) nhyper);
 		eigen_values = gsl_vector_calloc((size_t) nhyper);
@@ -1692,8 +1695,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 		if (a_change) {
 			/*
-			 * rebuild the Hessian using the new eigenvalues. I should have used matrix-multiplication routines, but I had this code already from
-			 * af-program.c ;-) In any case, the matrix is small...
+			 * rebuild the Hessian using the new eigenvalues
 			 */
 			if (all_negative) {
 				/*
@@ -1731,7 +1733,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		inverse_hessian = Calloc(ISQR(nhyper), double);
 
 		Memcpy(inverse_hessian, hessian, ISQR(nhyper) * sizeof(double));
-		GMRFLib_comp_posdef_inverse(inverse_hessian, nhyper);
+		// GMRFLib_comp_posdef_inverse(inverse_hessian, nhyper);
+		GMRFLib_safe_spd_inv(inverse_hessian, nhyper, FLT_EPSILON, NULL);
 
 		if (misc_output) {
 			misc_output->nhyper = nhyper;

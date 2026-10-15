@@ -721,6 +721,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 		gsl_linalg_cholesky_svx(L, x);
 		gsl_matrix_set_col(A, i, x);
 	}
+	GMRFLib_gsl_force_symmetric(A);
 
 	gsl_vector_free(x);
 	gsl_matrix_free(L);
@@ -837,15 +838,17 @@ int GMRFLib_ensure_spd_x(double *A, int dim, double tol, char **msg, GMRFLib_gsl
 
 	for (i = 0; i < (size_t) dim; i++) {
 		for (j = 0; j <= i; j++) {
-			gsl_matrix_set(AA, i, j, A[i + j * dim]);
-			gsl_matrix_set(AA, j, i, A[i + j * dim]);
+			double a =  (A[i + j * dim] + A[j + i * dim]) / 2.0;
+			gsl_matrix_set(AA, i, j, a);
+			gsl_matrix_set(AA, j, i, a);
 		}
 	}
 	GMRFLib_gsl_ensure_spd_x(AA, tol, msg, store);
 	for (i = 0; i < (size_t) dim; i++) {
 		for (j = 0; j <= i; j++) {
-			A[i + j * dim] = gsl_matrix_get(AA, i, j);
-			A[j + i * dim] = gsl_matrix_get(AA, i, j);
+			double a = (gsl_matrix_get(AA, i, j) + gsl_matrix_get(AA, j, i)) / 2.0;
+			A[i + j * dim] = a;
+			A[j + i * dim] = a;
 		}
 	}
 
@@ -949,14 +952,17 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 		s_max = 0.0;				       /* then the whole matrix is zero or INF, as all is wrong... */
 	}
 
-	if (tol < 0.0 && s_max > 0.0) {
+	if (s_max > 0.0) {
 		int n_neg = 0;
+		int n_small = 0;
 
 		s_min = s_max;
 		for (i = 0; i < A->size1; i++) {
 			s = gsl_vector_get(S, i);
 			if (s <= 0.0) {
 				n_neg++;
+			} else if (s <= tol * s_max){
+				n_small++;
 			}
 			if (s > 0.0 && s < s_min) {
 				s_min = s;
@@ -964,7 +970,7 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 		}
 		tol = s_min / s_max;
 		if (msg) {
-			GMRFLib_sprintf(msg, "set tol=[%.4g]. number of negative eigenvalues=[%1d]", tol, n_neg);
+			GMRFLib_sprintf(msg, "max tol=[%.4g] no.neg.evals=[%1d]  no.small.evals[%1d]", tol, n_neg, n_small);
 		}
 	}
 
@@ -1003,6 +1009,7 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U, zero, M1);
 	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, U, M1, zero, M2);
 	gsl_matrix_memcpy(A, M2);
+	GMRFLib_gsl_force_symmetric(A);
 
 	if (!store) {
 		gsl_matrix_free(U);
@@ -1161,6 +1168,32 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_safe_spd_inv(double *A, int dim, double tol, int *try_first) 
+{
+	size_t n = (size_t) dim;
+	gsl_matrix *Am = gsl_matrix_alloc(n, n);
+	_assert(Am);
+	
+	for(size_t j = 0; j < n; j++) {
+		for(size_t i = 0; i < n; i++) {
+			gsl_matrix_set(Am, i, j, A[i + j * dim]);
+		}
+	}
+
+	gsl_matrix_set(Am, 0, 0, 0.0);
+	
+	int ecode = GMRFLib_gsl_spd_inv(Am, tol, try_first);
+
+	for(size_t j = 0; j < n; j++) {
+		for(size_t i = 0; i < n; i++) {
+			A[i + j * dim ] = gsl_matrix_get(Am, i, j);
+		}
+	}
+	gsl_matrix_free(Am);
+
+	return ecode;
+}
+
 int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 {
 	/*
@@ -1172,7 +1205,6 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 	_assert(A && (A->size1 == A->size2));
 	if (try_first && *try_first) {
 		int ecode = GMRFLib_gsl_spd_inverse(A);
-
 		if (ecode == GMRFLib_SUCCESS) {
 			return GMRFLib_SUCCESS;
 		}
@@ -1223,6 +1255,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 
 	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U, zero, M1);
 	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, U, M1, zero, A);
+	GMRFLib_gsl_force_symmetric(A);
 
 	gsl_matrix_free(U);
 	gsl_matrix_free(M1);
