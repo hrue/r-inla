@@ -178,7 +178,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 	for (int i = 0; i < n; i++) {
 		if (graph->lnnbs[i]) {
 			int k = k_arr[i];
-			Memcpy(&(Ms->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int)); 
+			Memcpy(&(Ms->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
 		}
 	}
 	Free(k_arr);
@@ -193,6 +193,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 
 	return (Ms);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -237,7 +238,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 					}
 				}
 			} else {
-#pragma omp parallel for num_threads(nt_loc) 
+#pragma omp parallel for num_threads(nt_loc)
 				for (int i = 0; i < M->s->n; i++) {
 					for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) {
 						int j = M->s->ja[k];
@@ -274,7 +275,6 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			Free(tag);
 		}
 	}
-
 #if 0
 	int nan_error = 0;
 	tref[0] -= GMRFLib_timer();
@@ -301,7 +301,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 	// this is not thread-safe: 'fail' might be set without control, but this is all good. we do not need to know exactly where
 	// it fail for the first time, just that it failed. anyhow, we report where we detect it fail
 #pragma omp parallel for num_threads(nt_loc)
-	for(int k = 0; k < d.quot; k++) {
+	for (int k = 0; k < d.quot; k++) {
 		if (!fail) {
 			int kk = k * chunk_size;
 			double dsum = GMRFLib_dsum(chunk_size, M->a + kk);
@@ -311,35 +311,32 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			}
 		}
 	}
-	
+
 	if (fail) {
 		Free(tag);
-		LOG_INFO("Variable evaluates to NAN or INF, for %1d <= idx < %1d. I will try to fix it...",
-			 k_fail, k_fail + chunk_size);
+		LOG_INFO("Variable evaluates to NAN or INF, for %1d <= idx < %1d. I will try to fix it...", k_fail, k_fail + chunk_size);
 		GMRFLib_LEAVE_FUNCTION;
 		return !GMRFLib_SUCCESS;
 	}
-
 	// we only update if it does not fail
 	tref += GMRFLib_timer();
 	GMRFLib_adapt_nt_update(tag, tnum, level, tref);
 	Free(tag);
-	
+
 	if (d.rem > 0) {
 		int tail_start = d.quot * chunk_size;
 		double dsum = GMRFLib_dsum(d.rem, M->a + tail_start);
 		if (!isfinite(dsum)) {
-			LOG_INFO("Variable evaluates to NAN or INF, for %1d <= idx < %1d. I will try to fix it...",
-				 tail_start, tail_start + d.rem);
+			LOG_INFO("Variable evaluates to NAN or INF, for %1d <= idx < %1d. I will try to fix it...", tail_start, tail_start + d.rem);
 			GMRFLib_LEAVE_FUNCTION;
 			return !GMRFLib_SUCCESS;
 		}
 	}
-	
 #undef M
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp *csr)

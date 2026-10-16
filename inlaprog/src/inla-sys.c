@@ -89,7 +89,7 @@ BOOL WINAPI inla__signal_func(DWORD ctrl_type)
 {
 	if (ctrl_type == CTRL_C_EVENT || ctrl_type == CTRL_CLOSE_EVENT || ctrl_type == CTRL_BREAK_EVENT) {
 		GMRFLib_color_reset();
-		ExitProcess(EXIT_FAILURE); 
+		ExitProcess(EXIT_FAILURE);
 		return TRUE;
 	}
 	return FALSE;
@@ -100,27 +100,27 @@ BOOL WINAPI inla__signal_func(DWORD ctrl_type)
 void inla_signal_func(int signum)
 {
 	LOG_INFO("recieve signal %1d [%s]", signum, inla_signal_name(signum));
-	switch(signum) {
-	case SIGINT: 
-	case SIGQUIT: 
-	case SIGTERM: 
-	case SIGABRT: 
+	switch (signum) {
+	case SIGINT:
+	case SIGQUIT:
+	case SIGTERM:
+	case SIGABRT:
 		GMRFLib_color_reset();
-		_Exit(EXIT_FAILURE); 
+		_Exit(EXIT_FAILURE);
 		break;
 	case SIGUSR1:
 	case SIGUSR2:
 		GMRFLib_write_state = 1;
 		LOG_INFO("set GMRFLib_write_state = 1");
 		break;
-	default: 
+	default:
 		break;
 	}
 }
 
 #endif
 
-const char * inla_signal_name(int signum) 
+const char *inla_signal_name(int signum)
 {
 #define SIGNUM_MAX 64
 	static const char *signal_name[SIGNUM_MAX + 1];
@@ -200,7 +200,7 @@ const char * inla_signal_name(int signum)
 	}
 	return NULL;
 }
-	
+
 int inla_reset(void)
 {
 	// reset static variables various places as need need to call _ai_INLA() twice in preopt_mode

@@ -12712,7 +12712,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			if (mb->verbose) {
 				printf("\t\tcyclic=[%1d]\n", mb->f_cyclic[mb->nf]);
 			}
-			_assert(mb->f_cyclic[mb->nf] == 0);     /* not implemented */
+			_assert(mb->f_cyclic[mb->nf] == 0);    /* not implemented */
 
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
 		}
