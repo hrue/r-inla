@@ -1,11 +1,3 @@
-#include <assert.h>
-#include <math.h>
-#include <omp.h>
-#include <stdio.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 static int csr_store_use = 1;
@@ -111,7 +103,7 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 			Memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->s->na) * sizeof(double));
 		}
 	} else {
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -119,11 +111,14 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 
 int GMRFLib_csr_check(GMRFLib_csr_tp *M)
 {
-	assert(M->s->ia1 == NULL);
-	assert(M->s->ja1 == NULL);
+	_assert(M->s->ia1 == NULL);
+	_assert(M->s->ja1 == NULL);
 	return GMRFLib_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 {
 	GMRFLib_csr_skeleton_tp *Ms = NULL;
@@ -178,19 +173,14 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 		k += graph->lnnbs[i];
 		Ms->ia[i + 1] = Ms->ia[i] + (1 + graph->lnnbs[i]);
 	}
-	assert(Ms->ia[n] == na);
+	_assert(Ms->ia[n] == na);
 
-#define CODE_BLOCK							\
-	for (int i = 0; i < n; i++) {					\
-		CODE_BLOCK_INIT();					\
-		if (graph->lnnbs[i]) {					\
-			int k = k_arr[i];				\
-			Memcpy(&(Ms->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int)); \
-		}							\
+	for (int i = 0; i < n; i++) {
+		if (graph->lnnbs[i]) {
+			int k = k_arr[i];
+			Memcpy(&(Ms->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int)); 
+		}
 	}
-
-	RUN_CODE_BLOCK(1, 0, 0);			       /* TO QUICK TO DO IN PARALLEL */
-#undef CODE_BLOCK
 	Free(k_arr);
 
 	if (csr_store_use && graph->sha) {
@@ -203,7 +193,11 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 
 	return (Ms);
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
 	GMRFLib_ENTER_FUNCTION;
@@ -212,87 +206,78 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 	M = Calloc(1, GMRFLib_csr_tp);
 	M->s = GMRFLib_csr_skeleton(graph);
 
-	// when this is true, we can just copy the pointer to the matrix.
-	int used_fast_tab = 0;
-
 	if (Qfunc == GMRFLib_tabulate_Qfunction_std) {
 		GMRFLib_tabulate_Qfunc_arg_tp *arg = (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
-
 		if (arg->Q) {
 			M->a = arg->Q->a;
 			// mark this a copy only, not to be free'd.
 			M->copy_only = 1;
-			used_fast_tab = 1;
 		}
 	}
 
-	if (!used_fast_tab) {
-		M->a = Malloc(M->s->na, double);
+	int level = omp_get_level();
+	int tnum = omp_get_thread_num();
+	int num_threads = (level == 0 ? GMRFLib_ADAPTIVE_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
 
-		// a bit more manual work
+	if (M->copy_only == 0) {
+		M->a = Malloc(M->s->na, double);
 		double val = Qfunc(thread_id, 0, -1, &(M->a[0]), Qfunc_arg);
 
 		if (ISNAN(val)) {
-			static char *tag = NULL;
-
-			if (!tag) {
-#pragma omp critical (Name_7600f798b7727e8eb5fbed77a2db305e4db69365)
-				if (!tag) {
-					GMRFLib_sprintf(&tag, "%s:%1d", __FILE__, __LINE__);
-				}
-			}
-			int level = omp_get_level();
-			int tnum = omp_get_thread_num();
-			int num_threads = (level == 0 ? GMRFLib_ADAPTIVE_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
+			char *tag = NULL;
+			GMRFLib_sprintf(&tag, "%s:%1d:%1d", __FILE__, __LINE__, M->s->n);
 			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 			double tref = -GMRFLib_timer();
 
-#define CODE_BLOCK							\
-			for (int i = 0; i < M->s->n; i++) {		\
-				CODE_BLOCK_INIT();			\
-				for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) { \
-					int j = M->s->ja[k];		\
-					M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg); \
-				}					\
+			if (nt_loc == 1) {
+				for (int i = 0; i < M->s->n; i++) {
+					for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) {
+						int j = M->s->ja[k];
+						M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
+					}
+				}
+			} else {
+#pragma omp parallel for num_threads(nt_loc) 
+				for (int i = 0; i < M->s->n; i++) {
+					for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) {
+						int j = M->s->ja[k];
+						M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
+					}
+				}
 			}
 
-			RUN_CODE_BLOCK(nt_loc, 0, 0);
-#undef CODE_BLOCK
 			tref += GMRFLib_timer();
 			GMRFLib_adapt_nt_update(tag, tnum, level, tref);
-
+			Free(tag);
 		} else {
 
-			static char *tag = NULL;
-
-			if (!tag) {
-#pragma omp critical (Name_5d44f84bdfc2d2b324a71dbddd46ed4c72f4fba7)
-				if (!tag) {
-					GMRFLib_sprintf(&tag, "%s:%1d", __FILE__, __LINE__);
-				}
-			}
-			int level = omp_get_level();
-			int tnum = omp_get_thread_num();
-			int num_threads = (level == 0 ? GMRFLib_ADAPTIVE_NUM_THREADS() : GMRFLib_openmp->max_threads_inner);
+			char *tag = NULL;
+			GMRFLib_sprintf(&tag, "%s:%1d:%1d", __FILE__, __LINE__, M->s->n);
 			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 			double tref = -GMRFLib_timer();
 
-#define CODE_BLOCK							\
-			for (int i = 0; i < M->s->n; i++) {		\
-				CODE_BLOCK_INIT();			\
-				int k = M->s->ia[i];			\
-				Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);	\
+			if (nt_loc == 1) {
+				for (int i = 0; i < M->s->n; i++) {
+					int k = M->s->ia[i];
+					Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);
+				}
+			} else {
+#pragma omp parallel for num_threads(nt_loc)
+				for (int i = 0; i < M->s->n; i++) {
+					int k = M->s->ia[i];
+					Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);
+				}
 			}
 
-			RUN_CODE_BLOCK(nt_loc, 0, 0);
-#undef CODE_BLOCK
 			tref += GMRFLib_timer();
 			GMRFLib_adapt_nt_update(tag, tnum, level, tref);
+			Free(tag);
 		}
 	}
 
+#if 0
 	int nan_error = 0;
-
+	tref[0] -= GMRFLib_timer();
 	for (int i = 0; i < M->s->na; i++) {
 		GMRFLib_STOP_IF_NAN_OR_INF(M->a[i], i, -1);
 		if (nan_error) {
@@ -300,11 +285,62 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			return !GMRFLib_SUCCESS;
 		}
 	}
+#endif
 
+	char *tag = NULL;
+	GMRFLib_sprintf(&tag, "%s:%1d:%1d", __FILE__, __LINE__, M->s->na);
+	int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
+	double tref = -GMRFLib_timer();
+
+	// faster implementation as NAN/INF occours rarely
+	const int chunk_size = 1024;
+	int fail = 0;
+	int k_fail = 0;
+	div_t d = div(M->s->na, chunk_size);
+
+	// this is not thread-safe: 'fail' might be set without control, but this is all good. we do not need to know exactly where
+	// it fail for the first time, just that it failed. anyhow, we report where we detect it fail
+#pragma omp parallel for num_threads(nt_loc)
+	for(int k = 0; k < d.quot; k++) {
+		if (!fail) {
+			int kk = k * chunk_size;
+			double dsum = GMRFLib_dsum(chunk_size, M->a + kk);
+			if (!isfinite(dsum)) {
+				fail = 1;
+				k_fail = kk;
+			}
+		}
+	}
+	
+	if (fail) {
+		Free(tag);
+		LOG_INFO("Variable evaluates to NAN or INF, for %1d <= idx < %1d. I will try to fix it...",
+			 k_fail, k_fail + chunk_size);
+		GMRFLib_LEAVE_FUNCTION;
+		return !GMRFLib_SUCCESS;
+	}
+
+	// we only update if it does not fail
+	tref += GMRFLib_timer();
+	GMRFLib_adapt_nt_update(tag, tnum, level, tref);
+	Free(tag);
+	
+	if (d.rem > 0) {
+		int tail_start = d.quot * chunk_size;
+		double dsum = GMRFLib_dsum(d.rem, M->a + tail_start);
+		if (!isfinite(dsum)) {
+			LOG_INFO("Variable evaluates to NAN or INF, for %1d <= idx < %1d. I will try to fix it...",
+				 tail_start, tail_start + d.rem);
+			GMRFLib_LEAVE_FUNCTION;
+			return !GMRFLib_SUCCESS;
+		}
+	}
+	
 #undef M
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
+#pragma GCC diagnostic pop
 
 int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp *csr)
 {
@@ -394,7 +430,7 @@ int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp **Qtab, GMRFLib_graph_tp **graph, GM
 			k++;
 		}
 	}
-	assert(k == csr->s->na);
+	_assert(k == csr->s->na);
 	GMRFLib_tabulate_Qfunc_from_list(Qtab, graph, csr->s->na, iarr, jarr, arr, csr->s->n, NULL);
 
 	Free(iarr);
@@ -461,7 +497,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *gr
 					break;
 				}
 			}
-			assert(k >= 0);
+			_assert(k >= 0);
 
 			GMRFLib_stiles_idx_tp stiles_idx = { k, 0, 0 };
 			sm_fact->remap = Malloc(graph->n, int);
@@ -564,7 +600,7 @@ int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRF
 		if (problem->stiles_idx->within_group < 0) {
 			problem->stiles_idx->within_group = omp_get_thread_num();
 		}
-		assert(problem->stiles_idx->within_group == omp_get_thread_num());
+		_assert(problem->stiles_idx->within_group == omp_get_thread_num());
 
 		ret = GMRFLib_stiles_build(problem->stiles_idx, thread_id, Qfunc, Qfunc_arg);
 		if (ret != GMRFLib_SUCCESS) {
@@ -910,7 +946,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			// printf("CALL with nrhs %1d and ntt_orig %1d ntt %1d\n", nrhs, ntt_orig, ntt);
 			// for(int i = 0; i < ntt_orig; i++) printf("\tthread %1d nrhs %1d\n", i, csize[i]);
 
-			assert(GMRFLib_isum(ntt, csize) == nrhs);
+			_assert(GMRFLib_isum(ntt, csize) == nrhs);
 			offset[0] = 0;
 			for (int i = 1; i < ntt; i++) {
 				offset[i] = offset[i - 1] + csize[i - 1] * graph->n;
@@ -975,7 +1011,7 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_
 
 	case GMRFLib_SMTP_STILES:
 	{
-		assert(0 == 1 && "this case should not be relevant for stiles");
+		_assert(0 == 1 && "this case should not be relevant for stiles");
 		GMRFLib_stiles_idx_tp stiles_idx = { problem->stiles_idx->in_group, -1, 1 };
 		GMRFLib_stiles_set_idx(&stiles_idx, 1);
 		GMRFLib_stiles_solve_LLT(&stiles_idx, rhs);
@@ -1130,7 +1166,7 @@ int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, in
 
 	case GMRFLib_SMTP_STILES:
 	{
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 		break;
 

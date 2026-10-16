@@ -187,7 +187,7 @@ int R_load_INLA = 0;
 		if (num > 0) {						\
 			int bytes_read;					\
 			bytes_read = read(fd, (void *) buf, (size_t) ((num)*sizeof(type))); \
-			assert(bytes_read == (int) ((num)*sizeof(type))); \
+			_assert(bytes_read == (int) ((num)*sizeof(type))); \
 		}							\
 	}
 
@@ -196,7 +196,7 @@ int R_load_INLA = 0;
 		if (num > 0) {						\
 			int bytes_written;				\
 			bytes_written = write(fd, (void *) buf, (size_t) ((num)*sizeof(type))); \
-			assert(bytes_written == (int) ((num)*sizeof(type))); \
+			_assert(bytes_written == (int) ((num)*sizeof(type))); \
 		}							\
 	}
 
@@ -213,7 +213,7 @@ int R_load_INLA = 0;
 	if (1) {							\
 		fprintf(stderr, "\n\n%s: %d  CODE NEEDED HERE!\n\n", __FILE__, __LINE__); \
 		exit(1);						\
-		assert(0==1);						\
+		_assert(0==1);						\
 	}
 
 // these versions (in my.c) cache the result when the argument is integer
@@ -787,7 +787,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 					"Your model has %1d hyperparameter(s) which is different from the %1d hyperparameter(s) given in 'control.mode'",
 					mb->theta_counter_file, mb->ntheta_file);
 			inla_error_general(ctmp);
-			assert(mb->theta_counter_file == mb->ntheta_file);
+			_assert(mb->theta_counter_file == mb->ntheta_file);
 		}
 	}
 
@@ -921,7 +921,7 @@ GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp *c
 		Memcpy(c->a_matrix, constr->a_matrix, n * nc * sizeof(double));
 		Memcpy(c->e_vector, constr->e_vector, nc * sizeof(double));
 	} else {
-		assert(sumzero && constr);
+		_assert(sumzero && constr);
 
 		nc = constr->nc + 1;
 		c->nc = nc;
@@ -997,7 +997,7 @@ GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRF
 			}
 		}
 	}
-	assert(ccount == c->nc);
+	_assert(ccount == c->nc);
 
 	/*
 	 * this is a stupid construction (i blame myself...): i have to pass the graph in order to pass `n'... 
@@ -1030,9 +1030,9 @@ int inla_cgeneric_debug(FILE *fp, char *secname, inla_cgeneric_cmd_tp cmd, doubl
 				ii_prev = ii;
 				ii = (int) out[2 + i];
 				jj = (int) out[2 + m + i];
-				assert(ii >= 0 && jj >= 0);
-				assert(ii >= ii_prev);
-				assert(jj >= ii);
+				_assert(ii >= 0 && jj >= 0);
+				_assert(ii >= ii_prev);
+				_assert(jj >= ii);
 				fprintf(fp, "\tidx = %1d i = %1d j = %1d\n", i, (int) out[2 + i], (int) out[2 + m + i]);
 			}
 		}
@@ -1326,7 +1326,7 @@ inla_iarray_tp *find_all_f(inla_tp *mb, inla_component_tp id)
 				ia->array[j++] = i;
 			}
 		}
-		assert(j == ia->n);
+		_assert(j == ia->n);
 	}
 
 	return ia;
@@ -1490,9 +1490,9 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 #define _SET_GROUP_RHO(_nt_)						\
 	if (mb->f_group_model[i] != G_AR) {				\
 		if (mb->f_ngroup[i] == 1) {				\
-			assert(mb->f_ntheta[i] == (_nt_));		\
+			_assert(mb->f_ntheta[i] == (_nt_));		\
 		} else {						\
-			assert(mb->f_ntheta[i] == (_nt_)+1);		\
+			_assert(mb->f_ntheta[i] == (_nt_)+1);		\
 		}							\
 	}								\
 	ngroup = mb->f_ngroup[i];					\
@@ -1649,7 +1649,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 					jp_first_time = 0;
 				}
 			}
-			assert(!(mb->update));		       /* only one at the time... */
+			_assert(!(mb->update));		       /* only one at the time... */
 			evaluate_hyper_prior = 0;
 
 			int verbose = 0;
@@ -1659,8 +1659,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				double *lprior = NULL;
 
 				inla_R_funcall_jp(&n_out, &lprior, (const char *) mb->jp->model, &ntheta, theta, jp_vec_sexp);
-				assert(n_out == 1);
-				assert(lprior);
+				_assert(n_out == 1);
+				_assert(lprior);
 				val += *lprior;
 				if (verbose) {
 					printf("got lprior = %g\n", *lprior);
@@ -3060,7 +3060,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				}
 			}
 		}
-		assert(mb->data_ntheta_all == check);
+		_assert(mb->data_ntheta_all == check);
 	}
 
 	for (i = 0; i < mb->nlinear; i++) {
@@ -3146,7 +3146,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			double *Tpar = NULL, *Kpar = NULL, init0, init1, init2, init3;
 
 			spde = (inla_spde_tp *) mb->f_model[i];
-			assert(spde->Qfunc_arg == spde);
+			_assert(spde->Qfunc_arg == spde);
 
 			nT = spde->Tmodel->ntheta;
 			nK = spde->Kmodel->ntheta;
@@ -3311,7 +3311,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				P(nK);
 				P(mb->f_ntheta[i]);
 			}
-			assert(IMAX(4, nT + nK + 1) + (mb->f_ngroup[i] > 1 ? 1 : 0) == mb->f_ntheta[i]);
+			_assert(IMAX(4, nT + nK + 1) + (mb->f_ngroup[i] > 1 ? 1 : 0) == mb->f_ntheta[i]);
 
 			_SET_GROUP_RHO(IMAX(4, nT + nK + 1));
 
@@ -3406,7 +3406,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			inla_spde2_tp *spde2 = NULL;
 
 			spde2 = (inla_spde2_tp *) mb->f_model[i];
-			assert(spde2->Qfunc_arg == spde2);
+			_assert(spde2->Qfunc_arg == spde2);
 
 			if (debug) {
 				static int first = 1;
@@ -3516,7 +3516,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 						local_theta[0] = (_NOT_FIXED(f_fixed[i][0]) ? theta[count_ref + local_count++] : NAN);
 						local_theta[1] = (_NOT_FIXED(f_fixed[i][1]) ? theta[count_ref + local_count++] : NAN);
-						assert(local_count == spde2->ntheta_used);
+						_assert(local_count == spde2->ntheta_used);
 						val += PRIOR_EVAL(mb->f_prior[i][0], local_theta);
 					} else {
 						// the mvnorm prior, defined on the _USED_ thetas!
@@ -3534,7 +3534,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			inla_spde3_tp *spde3 = NULL;
 
 			spde3 = (inla_spde3_tp *) mb->f_model[i];
-			assert(spde3->Qfunc_arg == spde3);
+			_assert(spde3->Qfunc_arg == spde3);
 
 			spde3->debug = 0;
 			spde3_ntheta = spde3->ntheta;
@@ -4136,7 +4136,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 				double *cc_add = Calloc(arg->n + arg->m, double);
 
-				assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
+				_assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
 				if (mb->f_diag[i]) {
 					for (int ii = 0; ii < arg->n + arg->m; ii++) {
 						cc_add[ii] = mb->f_diag[i];
@@ -4346,7 +4346,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 				double *cc_add = Calloc(arg->n + arg->m, double);
 
-				assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
+				_assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
 				if (mb->f_diag[i]) {
 					for (int ii = 0; ii < arg->n + arg->m; ii++) {
 						cc_add[ii] = mb->f_diag[i];
@@ -4454,7 +4454,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			/*
 			 * we need to do it like this as the scale[i] varies with 'i'.
 			 */
-			assert(mb->f_scale[i]);
+			_assert(mb->f_scale[i]);
 			for (ii = 0; ii < nii; ii++) {
 				AA += log((exp(log_precision_obs) * mb->f_scale[i][ii] + exp(log_precision_x)) / SQR(beta));
 				BB += log(1.0 / (1.0 / (mb->f_scale[i][ii] * exp(log_precision_obs)) + 1.0 / exp(log_precision_x)));
@@ -4548,7 +4548,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				log_prior = (evaluate_hyper_prior && !all_fixed ? xx_out[0] : 0.0);
 				break;
 			default:
-				assert(0 == 1);
+				_assert(0 == 1);
 			}
 			if (nn_out) {
 				Free(xx_out);
@@ -4566,16 +4566,16 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
 
 				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, &nt, param);
-				assert(nn_out >= 2);
+				_assert(nn_out >= 2);
 
 				if ((int) xx_out[0] == -1) {
 					// optimized output
 					k = 1;
 					len = (int) xx_out[k++];
-					assert(len == def->len_list);
-					assert(def->graph);
-					assert(def->ilist);
-					assert(def->jlist);
+					_assert(len == def->len_list);
+					_assert(def->graph);
+					_assert(def->ilist);
+					_assert(def->jlist);
 					n = def->graph->n;
 					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, def->len_list, def->ilist, def->jlist, &(xx_out[k]),
 									  def->graph->n, NULL);
@@ -4642,7 +4642,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 							 * some other error 
 							 */
 							GMRFLib_set_error_handler(old_handler);
-							assert(0 == 1);
+							_assert(0 == 1);
 							abort();
 						}
 
@@ -4670,7 +4670,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			}
 
 			default:
-				assert(0 == 1);
+				_assert(0 == 1);
 			}
 
 			if (debug) {
@@ -4740,7 +4740,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			}
 				break;
 			default:
-				assert(0 == 1);
+				_assert(0 == 1);
 			}
 			Free(xx_out);
 
@@ -4764,10 +4764,10 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 					// optimized output
 					k = 1;
 					len = (int) xx_out[k++];
-					assert(len == def->len_list);
-					assert(def->graph);
-					assert(def->ilist);
-					assert(def->jlist);
+					_assert(len == def->len_list);
+					_assert(def->graph);
+					_assert(def->ilist);
+					_assert(def->jlist);
 					n = def->graph->n;
 					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, def->len_list, def->ilist, def->jlist, &(xx_out[k]),
 									  def->graph->n, NULL);
@@ -4834,7 +4834,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 							 * some other error 
 							 */
 							GMRFLib_set_error_handler(old_handler);
-							assert(0 == 1);
+							_assert(0 == 1);
 							abort();
 						}
 
@@ -4862,7 +4862,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				break;
 
 			default:
-				assert(0 == 1);
+				_assert(0 == 1);
 			}
 
 			if (debug) {
@@ -5139,7 +5139,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				exit(EXIT_FAILURE);
 			}
 
-			assert(mb->f_ntheta[i] == 3);	       /* yes */
+			_assert(mb->f_ntheta[i] == 3);	       /* yes */
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				log_precision0 = theta[count];
 				count++;
@@ -5161,7 +5161,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			rho = map_rho(rho_intern, MAP_FORWARD, NULL);
 			double n = (double) mb->f_n[i];
 
-			assert(mb->f_ngroup[i] == 1);
+			_assert(mb->f_ngroup[i] == 1);
 			val += mb->f_nrep[i] * (LOG_NORMC_GAUSSIAN * 2.0 * (n - mb->f_rankdef[i])	/* yes, the total length is * N=2n */
 						+(n - mb->f_rankdef[i]) / 2.0 * log_precision0	/* and there is n-pairs... */
 						+ (n - mb->f_rankdef[i]) / 2.0 * log_precision1 - (n - mb->f_rankdef[i]) / 2.0 * LOG_1mp(SQR(rho)));
@@ -5186,7 +5186,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			int jj, count_ref = count;
 			int dim = WISHART_DIM(i);
 
-			assert(dim > 0);
+			_assert(dim > 0);
 
 			int nt = inla_iid_wishart_nparam(dim);
 			double log_jacobian = 0.0;
@@ -5221,7 +5221,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 					k++;
 				}
 			}
-			assert(k == nt);
+			_assert(k == nt);
 
 			fail = inla_iid_wishart_adjust(dim, theta_vec);
 			Q = gsl_matrix_calloc(dim, dim);
@@ -5239,7 +5239,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 					k++;
 				}
 			}
-			assert(k == nt);
+			_assert(k == nt);
 
 			GMRFLib_gsl_spd_inverse(Q);
 			logdet = GMRFLib_gsl_spd_logdet(Q);
@@ -5285,7 +5285,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 		{
 			int dim = mb->f_order[i];
 
-			assert(dim > 1);
+			_assert(dim > 1);
 			int nt = INLA_WISHARTK_NTHETA(dim);
 			double *theta_vec = Calloc(nt, double);
 
@@ -5328,7 +5328,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			int jj, count_ref = count;
 			int dim = 2;
 
-			assert(dim > 0);
+			_assert(dim > 0);
 
 			int nt = inla_iid_wishart_nparam(dim);
 			double log_jacobian = 0.0;
@@ -5363,7 +5363,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 					k++;
 				}
 			}
-			assert(k == nt);
+			_assert(k == nt);
 
 			fail = inla_iid_wishart_adjust(dim, theta_vec);	/* should not be needed */
 			Q = gsl_matrix_calloc(dim, dim);
@@ -5382,7 +5382,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				}
 			}
 			GMRFLib_gsl_spd_inverse(Q);
-			assert(k == nt);
+			_assert(k == nt);
 
 			if (count - count_ref > 0) {
 				if (nfixed) {
@@ -5419,7 +5419,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 
 			ngroup = mb->f_ngroup[i];
 
-			assert(mb->f_rankdef[i] == 0);	       /* as this does not make sense if its not 0 */
+			_assert(mb->f_rankdef[i] == 0);	       /* as this does not make sense if its not 0 */
 
 			logdet = GMRFLib_gsl_spd_logdet(Q) * arg->nsubject + log(arg->precision) * arg->n;
 			val += mb->f_nrep[i] * (normc_g + gcorr * ngroup * (LOG_NORMC_GAUSSIAN * arg->N + 0.5 * logdet));
@@ -5461,7 +5461,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			h->n = mb->f_n[i] / h->ngroup;
 			h->N = mb->f_N[i] / h->ngroup;
 
-			assert(h->N == mb->f_graph_orig[i]->n);
+			_assert(h->N == mb->f_graph_orig[i]->n);
 
 			if (debug) {
 				P(h->n);
@@ -5643,7 +5643,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				h->n = mb->f_n[i] / h->ngroup;
 				h->N = mb->f_N[i] / h->ngroup;
 
-				assert(h->N == mb->f_graph_orig[i]->n);
+				_assert(h->N == mb->f_graph_orig[i]->n);
 
 				if (debug) {
 					P(h->n);
@@ -5761,7 +5761,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 				h->n = mb->f_n[i] / h->ngroup;
 				h->N = mb->f_N[i] / h->ngroup;
 
-				assert(h->N == mb->f_graph_orig[i]->n);
+				_assert(h->N == mb->f_graph_orig[i]->n);
 
 				if (debug) {
 					P(h->n);
@@ -5975,7 +5975,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			P(count);
 			P(mb->ntheta);
 			P(ntheta);
-			assert((count == mb->ntheta) && (count == ntheta));
+			_assert((count == mb->ntheta) && (count == ntheta));
 		}
 	}
 #undef _SET_GROUP_RHO
@@ -6093,7 +6093,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		b[count] = mb->linear_precision[i] * mb->linear_mean[i];
 		count++;
 	}
-	assert(count == N);
+	_assert(count == N);
 
 	GMRFLib_prior_mean_tp **prior_mean = Calloc(N, GMRFLib_prior_mean_tp *);
 
@@ -6115,7 +6115,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		prior_mean[count]->fixed_mean = mb->linear_mean[i];
 		count++;
 	}
-	assert(count == N);
+	_assert(count == N);
 
 	// VB corrections
 	if (mb->ai_par->vb_enable) {
@@ -6137,7 +6137,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				int lim = (tp == 0 ? mb->ai_par->vb_f_enable_limit_mean : mb->ai_par->vb_f_enable_limit_variance);
 				int nngroup = n * ngroup;
 
-				assert(ntot == n * ngroup * nrep);
+				_assert(ntot == n * ngroup * nrep);
 
 				if (lim > 0) {
 					// yes, integer division here && we correct also for mb->nf
@@ -6217,7 +6217,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			} else if (tp == 1) {
 				mb->ai_par->vb_nodes_variance = vb_nodes;
 			} else {
-				assert(0 == 1);
+				_assert(0 == 1);
 			}
 		}
 	}
@@ -6242,7 +6242,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		}
 		offset += mb->nlinear;
 		mb->ai_par->gcpo_fixed_nodes = gcpo_fixed_nodes;
-		assert(offset == N);
+		_assert(offset == N);
 	}
 
 	double tref = GMRFLib_timer();
@@ -6255,7 +6255,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->f_Alocal,
 			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm, mb->global_constr);
 	mb->preopt = preopt;
-	assert(preopt->latent_graph->n == N);
+	_assert(preopt->latent_graph->n == N);
 
 	// time the two versions of Qfunc_like
 	double time_used_Qx[2] = { 0.0 };
@@ -6267,7 +6267,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		int thread_id = 0;
 		int nn = preopt->preopt_graph->n;
 
-		assert(omp_get_thread_num() == 0);
+		_assert(omp_get_thread_num() == 0);
 		double res[4] = { 0 };
 		double *test_vector = Calloc(nn, double);
 
@@ -6294,8 +6294,8 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			P(res[2]);
 			P(res[1]);
 			P(res[3]);
-			assert(ABS(res[0] - res[2]) < DMAX(1, ABS(res[0])) * eps);
-			assert(ABS(res[1] - res[3]) < DMAX(1, ABS(res[1])) * eps);
+			_assert(ABS(res[0] - res[2]) < DMAX(1, ABS(res[0])) * eps);
+			_assert(ABS(res[1] - res[3]) < DMAX(1, ABS(res[1])) * eps);
 		}
 
 		// we have a slight preference for the simpler/serial ones
@@ -6680,7 +6680,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 					sum += acoof + bcoof + ccoof;
 				}
 			}
-			assert(sum != 0.0);
+			_assert(sum != 0.0);
 			tused[nt] += GMRFLib_timer();
 			if (mb->verbose) {
 				printf("\tnum.threads = %1d  time = %.4fms\n", nt, tused[nt] * 1.0E3);
@@ -6910,7 +6910,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 					ldz[i] = -0.5 * SQR(xp[i]);
 				}
 			} else if (func) {
-				if ((void *) func == (void *) map_exp || (void *) func == (void *) link_log) {
+				if ((intptr_t) func == (intptr_t) map_exp || (intptr_t) func == (intptr_t) link_log) {
 					// spell out the most common case
 					for (int i = 0; i < np; i++) {
 						double x = xp[i] * stdev + mean;
@@ -6936,7 +6936,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 					}
 				}
 			} else if (tfunc) {
-				if ((void *) tfunc == (void *) map_exp || (void *) tfunc == (void *) link_log) {
+				if ((intptr_t) tfunc == (intptr_t) map_exp || (intptr_t) tfunc == (intptr_t) link_log) {
 					// spell out the most common case
 					for (int i = 0; i < np; i++) {
 						double x = xp[i] * stdev + mean;
@@ -6962,7 +6962,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 					}
 				}
 			} else {
-				assert(0 == 1);
+				_assert(0 == 1);
 			}
 			// this is common for all cases
 			GMRFLib_max_value(ldz, np, &i_max);
@@ -6995,7 +6995,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 					m2 += tmp * f;
 				}
 			} else {
-				assert(0 == 1);
+				_assert(0 == 1);
 			}
 		}
 
@@ -7045,7 +7045,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 						z[i] = _MAP_X_tfunc(z[i]);
 					}
 				} else {
-					assert(0 == 1);
+					_assert(0 == 1);
 				}
 			}
 			GMRFLib_max_value(ldz, np, &i_max);
@@ -7073,7 +7073,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			}
 			xpm[3 * (np - 2) + 3] = xp[np - 1];
 			ldm[3 * (np - 2) + 3] = ld[np - 1];
-			assert(3 * (np - 2) + 3 == npm - 1);
+			_assert(3 * (np - 2) + 3 == npm - 1);
 		} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
 			const double div2 = 0.5;
 
@@ -7089,9 +7089,9 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			}
 			xpm[2 * (np - 2) + 2] = xp[np - 1];
 			ldm[2 * (np - 2) + 2] = ld[np - 1];
-			assert(2 * (np - 2) + 2 == npm - 1);
+			_assert(2 * (np - 2) + 2 == npm - 1);
 		} else {
-			assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
+			_assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
 		}
 
 		GMRFLib_exp(npm, ldm, ldm2);
@@ -7110,7 +7110,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 				xx[i] = _MAP_X_tfunc(xx[i]);
 			}
 		} else {
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 
 		GMRFLib_mul(npm, ldm2, w, ldm);
@@ -7326,7 +7326,7 @@ int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp *arg, int adj, int v
 	if (!adj) {
 		for (i = 0; i < n; i++) {
 			if (cc[i] > 0) {
-				assert(arg->graph->nnbs[i] == 0);
+				_assert(arg->graph->nnbs[i] == 0);
 				arg->prec_scale[i] = -1.0;     /* this is code for treating this case specially */
 			}
 		}
@@ -7418,16 +7418,6 @@ double inla_sn_intercept(double intern_quantile, double skew)
 	return (map_invsn(intern_quantile, MAP_FORWARD, (void *) a3));
 }
 
-int inla_reset(void)
-{
-	// reset static variables various places as need need to call _ai_INLA() twice in preopt_mode
-
-	GMRFLib_opt_exit();
-	R_rgeneric_cputime = 0.0;
-
-	return GMRFLib_SUCCESS;
-}
-
 int main(int argc, char **argv)
 {
 #define _USAGE_intern(fp)  fprintf(fp, "\nUsage: %s [-v] [-V] [-h] [-f] [-eVAR=VALUE] [-tA:B] [-mMODE] FILE.INI\n", program)
@@ -7464,6 +7454,23 @@ int main(int argc, char **argv)
 	int disable_output = 0;
 	int num_p_cores = inla_num_p_cores();
 
+	atexit(inla_at_exit);
+
+#if defined(_WIN32)
+	SetConsoleCtrlHandler(inla_signal_func, TRUE);
+#else
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = inla_signal_func;
+	sigemptyset(&sa.sa_mask);
+	sigaction(SIGTERM, &sa, NULL);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+	sigaction(SIGABRT, &sa, NULL);
+	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGUSR2, &sa, NULL);
+#endif
+	
 	GMRFLib_numa_init();				       /* must init */
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = host_max_threads;	       // might be revised lated
@@ -7515,11 +7522,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-#if !defined(_WIN32)
-	signal(SIGUSR1, inla_signal);
-	signal(SIGUSR2, inla_signal);
-	signal(SIGINT, inla_signal);
-#endif
 	while ((opt = getopt(argc, argv, "Ed:vVe:t:B:m:S:z:hsr:cpLP:WC")) != -1) {
 		switch (opt) {
 		case 'C':
@@ -7551,7 +7553,7 @@ int main(int argc, char **argv)
 			} else if (!strcasecmp(optarg, "EXPERIMENTAL") || !strcasecmp(optarg, "COMPACT")) {
 				GMRFLib_inla_mode = GMRFLib_MODE_COMPACT;
 			} else {
-				assert(0 == 1);
+				_assert(0 == 1);
 			}
 		}
 			break;
@@ -7597,7 +7599,7 @@ int main(int argc, char **argv)
 			if (inla_sread_ints(&nm, 1, optarg) == INLA_OK) {
 				GMRFLib_model_n = nm;
 				model_n_is_set = 1;
-				assert(nm >= 0);
+				_assert(nm >= 0);
 			} else {
 				fprintf(stderr, "Fail to read MODEL_N from %s\n", optarg);
 				exit(EXIT_SUCCESS);
@@ -8032,10 +8034,10 @@ int main(int argc, char **argv)
 			if (cwd) {
 				int ret = chdir(cwd);
 
-				assert(ret == 0);
+				_assert(ret == 0);
 			}
 
-			assert(my_dir_exists(argv[arg]) == INLA_OK || my_file_exists(argv[arg]) == INLA_OK);
+			_assert(my_dir_exists(argv[arg]) == INLA_OK || my_file_exists(argv[arg]) == INLA_OK);
 			char *model_ini = NULL;
 
 			if (my_file_exists(argv[arg]) == INLA_OK && my_dir_exists(argv[arg]) != INLA_OK) {
@@ -8048,7 +8050,7 @@ int main(int argc, char **argv)
 					}
 					int ret = chdir(argv[arg]);
 
-					assert(ret == 0);
+					_assert(ret == 0);
 				} else {
 					fprintf(stderr, "\n\n *** ERROR *** This is neither a file or directory[%s]\n\n\n", argv[arg]);
 					continue;
@@ -8116,7 +8118,7 @@ int main(int argc, char **argv)
 				inla_INLA(mb);
 				nfunc[0] = mb->misc_output->nfunc;
 			} else {
-				assert(0 == 1);
+				_assert(0 == 1);
 			}
 
 			time_used[1] = GMRFLib_timer() - time_used[1];

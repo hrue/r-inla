@@ -1,8 +1,3 @@
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 double GMRFLib_stdnormal(void)

@@ -88,13 +88,12 @@ GMRFLib_error_handler_tp *GMRFLib_set_error_handler_off(void);
 #       define GMRFLib_ERROR(errorno) GMRFLib_ERROR_MSG(errorno,NULL)
 #       define GMRFLib_ERROR_NO_RETURN(errorno) GMRFLib_ERROR_MSG_NO_RETURN(errorno,NULL)
 
-/* 
-   easy use macros for everyday use!
-*/
 #       define GMRFLib_ASSERT_RETVAL(condition,errorno,retval) \
             if (!(condition)) { \
-                GMRFLib_handle_error(__FILE__, __GMRFLib_FuncName, __LINE__,\
-		 		     errorno,  "Condition `" __GMRFLib_STRINGIFY(condition) "' is not TRUE"); \
+			       GMRFLib_color_start_error();		\
+			       GMRFLib_handle_error(__FILE__, __GMRFLib_FuncName, __LINE__, \
+						    errorno,  "Condition `" __GMRFLib_STRINGIFY(condition) "' is not TRUE"); \
+			       GMRFLib_color_reset();			\
                 return retval;}
 #       define GMRFLib_ASSERT(condition,errorno) GMRFLib_ASSERT_RETVAL(condition,errorno,errorno)
 

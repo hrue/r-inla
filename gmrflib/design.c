@@ -1,13 +1,3 @@
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-
 #include "GMRFLib/GMRFLib.h"
 #include "designP.h"					       /* define the designs */
 
@@ -190,7 +180,7 @@ int GMRFLib_design_grid(GMRFLib_design_tp **design, int nhyper)
 		}
 		break;
 	default:
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -261,7 +251,7 @@ int GMRFLib_design_read(GMRFLib_design_tp **design, GMRFLib_matrix_tp *D, int st
 	*design = Calloc(1, GMRFLib_design_tp);
 	(*design)->nfactors = nfac = D->ncol - 1;
 	(*design)->nexperiments = nex = D->nrow;
-	assert(nex > 0);
+	_assert(nex > 0);
 	(*design)->experiment = Calloc(nex, double *);
 	(*design)->int_weight = Calloc(nex, double);
 
@@ -274,7 +264,7 @@ int GMRFLib_design_read(GMRFLib_design_tp **design, GMRFLib_matrix_tp *D, int st
 			(*design)->experiment[j][k] = GMRFLib_matrix_get(j, k, D);
 		}
 		(*design)->int_weight[j] = GMRFLib_matrix_get(j, nfac, D);
-		assert((*design)->int_weight[j] >= 0.0);
+		_assert((*design)->int_weight[j] >= 0.0);
 		sum_w += (*design)->int_weight[j];
 	}
 	for (j = 0; j < nex; j++) {

@@ -193,7 +193,7 @@ int inla_output(inla_tp *mb)
 {
 	int n = 0, j, *offsets = NULL, len_offsets, local_verbose = 0;
 
-	assert(mb);
+	_assert(mb);
 
 	/*
 	 * compute the offset for each pack of the results 
@@ -213,12 +213,12 @@ int inla_output(inla_tp *mb)
 		n++;
 	}
 	if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
-		assert(mb->preopt->mnpred == mb->predictor_m + mb->predictor_n);
+		_assert(mb->preopt->mnpred == mb->predictor_m + mb->predictor_n);
 	} else {
-		assert(mb->hgmrfm->graph->n == n);
+		_assert(mb->hgmrfm->graph->n == n);
 	}
 
-	assert(j == len_offsets);
+	_assert(j == len_offsets);
 
 	if (mb->verbose) {
 		printf("Store results in directory[%s]\n", mb->dir);
@@ -973,15 +973,15 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 		/*
 		 * OOPS: this matrix is in its own internal ordering, so we need to fix it here.
 		 */
-		assert(lc_order);
+		_assert(lc_order);
 		int n = mo->compute_corr_lin;
 		int *order = Calloc(n, int);
 
 		for (i = 0; i < n; i++) {
 			order[i] = (int) lc_order[i] - 1;
 		}
-		assert(GMRFLib_imin_value(order, n, NULL) == 0);
-		assert(GMRFLib_imax_value(order, n, NULL) == n - 1);
+		_assert(GMRFLib_imin_value(order, n, NULL) == 0);
+		_assert(GMRFLib_imax_value(order, n, NULL) == n - 1);
 		inla_output_matrix(ndir, NULL, "lincomb_derived_correlation_matrix.dat", n, mo->corr_lin, order);
 		inla_output_matrix(ndir, NULL, "lincomb_derived_covariance_matrix.dat", n, mo->cov_lin, order);
 		Free(order);
@@ -1509,7 +1509,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 	int ndiv;
 	int plain = ((func || tfunc) ? 0 : 1);
 
-	assert(nrep > 0);
+	_assert(nrep > 0);
 	ndiv = n / nrep;
 
 	double *d_mode = Calloc(n, double);
@@ -1618,7 +1618,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					if (density[i]) {		\
 						D1W_r(i, off, (locations ? locations[i % ndiv] : i)); \
 						off++;			\
-						GMRFLib_density_layout_x(xx, &nn_new, density[i]); assert(nn_new == nn); \
+						GMRFLib_density_layout_x(xx, &nn_new, density[i]); _assert(nn_new == nn); \
 						GMRFLib_density_std2user_n(x_user, xx, nn, density[i]); \
 						GMRFLib_evaluate_ndensity(dens, xx, nn, density[i]); \
 						D1W_r(i, off, nn);	\
@@ -1655,7 +1655,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					if (density[i]) {		\
 						D1W_r(i, off, (locations ? locations[i % ndiv] : i)); \
 						off++;			\
-						GMRFLib_density_layout_x(xx, &nn_new, density[i]); assert(nn_new == nn); \
+						GMRFLib_density_layout_x(xx, &nn_new, density[i]); _assert(nn_new == nn); \
 						GMRFLib_density_std2user_n(x_user, xx, nn, density[i]); \
 						GMRFLib_evaluate_ndensity(dens, xx, nn, density[i]); \
 						D1W_r(i, off, nn);	\
@@ -1692,7 +1692,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 					if (density[i]) {		\
 						D1W_r(i, off, (locations ? locations[i % ndiv] : i)); \
 						off++;			\
-						GMRFLib_density_layout_x(xx, &nn_new, density[i]); assert(nn_new == nn); \
+						GMRFLib_density_layout_x(xx, &nn_new, density[i]); _assert(nn_new == nn); \
 						GMRFLib_density_std2user_n(x_user, xx, nn, density[i]); \
 						GMRFLib_evaluate_ndensity(dens, xx, nn, density[i]); \
 						D1W_r(i, off, nn);	\
@@ -1717,7 +1717,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *lo
 				RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 3, mm);
 #undef CODE_BLOCK
 			} else {
-				assert(0 == 1);
+				_assert(0 == 1);
 			}
 
 			Dclose_r();
@@ -1905,7 +1905,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		/*
 		 * set default options 
 		 */
-		assert(mb->output == *out);
+		_assert(mb->output == *out);
 		use_defaults = 1;			       /* to flag that we're reading mb->output */
 		(*out) = Calloc(1, Output_tp);
 		(*out)->gcpo = 0;
@@ -2002,7 +2002,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			mb->gcpo_param->build_strategy = GMRFLib_GCPO_BUILD_STRATEGY_PRIOR;
 		} else {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "gcpo.strategy", tstr);
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 
 		gfile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
@@ -2010,16 +2010,16 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		wfile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.WEIGHTS"), NULL));
 		gsfile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUP.SELECTION"), NULL));
 		ffile = Strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.FRIENDS"), NULL));
-		assert(!(gfile && (sfile || ffile || gsfile)));
+		_assert(!(gfile && (sfile || ffile || gsfile)));
 
 		if (gfile) {
 			FILE *fp = fopen(gfile, "rb");
 			int len, total_len, glen, offset = 0;
 
 			ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
-			assert(ret == 1);
+			_assert(ret == 1);
 			ret = fread((void *) &total_len, sizeof(int), (size_t) 1, fp);
-			assert(ret == 1);
+			_assert(ret == 1);
 
 			if (mb->gcpo_param->verbose) {
 				printf("%s: read groups len %d total_len %d\n", __GMRFLib_FuncName, len, total_len);
@@ -2027,7 +2027,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			int *buffer = Calloc(total_len, int);
 
 			ret = fread((void *) buffer, sizeof(int), (size_t) total_len, fp);
-			assert(ret == total_len);
+			_assert(ret == total_len);
 
 			mb->gcpo_param->groups = GMRFLib_idxval_ncreate_x(len, IMAX(3, (total_len - len) / len), 0);
 			for (i = 0; i < len; i++) {
@@ -2048,7 +2048,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			for (i = 0; i < len; i++) {
 				ngroups_eff += (mb->gcpo_param->groups[i]->n > 0 ? 1 : 0);
 			}
-			assert(offset == total_len);
+			_assert(offset == total_len);
 			fclose(fp);
 			Free(buffer);
 		} else {
@@ -2058,14 +2058,14 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 				int len;
 
 				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
-				assert(ret == 1);
+				_assert(ret == 1);
 				if (mb->gcpo_param->verbose) {
 					printf("%s: read selection len %d\n", __GMRFLib_FuncName, len);
 				}
 				int *buffer = Calloc(len, int);
 
 				ret = fread((void *) buffer, sizeof(int), (size_t) len, fp);
-				assert(ret == len);
+				_assert(ret == len);
 				GMRFLib_idx_create_x(&(mb->gcpo_param->selection), len);
 				for (i = 0; i < len; i++) {
 					if (mb->gcpo_param->verbose) {
@@ -2084,14 +2084,14 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 				int len;
 
 				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
-				assert(ret == 1);
+				_assert(ret == 1);
 				if (mb->gcpo_param->verbose) {
 					printf("%s: read group.selection len %d\n", __GMRFLib_FuncName, len);
 				}
 				int *buffer = Calloc(len, int);
 
 				ret = fread((void *) buffer, sizeof(int), (size_t) len, fp);
-				assert(ret == len);
+				_assert(ret == len);
 				for (i = 0; i < len; i++) {
 					if (mb->gcpo_param->verbose) {
 						printf("%s: add idx %d\n", __GMRFLib_FuncName, buffer[i]);
@@ -2107,15 +2107,15 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 				int len;
 
 				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
-				assert(ret == 1);
-				assert(len >= 0);
+				_assert(ret == 1);
+				_assert(len >= 0);
 				if (mb->gcpo_param->verbose) {
 					printf("%s: read weights len %d\n", __GMRFLib_FuncName, len);
 				}
 				double *buffer = Calloc(len, double);
 
 				ret = fread((void *) buffer, sizeof(double), (size_t) len, fp);
-				assert(ret == len);
+				_assert(ret == len);
 				mb->gcpo_param->len_weights = len;	/* need to validate later that len >= Npred */
 				mb->gcpo_param->weights = buffer;
 				fclose(fp);
@@ -2126,12 +2126,12 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 				int len;
 
 				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
-				assert(ret == 1);
+				_assert(ret == 1);
 				mb->gcpo_param->friends_n = len;
 				if (mb->gcpo_param->verbose) {
 					printf("%s: read friends len %d\n", __GMRFLib_FuncName, len);
 				}
-				assert(len >= 0);
+				_assert(len >= 0);
 
 				int len_buffer = 64;
 				int *buffer = Calloc(len_buffer, int);
@@ -2145,7 +2145,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 						int local_len;
 
 						ret = fread((void *) &local_len, sizeof(int), (size_t) 1, fp);
-						assert(ret == 1);
+						_assert(ret == 1);
 						if (local_len > 0) {
 							if (local_len > len_buffer) {
 								len_buffer = local_len;
@@ -2153,7 +2153,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 								buffer = Calloc(len_buffer, int);
 							}
 							ret = fread((void *) buffer, sizeof(int), (size_t) local_len, fp);
-							assert(ret == local_len);
+							_assert(ret == local_len);
 						}
 						for (j = 0; j < local_len; j++) {
 							GMRFLib_idx_add(&(mb->gcpo_param->friends[i]), buffer[j]);
@@ -2194,7 +2194,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 	// make it backward compatible. remove later
 	int dummy = iniparser_getboolean(ini, inla_string_join(secname, "LIKELIHOOD.INFO"), 0);
 
-	assert(dummy >= 0);
+	_assert(dummy >= 0);
 
 	tmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "QUANTILES"), NULL));
 

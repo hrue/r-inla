@@ -21,7 +21,7 @@ int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_
 		 */
 		GMRFLib_matrix_tp *M = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 
-		assert(M->elems == M->nrow * M->ncol);	       /* no sparse matrix! */
+		_assert(M->elems == M->nrow * M->ncol);	       /* no sparse matrix! */
 
 		*n = M->nrow * M->ncol;
 		*x = Calloc(*n, double);
@@ -89,13 +89,13 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 	int nx = 0, ndata, i, j, ii, ncol_true;
 	double *x = NULL;
 
-	assert(xx || ix);
+	_assert(xx || ix);
 	/*
 	 * first read all entries in the file 
 	 */
 	inla_read_data_all(&x, &nx, filename, NULL);
 	if (nx) {
-		assert(x);
+		_assert(x);
 	}
 	if (verbose) {
 		printf("\t\tread n=[%1d] entries from file=[%s]\n", nx, filename);
@@ -147,8 +147,8 @@ char *inla_read_lineno(int lineno, const char *filename)
 
 	size_t siz = 4096;
 
-	assert(lineno >= 0);
-	assert(fp);
+	_assert(lineno >= 0);
+	_assert(fp);
 
 	char *line = Calloc(siz + 1, char);
 	int count = 0;
@@ -156,7 +156,7 @@ char *inla_read_lineno(int lineno, const char *filename)
 	while (1) {
 		int ret = fscanf(fp, "%s\n", line);
 
-		assert(ret != EOF);
+		_assert(ret != EOF);
 		if (count == lineno) {
 			break;
 		}
@@ -193,6 +193,7 @@ int inla_sread_str_int(char **tag, int *i, const char *str)
 
 int inla_sread_str_str(char **tag, int nmax, char *str)
 {
+	// TAG0:TAG1:TAG2
 	char *strtok_ptr = NULL, *token = NULL;
 	const char *delim = ":";
 	char *p = Strdup(str);
@@ -201,6 +202,26 @@ int inla_sread_str_str(char **tag, int nmax, char *str)
 	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
 		p = NULL;
 		tag[i++] = Strdup(token);
+		if (i == nmax)
+			break;
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int inla_sread_str_str_rprior(char **tag, int nmax, char *str)
+{
+	// TAG0:TAG1|TAG2
+	char *strtok_ptr = NULL, *token = NULL;
+	const char *delim1 = ":";
+	const char *delim2 = "|";
+	const char *delim = delim1;
+	char *p = Strdup(str);
+	int i = 0;
+
+	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
+		p = NULL;
+		tag[i++] = Strdup(token);
+		delim = delim2;
 		if (i == nmax)
 			break;
 	}
@@ -256,7 +277,7 @@ int inla_sread(void *x, int nx, const char *str, int code)
 	if (debug)
 		printf("read %d entries from %s\n", nx, str);
 
-	assert(code == 0 || code == 1);
+	_assert(code == 0 || code == 1);
 	p = Strdup(str);
 	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
 		p = NULL;
@@ -308,7 +329,7 @@ int inla_sread_q(void **x, int *nx, const char *str, int code)
 	int ix_try;
 	int ok;
 
-	assert(code == 0 || code == 1);
+	_assert(code == 0 || code == 1);
 	p = Strdup(str);
 
 	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
@@ -434,7 +455,7 @@ const char *inla_string_join(const char *a, const char *b)
 	 */
 	char *ans = NULL;
 
-	assert((a ? strlen(a) + 1 : 0) + (b ? strlen(b) + 1 : 0) < 1025);
+	_assert((a ? strlen(a) + 1 : 0) + (b ? strlen(b) + 1 : 0) < 1025);
 	GMRFLib_sprintf(&ans, "%s%c%s", (a ? a : ""), INIPARSER_SEP, (b ? b : ""));
 	return ans;
 }
@@ -557,7 +578,7 @@ int inla_trim_family(char *family)
 {
 	size_t i, j = 0;
 
-	assert(family);
+	_assert(family);
 	for (i = 0, j = 0; i < strlen(family); i++) {
 		if (family[i] != '.' && family[i] != '_' && family[i] != ' ' && family[i] != '\t') {
 			family[j] = family[i];
@@ -665,14 +686,14 @@ inla_file_contents_tp *inla_read_file_contents(const char *filename)
 	}
 	fseek(fp, 0L, SEEK_END);
 	len = ftell(fp);
-	assert(len > 0L);
+	_assert(len > 0L);
 
 	inla_file_contents_tp *fc = Calloc(1, inla_file_contents_tp);
 	fc->contents = Calloc((size_t) len, char);
 
 	rewind(fp);
 	fc->len = fread(fc->contents, (size_t) 1, (size_t) len, fp);
-	assert(fc->len == (size_t) len);
+	_assert(fc->len == (size_t) len);
 	fclose(fp);
 
 	return fc;
@@ -692,9 +713,9 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp *fc)
 	size_t len;
 
 	fp = fopen(filename, "wb");
-	assert(fp);
+	_assert(fp);
 	len = fwrite(fc->contents, (size_t) 1, fc->len, fp);
-	assert(len == fc->len);
+	_assert(len == fc->len);
 
 	fclose(fp);
 	return INLA_OK;

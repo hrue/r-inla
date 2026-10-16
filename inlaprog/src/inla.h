@@ -12,10 +12,10 @@
 #       endif
 
 __BEGIN_DECLS
+//
 #       if !defined(_GNU_SOURCE)
 #              define _GNU_SOURCE
 #       endif
-//
 #       include "fast-math/special-functions.h"
 #       include "iniparser.h"
 #       include "dictionary.h"
@@ -26,6 +26,7 @@ __BEGIN_DECLS
 #       include "quantile-regression.h"
 #       include "cgeneric.h"
 #       include "prw2.h"
+#       include "cgeneric-mapper.h"
 #       define ONE_mexp(_x) (-expm1(_x))		       /* 1-exp(_x) */
 #       define LOG_1mp(_x) log1p(-(_x))			       /* log(1-(_x)) */
 #       define LOG_p(_x) log1p((_x) - 1.0)
@@ -2290,6 +2291,7 @@ int inla_sread_ints_q(int **x, int *nx, const char *str);
 int inla_sread_q(void **x, int *nx, const char *str, int code);
 int inla_sread_str_int(char **tag, int *i, const char *str);
 int inla_sread_str_str(char **tag, int nmax, char *str);
+int inla_sread_str_str_rprior(char **tag, int nmax, char *str);
 int inla_tolower(char *string);
 int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);
@@ -2366,8 +2368,8 @@ int loglikelihood_logperiodogram(int thread_id, int *lcache_idx, double *logll, 
 int loglikelihood_mgamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mgammasurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, int *, double **, double **, int *, void *), int (*simpson)(int, int *, double **, double **,
-													      int *, void *));
+			   int (*quadrature)(int, int *, double **, double **, int *, void *), int(*simpson)(int, int *, double **, double **,
+													     int *, void *));
 int loglikelihood_mix_loggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -2466,6 +2468,8 @@ int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);
 unsigned long long getTotalSystemMemory();
 void inla_signal(int sig);
+const char * inla_signal_name(int signum);
+
 
 int inla_theta_all_get_n(void);
 void inla_theta_all_init(inla_tp * mb);
@@ -2494,24 +2498,6 @@ double inla_logitcdf_normal(double x);
 double inla_logcdf_normal_fast(double x);
 
 GMRFLib_ptr_tp *inla_stiles_get_graphs(void *mbv);
-
-#       if defined(INLA_WITH_EXTERNAL_PACKAGES)
-#              if __has_include("cgeneric-defs.h")
-#                     include "cgeneric-defs.h"
-#              elif __has_include("../external-packages/cgeneric-defs.h")
-#                     include "../external-packages/cgeneric-defs.h"
-#              elif __has_include("../../external-packages/cgeneric-defs.h")
-#                     include "../../external-packages/cgeneric-defs.h"
-#              elif __has_include("../../../external-packages/cgeneric-defs.h")
-#                     include "../../../external-packages/cgeneric-defs.h"
-#              else
-#                     error "Cannot find file 'cgeneric-defs.h'"
-#              endif
-#       endif
-void inla_cgeneric_mapper_list(FILE * fp);
-inla_cgeneric_func_tp *inla_cgeneric_mapper(char *name);
-void inla_cloglike_mapper_list(FILE * fp);
-inla_cloglike_func_tp *inla_cloglike_mapper(char *name);
 
 /* 
 ***

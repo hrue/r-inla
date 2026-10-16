@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 static map_strvp *remap_store = NULL;

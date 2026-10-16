@@ -25,7 +25,7 @@ double inla_pc_h_default(double x, int inverse, int derivative)
 		}
 	}
 
-	assert(0 == 1);
+	_assert(0 == 1);
 	return (0.0);
 }
 
@@ -146,7 +146,7 @@ double inla_pcp_dof_dof(double d)
 
 	int not_yet_tested = 1;
 
-	assert(not_yet_tested == 0);
+	_assert(not_yet_tested == 0);
 
 	static GMRFLib_spline_tp **sspline = NULL;
 

@@ -1,11 +1,3 @@
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <time.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
@@ -87,7 +79,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 		s->cache_len = 0;
 		break;
 	default:
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	if (s->cache_len > 0) {
@@ -107,7 +99,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	}
 	int ecode = gsl_spline_init(s->spline, xx, yy, (unsigned int) nn);
 
-	assert(ecode == GSL_SUCCESS);
+	_assert(ecode == GSL_SUCCESS);
 	Malloc_free();
 
 	return s;
@@ -158,7 +150,7 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp *s)
 	case GMRFLib_INTPOL_CACHE_NONE:
 		break;
 	default:
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	gsl_interp_accel *acc = NULL;
@@ -203,7 +195,7 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp *s)
 				grad_mid = (val_mid - val) / h_mid;
 			}
 		} else {
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 
 		// if grad has the wrong sign, then use the crude one
@@ -248,7 +240,7 @@ int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp *s, double *values
 	case GMRFLib_INTPOL_CACHE_NONE:
 		break;
 	default:
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	gsl_interp_accel *acc = NULL;
@@ -288,7 +280,7 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 	 */
 
 	// not yet implemented, I'm not sure I need this for P and Pinv
-	assert(s->trans == GMRFLib_INTPOL_TRANS_NONE || s->trans == GMRFLib_INTPOL_TRANS_Pinv);
+	_assert(s->trans == GMRFLib_INTPOL_TRANS_NONE || s->trans == GMRFLib_INTPOL_TRANS_Pinv);
 	double val = 0.0;
 
 	int tnum = 0;
@@ -304,7 +296,7 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 	case GMRFLib_INTPOL_CACHE_NONE:
 		break;
 	default:
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	gsl_interp_accel *acc = NULL;
@@ -333,7 +325,7 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 
 		val *= (em + 2.0 + 1.0 / em);
 	} else {
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 	return val;
 }
@@ -345,7 +337,7 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp *s)
 	 */
 
 	// not yet implemented, I'm not sure I need this for P and Pinv
-	assert(s->trans == GMRFLib_INTPOL_TRANS_NONE);
+	_assert(s->trans == GMRFLib_INTPOL_TRANS_NONE);
 	double val;
 
 	if (x < s->xmin || x > s->xmax) {
@@ -364,7 +356,7 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp *s)
 		case GMRFLib_INTPOL_CACHE_NONE:
 			break;
 		default:
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 
 		gsl_interp_accel *acc = NULL;
@@ -409,7 +401,7 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp *s)
 		case GMRFLib_INTPOL_CACHE_NONE:
 			break;
 		default:
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 
 		gsl_interp_accel *acc = NULL;
@@ -453,7 +445,7 @@ double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp *s)
 		case GMRFLib_INTPOL_CACHE_NONE:
 			break;
 		default:
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 
 		gsl_interp_accel *acc = NULL;

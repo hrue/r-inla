@@ -59,7 +59,7 @@ LIBOBJ = problem-setup.o lapack-interface.o graph.o error-handler.o acm582.o \
 	design.o version.o integrator.o openmp.o hgmrfm.o seasonal.o matern.o \
 	bfgs3.o bfgs4.o fmesher-io.o interpol.o pre-opt.o cores.o \
 	approx-inference--classic.o high-prec-timer.o fsort.o mingw.o moments.o sn-g.o \
-	cacheline.o my-numa.o no-stiles.o alloc.o fit-sn.o sha.o
+	cacheline.o my-numa.o no-stiles.o alloc.o fit-sn.o sha.o color.o
 LIBOBJFM = fast-math/fm.o
 HEADERS = blockupdate.h GMRFLib.h  optimize.h hash.h \
 	distributions.h GMRFLibP.h lapack-interface.h timer.h \
@@ -68,7 +68,7 @@ HEADERS = blockupdate.h GMRFLib.h  optimize.h hash.h \
 	bitmap.h hashP.h taucsP.h taucs_privateP.h ghq.h no-stiles.h \
 	tabulate-Qfunc.h io.h moments.h amdP.h remap-cache.h sha.h \
 	approx-inference.h density.h utils.h idxval.h dot.h graph-edit.h \
-	domin-interface.h design.h version.h integrator.h openmp.h \
+	domin-interface.h design.h version.h integrator.h openmp.h color.h \
 	init.h hgmrfm.h seasonal.h matern.h bfgs3.h bfgs4.h fmesher-io.h \
 	interpol.h pre-opt.h cores.h fsort.h sn-g.h sn-g-tables.h my-numa.h alloc.h fit-sn.h
 

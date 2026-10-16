@@ -17,6 +17,8 @@ __BEGIN_DECLS
 /*
  *
  */
+
+double inla_gamma(double x);
 double inla_lgamma_fast(double x);
 double inla_lbeta(double a, double b);
 void inla_lbeta_m(size_t m, double *RESTRICT a, double *RESTRICT b, double *RESTRICT llbeta);
@@ -32,6 +34,9 @@ void inla_llike_log1p_exp_1(const int m, const double c1, const double c2, doubl
 
 void inla_llike_tweedie2_1(const int n, const double p1, const double p2, const double phi, const double y, const double ly, const double sum_w,
 			   const double w_max, double *RESTRICT mu, double *RESTRICT ldens);
+
+void inla_llike_egp_1(const int m, double *RESTRICT x, double a, double b, double c, double *RESTRICT y1, double *RESTRICT y2);
+void inla_llike_egp_2(const int m, double *RESTRICT x1, double *RESTRICT x2, double a, double b, double c, double d, double *RESTRICT y);
 
 // define 'INLA_WITHOUT_FAST_LGAMMA' to use the libm-versions: lgamma() instead of the faster approximation that is slightly less
 // accurate

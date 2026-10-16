@@ -159,6 +159,7 @@ typedef struct {
 typedef struct GMRFLib_problem_struct GMRFLib_problem_tp;
 
 const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r);
+int GMRFLib_csr_init_store(void);
 int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph);
 int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 				GMRFLib_graph_tp * graph, GMRFLib_problem_tp * problem);

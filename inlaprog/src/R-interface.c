@@ -1,3 +1,6 @@
+#include "GMRFLib/GMRFLib.h"
+
+#include <math.h>
 #include <assert.h>
 #include <time.h>
 #include <stdint.h>
@@ -36,6 +39,11 @@ extern char *GMRFLib_tmpdir;
 
 __BEGIN_DECLS
 //
+#define MATHLIB_STANDALONE
+#if defined(ISNAN)
+#       undef ISNAN
+#endif
+#include <Rmath.h>					       // define gammafn/bessel_k
 char *Strdup(const char *s);
 int my_file_exists(const char *filename);
 int my_dir_exists(const char *filename);
@@ -152,24 +160,24 @@ static void inla_R_dlopen_(void)
 		fprintf(stderr, "\n *** ERROR *** rgeneric needs R with a shared libR: %s\n", lt_dlerror());
 		exit(1);
 	}
-	p_Rf_protect = (SEXP(*)(SEXP)) inla_R_dlsym_("Rf_protect", NULL);
-	p_Rf_unprotect = (void (*)(int)) inla_R_dlsym_("Rf_unprotect", NULL);
-	p_Rf_mkString = (SEXP(*)(const char *)) inla_R_dlsym_("Rf_mkString", NULL);
-	p_Rf_mkChar = (SEXP(*)(const char *)) inla_R_dlsym_("Rf_mkChar", NULL);
-	p_Rf_install = (SEXP(*)(const char *)) inla_R_dlsym_("Rf_install", NULL);
-	p_Rf_lang2 = (SEXP(*)(SEXP, SEXP)) inla_R_dlsym_("Rf_lang2", NULL);
-	p_Rf_lang3 = (SEXP(*)(SEXP, SEXP, SEXP)) inla_R_dlsym_("Rf_lang3", NULL);
-	p_Rf_lang4 = (SEXP(*)(SEXP, SEXP, SEXP, SEXP)) inla_R_dlsym_("Rf_lang4", NULL);
-	p_Rf_ScalarLogical = (SEXP(*)(int)) inla_R_dlsym_("Rf_ScalarLogical", NULL);
-	p_Rf_allocVector = (SEXP(*)(unsigned int, R_xlen_t)) inla_R_dlsym_("Rf_allocVector", NULL);
-	p_R_tryEval = (SEXP(*)(SEXP, SEXP, int *)) inla_R_dlsym_("R_tryEval", NULL);
-	p_REAL = (double *(*)(SEXP)) inla_R_dlsym_("REAL", NULL);
-	p_XLENGTH = (R_xlen_t(*)(SEXP)) inla_R_dlsym_("XLENGTH", "Rf_xlength");
-	p_SET_STRING_ELT = (void (*)(SEXP, R_xlen_t, SEXP)) inla_R_dlsym_("SET_STRING_ELT", NULL);
-	p_Rf_initEmbeddedR = (int (*)(int, char **)) inla_R_dlsym_("Rf_initEmbeddedR", NULL);
-	p_Rf_endEmbeddedR = (void (*)(int)) inla_R_dlsym_("Rf_endEmbeddedR", NULL);
-	p_R_GlobalEnv = (SEXP *) inla_R_dlsym_("R_GlobalEnv", NULL);
-	p_R_CStackLimit = (uintptr_t *) inla_R_dlsym_("R_CStackLimit", NULL);
+	p_Rf_protect = (SEXP(*)(SEXP)) (intptr_t) inla_R_dlsym_("Rf_protect", NULL);
+	p_Rf_unprotect = (void (*)(int)) (intptr_t) inla_R_dlsym_("Rf_unprotect", NULL);
+	p_Rf_mkString = (SEXP(*)(const char *)) (intptr_t) inla_R_dlsym_("Rf_mkString", NULL);
+	p_Rf_mkChar = (SEXP(*)(const char *)) (intptr_t) inla_R_dlsym_("Rf_mkChar", NULL);
+	p_Rf_install = (SEXP(*)(const char *)) (intptr_t) inla_R_dlsym_("Rf_install", NULL);
+	p_Rf_lang2 = (SEXP(*)(SEXP, SEXP)) (intptr_t) inla_R_dlsym_("Rf_lang2", NULL);
+	p_Rf_lang3 = (SEXP(*)(SEXP, SEXP, SEXP)) (intptr_t) inla_R_dlsym_("Rf_lang3", NULL);
+	p_Rf_lang4 = (SEXP(*)(SEXP, SEXP, SEXP, SEXP)) (intptr_t) inla_R_dlsym_("Rf_lang4", NULL);
+	p_Rf_ScalarLogical = (SEXP(*)(int)) (intptr_t) inla_R_dlsym_("Rf_ScalarLogical", NULL);
+	p_Rf_allocVector = (SEXP(*)(unsigned int, R_xlen_t)) (intptr_t) inla_R_dlsym_("Rf_allocVector", NULL);
+	p_R_tryEval = (SEXP(*)(SEXP, SEXP, int *)) (intptr_t) inla_R_dlsym_("R_tryEval", NULL);
+	p_REAL = (double *(*)(SEXP))(intptr_t) inla_R_dlsym_("REAL", NULL);
+	p_XLENGTH = (R_xlen_t(*)(SEXP)) (intptr_t) inla_R_dlsym_("XLENGTH", "Rf_xlength");
+	p_SET_STRING_ELT = (void (*)(SEXP, R_xlen_t, SEXP)) (intptr_t) inla_R_dlsym_("SET_STRING_ELT", NULL);
+	p_Rf_initEmbeddedR = (int (*)(int, char **)) (intptr_t) inla_R_dlsym_("Rf_initEmbeddedR", NULL);
+	p_Rf_endEmbeddedR = (void (*)(int)) (intptr_t) inla_R_dlsym_("Rf_endEmbeddedR", NULL);
+	p_R_GlobalEnv = (SEXP *) (intptr_t) inla_R_dlsym_("R_GlobalEnv", NULL);
+	p_R_CStackLimit = (uintptr_t *) (intptr_t) inla_R_dlsym_("R_CStackLimit", NULL);
 }
 
 /*
@@ -180,12 +188,13 @@ static void inla_R_dlopen_(void)
  * error unwinding does not exist when these models run outside R anyway.
  */
 #       include <stdarg.h>
-extern double gammafn(double);
-extern double bessel_k(double, double, double);
+//extern double gammafn(double);
+//extern double bessel_k(double, double, double);
 
 double Rf_gammafn(double x)
 {
 	return gammafn(x);
+	// return exp(lgamma(x));
 }
 
 double Rf_bessel_k(double x, double alpha, double expo)
@@ -304,7 +313,7 @@ int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *
 			break;
 
 		default:
-			assert(0 == 1);
+			_assert(0 == 1);
 		}
 
 		R_rgeneric_cputime += GMRFLib_timer();
@@ -600,7 +609,7 @@ int inla_R_funcall2_(int *n_out, double **x_out, const char *function, const cha
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	assert(*n_out >= 0);
+	_assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {
@@ -652,7 +661,7 @@ int inla_R_funcall_jp_(int *n_out, double **x_out, const char *function, int *n,
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	assert(*n_out >= 0);
+	_assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {
@@ -729,7 +738,7 @@ int inla_R_get_(int *n_out, double **x_out, const char *variable)
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	assert(*n_out >= 0);
+	_assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {
@@ -778,7 +787,7 @@ int inla_R_rgeneric_(int *n_out, double **x_out, const char *cmd, const char *mo
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	assert(*n_out >= 0);
+	_assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {

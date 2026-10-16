@@ -1,13 +1,3 @@
-#include <assert.h>
-#include <errno.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/bfgs4.h"
 
@@ -940,7 +930,7 @@ static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rh
 		}
 	}
 	na = j;
-	assert(na > 2);
+	_assert(na > 2);
 
 	// include derivative information within the range of alphas
 	double amax = GMRFLib_max_value(aa, na, NULL);

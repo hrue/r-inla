@@ -1,9 +1,3 @@
-#include <assert.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 #define VALID_WHENCE(whence) ((whence) == SEEK_SET || (whence) == SEEK_CUR || (whence) == SEEK_END)
@@ -13,7 +7,7 @@ int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence)
 	FILE *fp = NULL;
 
 	fp = fopen(filename, "rb");
-	assert(fp);
+	_assert(fp);
 	if (!fp) {
 		return !GMRFLib_SUCCESS;
 	}
@@ -80,7 +74,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	}
 
 	fp = fopen(filename, "rb");
-	assert(fp);
+	_assert(fp);
 	if (VALID_WHENCE(whence)) {
 		fseek(fp, offset, whence);
 	}
@@ -141,8 +135,8 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 		if (symmetric || diagonal) {
 			ERROR(" (dense && (symmetric || diagonal)) is not yet implemented.");
 		}
-		assert(general);
-		assert(elems == nrow * ncol);
+		_assert(general);
+		_assert(elems == nrow * ncol);
 
 		M->A = Calloc(elems, double);
 
@@ -287,13 +281,12 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 						kk++;
 					}
 				}
-				assert(kk == elems + nneq);
+				_assert(kk == elems + nneq);
 				M->elems += nneq;
 			}
 		}
 
-		GMRFLib_matrix_add_graph_and_hash(M, GMRFLib_OPENMP_NUM_THREADS_LEVEL());
-
+		GMRFLib_matrix_add_graph_and_hash(M, GMRFLib_openmp->max_threads_inner);
 		if (debug) {
 			double *A = Calloc(M->nrow * M->nrow, double);
 			int *iA = Calloc(M->nrow * M->nrow, int);
@@ -403,12 +396,12 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 
 	if (VALID_WHENCE(whence)) {
 		fp = fopen(filename, "ab");
-		assert(fp);
+		_assert(fp);
 		rewind(fp);
 		fseek(fp, offset, whence);
 	} else {
 		fp = fopen(filename, "wb");
-		assert(fp);
+		_assert(fp);
 	}
 	if (!fp) {
 		GMRFLib_sprintf(&msg, "Failed to open file [%s]", filename);
@@ -483,7 +476,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 	}
 
 	if (nt <= 0) {
-		nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
+		nt = GMRFLib_openmp->max_threads_inner;
 	}
 
 	int nhold = 0, *hold = NULL, offset = 0;
@@ -511,7 +504,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 			offset += g->nnbs[k];
 		}
 	}
-	assert(offset <= nhold);
+	_assert(offset <= nhold);
 
 	GMRFLib_ifill(M->nrow, 0, g->nnbs);		       // will use this array for counting and build it again 
 	for (int k = 0; k < M->elems; k++) {
@@ -540,7 +533,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 	if (M->htable_column_order) {
 
 		FIXME("THIS CODE NEEDS TO BE VERIFIED. The serial version is ok,  but the OMP one needs to be checked.");
-		assert(0 == 1);
+		_assert(0 == 1);
 
 		// need to count, as we cannot use g->nnbs
 		int *nnbs_r = Calloc(M->ncol, int);
@@ -659,8 +652,8 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp *M)
 	 */
 
 	if (0) {
-		assert(LEGAL(i, M->nrow));
-		assert(LEGAL(j, M->ncol));
+		_assert(LEGAL(i, M->nrow));
+		_assert(LEGAL(j, M->ncol));
 	}
 	if (M->i) {
 		double *d = NULL;
@@ -699,7 +692,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp *M)
 		if (M->htable_column_order) {
 
 			FIXME("column order should not be used");
-			assert(0 == 1);
+			_assert(0 == 1);
 
 			for (j = 0; j < M->ncol; j++) {
 				d = map_id_ptr(M->htable[j], i);
@@ -754,7 +747,7 @@ int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix
 	if (M->i) {
 		if (M->htable_column_order) {
 			FIXME("column order should not be used");
-			assert(0 == 1);
+			_assert(0 == 1);
 		} else {
 			map_id_storage *ptr = NULL;
 
@@ -769,7 +762,7 @@ int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix
 		}
 	} else {
 		FIXME("NOT IMPLEMENTED");
-		assert(0 == 1);
+		_assert(0 == 1);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -908,7 +901,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
 		}
 	}
 
-	GMRFLib_matrix_add_graph_and_hash(N, GMRFLib_OPENMP_NUM_THREADS_LEVEL());
+	GMRFLib_matrix_add_graph_and_hash(N, GMRFLib_openmp->max_threads_inner);
 
 	N->filename = Strdup(M->filename);
 	N->offset = M->offset;
@@ -921,7 +914,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
 int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, int nrow, int ncol, int nt)
 {
 	if (nt <= 0) {
-		nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
+		nt = GMRFLib_openmp->max_threads_inner;
 	}
 
 	int nelm = 0;

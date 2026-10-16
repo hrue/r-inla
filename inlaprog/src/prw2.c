@@ -1,7 +1,12 @@
+#include <assert.h>
+#include <math.h>
+#include <string.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "inla.h"
+
 #include "GMRFLib/GMRFLib.h"
+#include "inla.h"
 
 // NOTE: not very efficient but the use is for small matrices only, so its fine
 
@@ -11,8 +16,8 @@ inla_bm_tp *inla_bm_alloc(int n, int lbw, int ubw)
 {
 	if (n <= 0 || lbw < 0 || ubw < 0)
 		return NULL;
-	assert(ubw < n);
-	assert(lbw < n);
+	_assert(ubw < n);
+	_assert(lbw < n);
 
 	inla_bm_tp *A = Calloc(1, inla_bm_tp);
 
@@ -52,14 +57,14 @@ inla_bm_tp *inla_bm_chol(inla_bm_tp *A, inla_bm_tp *chol)
 {
 	// return chol (=L) of A. if 'L' overwrite L, otherwise alloc L,
 
-	assert(A->ubw == 0);
+	_assert(A->ubw == 0);
 	chol = (chol ? chol : inla_bm_alloc(A->n, A->lbw, 0));
 	Memcpy(chol->band, A->band, A->memlen * sizeof(double));
 
 	int info = 0;
 
 	dpbtrf_("L", &(chol->n), &(chol->lbw), chol->band, &(chol->ldim), &info, F_ONE);
-	assert(info == 0);
+	_assert(info == 0);
 
 	return chol;
 }
@@ -67,7 +72,7 @@ inla_bm_tp *inla_bm_chol(inla_bm_tp *A, inla_bm_tp *chol)
 void inla_bm_solve(inla_bm_tp *chol, double *b, double *x)
 {
 	// solve Q x = B. if B is NULL then assume b=x. return the solution in x
-	assert(chol->ubw == 0);
+	_assert(chol->ubw == 0);
 	int stride = 1;
 
 	if (b) {
@@ -91,9 +96,9 @@ inla_bm_tp *inla_bm_partial_inv(inla_bm_tp *chol, inla_bm_tp *inv)
 	// note that this create a lower-triangular matrix... so better accessed with BM_VAL(inv,IMAX(i,j),IMIN(i,j))
 
 	if (inv) {
-		assert(inv->n == chol->n);
-		assert(inv->lbw == chol->lbw);
-		assert(inv->ubw == chol->ubw);
+		_assert(inv->n == chol->n);
+		_assert(inv->lbw == chol->lbw);
+		_assert(inv->ubw == chol->ubw);
 		GMRFLib_dfill(inv->memlen, 0, inv->band);
 	} else {
 		inv = inla_bm_alloc(chol->n, chol->lbw, 0);
@@ -118,12 +123,12 @@ inla_bm_tp *inla_bm_mm(inla_bm_tp *A, inla_bm_tp *B, inla_bm_tp *AB)
 {
 	// AB = A %*% B
 
-	assert(A->n == B->n);
+	_assert(A->n == B->n);
 	int lbw = IMIN(A->n - 1, A->lbw + B->lbw);
 	int ubw = IMIN(A->n - 1, A->ubw + B->ubw);
 
 	if (AB) {
-		assert(AB->lbw == lbw && AB->ubw == ubw);
+		_assert(AB->lbw == lbw && AB->ubw == ubw);
 		GMRFLib_dfill(AB->memlen, 0.0, AB->band);
 	} else {
 		AB = inla_bm_alloc(A->n, lbw, ubw);
@@ -148,12 +153,12 @@ inla_bm_tp *inla_bm_mm(inla_bm_tp *A, inla_bm_tp *B, inla_bm_tp *AB)
 inla_bm_tp *inla_bm_mmm(inla_bm_tp *A, inla_bm_tp *B, inla_bm_tp *C, inla_bm_tp *ABC)
 {
 	// ABC = A %*% B %*% C
-	assert(A->n == B->n && A->n == C->n);
+	_assert(A->n == B->n && A->n == C->n);
 	int lbw = IMIN(A->n - 1, A->lbw + B->lbw + C->lbw);
 	int ubw = IMIN(A->n - 1, A->ubw + B->ubw + C->ubw);
 
 	if (ABC) {
-		assert(ABC->lbw == lbw && ABC->ubw == ubw);
+		_assert(ABC->lbw == lbw && ABC->ubw == ubw);
 		GMRFLib_dfill(ABC->memlen, 0.0, ABC->band);
 	} else {
 		ABC = inla_bm_alloc(A->n, lbw, ubw);
@@ -179,9 +184,9 @@ inla_bm_tp *inla_bm_sum(double a, inla_bm_tp *A, double b, inla_bm_tp *B, double
 {
 	// ABC = A->a + b * B + c * C, C is allowed to be NULL
 
-	assert(A->n == B->n);
+	_assert(A->n == B->n);
 	if (C) {
-		assert(A->n == C->n);
+		_assert(A->n == C->n);
 	}
 
 	int lbw = (C ? IMIN(A->n - 1, IMAX(A->lbw, IMAX(B->lbw, C->lbw))) : IMIN(A->n - 1, IMAX(A->lbw, B->lbw)));
@@ -223,9 +228,9 @@ inla_bm_tp *inla_bm_sym(inla_bm_tp *A, inla_bm_tp *Asym)
 {
 	// note that this create a lower-triangular matrix... so better accessed with BM_VAL(inv,IMAX(i,j),IMIN(i,j))
 	if (Asym) {
-		assert(A->n == Asym->n);
-		assert(Asym->ubw == 0);
-		assert(A->lbw == Asym->lbw);
+		_assert(A->n == Asym->n);
+		_assert(Asym->ubw == 0);
+		_assert(A->lbw == Asym->lbw);
 		GMRFLib_dfill(Asym->memlen, 0.0, Asym->band);
 	} else {
 		Asym = inla_bm_alloc(A->n, A->lbw, 0);
@@ -243,9 +248,9 @@ inla_bm_tp *inla_bm_sym(inla_bm_tp *A, inla_bm_tp *Asym)
 inla_bm_tp *inla_bm_trans(inla_bm_tp *A, inla_bm_tp *At)
 {
 	if (At) {
-		assert(A->n == At->n);
-		assert(A->lbw == At->ubw);
-		assert(A->ubw == At->lbw);
+		_assert(A->n == At->n);
+		_assert(A->lbw == At->ubw);
+		_assert(A->ubw == At->lbw);
 		GMRFLib_dfill(At->memlen, 0.0, At->band);
 	} else {
 		At = inla_bm_alloc(A->n, A->ubw, A->lbw);
@@ -279,7 +284,7 @@ __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 inla_prw2_arg_tp *inla_prw2_create(int n, double *loc)
 {
 	// create and return prw2_arg
-	assert(GMRFLib_OPENMP_IN_SERIAL());
+	_assert(GMRFLib_OPENMP_IN_SERIAL());
 
 	inla_prw2_arg_tp *arg = Calloc(1, inla_prw2_arg_tp);
 
@@ -380,6 +385,8 @@ inla_prw2_arg_tp *inla_prw2_create(int n, double *loc)
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 {
+#define MVAL 4L
+
 	// return Q with prec = 1
 	int n = arg->n;
 	double range = GMRFLib_SET_RANGE(arg);
@@ -390,7 +397,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	double b = 2.0 * kappa;
 	double c = SQR(kappa);
 
-	assert(arg->G && arg->M && arg->C && arg->C_tilde);
+	_assert(arg->G && arg->M && arg->C && arg->C_tilde);
 
 	inla_bm_tp *H = inla_bm_sum(a, arg->G, b, arg->M, c, arg->C, NULL);
 	inla_bm_tp *Ht = inla_bm_trans(H, NULL);
@@ -398,9 +405,8 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 
 	inla_bm_scale(tau, Q);
 
-	const int m = 4;
-	const int m2 = ISQR(m);
-	int mm = n - m;
+	int mm = n - MVAL;
+	_assert(mm > 0);
 	int mmn_len = GMRFLib_align_len(mm * n, sizeof(double));
 	double *xx = Calloc(2 * mmn_len, double);
 	double *yy = xx + mmn_len;
@@ -411,7 +417,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	xx[mm - 2 + 2 * mm] = BM_VAL(Q, n - 2, n - 4);
 	xx[mm - 1 + 2 * mm] = BM_VAL(Q, n - 2, n - 3);
 	xx[mm - 1 + 3 * mm] = BM_VAL(Q, n - 1, n - 3);
-	Memcpy(yy, xx, mm * m * sizeof(double));
+	Memcpy(yy, xx, mm * MVAL * sizeof(double));
 
 	inla_bm_tp *QB = inla_bm_alloc(mm, 2, 0);
 
@@ -428,9 +434,9 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	inla_bm_nsolve(chol_QB, NULL, xx, 4);
 
 	int idx[] = { 0, 1, n - 2, n - 1 };
-	inla_bm_tp *S = inla_bm_alloc(m, m - 1, 0);
+	inla_bm_tp *S = inla_bm_alloc(MVAL, MVAL - 1, 0);
 
-	for (int i = 0; i < m; i++) {
+	for (int i = 0; i < MVAL; i++) {
 		BM_VAL(S, i, i) = 1.0;
 		for (int j = 0; j < i; j++) {
 			sBM_VAL(S, i, j) = inla_prw2_corfunc(arg->loc[idx[i]] - arg->loc[idx[j]], kappa);
@@ -473,28 +479,26 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	}
 #endif
 
-	double correction[m2];
-
-	GMRFLib_dfill(m2, 0.0, correction);
-	for (int i = 0; i < m; i++) {
-		for (int j = i; j < m; j++) {
+	double correction[MVAL * MVAL] = { 0 };
+	for (int i = 0; i < MVAL; i++) {
+		for (int j = i; j < MVAL; j++) {
 			double sum = 0.0;
 
 			for (int k = 0; k < mm; k++) {
 				sum += yy[k + i * mm] * xx[k + j * mm];
 			}
-			correction[i + j * m] = correction[j + i * m] = sum + sBM_VAL(Sinv, i, j);
+			correction[i + j * MVAL] = correction[j + i * MVAL] = sum + sBM_VAL(Sinv, i, j);
 		}
 	}
 
-	BM_VAL(Q, 0, 0) = correction[0 + 0 * m];
-	BM_VAL(Q, 1, 0) = correction[1 + 0 * m];
-	BM_VAL(Q, 0, 1) = correction[0 + 1 * m];
-	BM_VAL(Q, 1, 1) = correction[1 + 1 * m];
-	BM_VAL(Q, n - 2, n - 2) = correction[2 + 2 * m];
-	BM_VAL(Q, n - 2, n - 1) = correction[2 + 3 * m];
-	BM_VAL(Q, n - 1, n - 2) = correction[3 + 2 * m];
-	BM_VAL(Q, n - 1, n - 1) = correction[3 + 3 * m];
+	BM_VAL(Q, 0, 0) = correction[0 + 0 * MVAL];
+	BM_VAL(Q, 1, 0) = correction[1 + 0 * MVAL];
+	BM_VAL(Q, 0, 1) = correction[0 + 1 * MVAL];
+	BM_VAL(Q, 1, 1) = correction[1 + 1 * MVAL];
+	BM_VAL(Q, n - 2, n - 2) = correction[2 + 2 * MVAL];
+	BM_VAL(Q, n - 2, n - 1) = correction[2 + 3 * MVAL];
+	BM_VAL(Q, n - 1, n - 2) = correction[3 + 2 * MVAL];
+	BM_VAL(Q, n - 1, n - 1) = correction[3 + 3 * MVAL];
 
 	inla_bm_tp *Qsym = inla_bm_sym(Q, NULL);
 
@@ -524,6 +528,7 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	inla_bm_free(chol_QB);
 	inla_bm_free(chol_S);
 
+#undef MVAL
 	return Qsym;
 }
 
@@ -632,7 +637,7 @@ double priorfunc_prw2_pcprior_range_calibrate(double r0, double alpha, double h_
 	double fac = 2.0;
 	double tref = 0.0;
 
-	assert(h_size > 0);
+	_assert(h_size > 0);
 	if (verbose) {
 		tref -= GMRFLib_timer();
 		printf("\n\t\tcalibrate prw2_pcprior for range r0 = %.4f alpha = %.4f h_size= %.4f\n", r0, alpha, h_size);
@@ -656,7 +661,7 @@ double priorfunc_prw2_pcprior_range_calibrate(double r0, double alpha, double h_
 					lam0 = lam1;
 				}
 				iter++;
-				assert(iter < iter_max);
+				_assert(iter < iter_max);
 			}
 		} else {
 			// f0 < 0
@@ -671,11 +676,11 @@ double priorfunc_prw2_pcprior_range_calibrate(double r0, double alpha, double h_
 					lam0 = lam1;
 				}
 				iter++;
-				assert(iter < iter_max);
+				_assert(iter < iter_max);
 			}
 		}
 	}
-	assert(f0 * f1 < 0.0);
+	_assert(f0 * f1 < 0.0);
 
 	// make sure f0 < 0 < f1. easier coding
 	if (f0 > f1) {
@@ -717,7 +722,7 @@ double priorfunc_prw2_pcprior_range_calibrate(double r0, double alpha, double h_
 		}
 
 		iter++;
-		assert(iter < iter_max);
+		_assert(iter < iter_max);
 	}
 
 	if (verbose) {
