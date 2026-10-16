@@ -2061,7 +2061,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp ***density,
 					misc_output->eigenvalues[i] = 1.0 / gsl_vector_get(eigen_values, i);	/* need the eigenvalues of the
 														 * cov.mat not hessian */
 				}
-				GMRFLib_gsl_mat2plain(&(misc_output->eigenvectors), eigen_vectors);
+				GMRFLib_gsl_mat2plain(&(misc_output->eigenvectors), NULL, eigen_vectors);
 			}
 
 			if (ai_par->fp_log) {

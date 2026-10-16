@@ -1,17 +1,4 @@
-#include <assert.h>
-#include <float.h>
-#include <limits.h>
-#include <math.h>
-#include <omp.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-#include <time.h>
+#include "GMRFLib/GMRFLib.h"
 
 #if defined(_WIN32)
 #       include <windows.h>
@@ -22,8 +9,6 @@
 #       include <sys/sysctl.h>
 #endif
 
-#include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/hashP.h"
 
 #define IDX_ALLOC_INITIAL 64
 #define IDX_ALLOC_ADD     512
@@ -876,18 +861,39 @@ int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec)
 
 #pragma GCC diagnostic pop
 
-int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat)
+int GMRFLib_gsl_plain2mat(gsl_matrix *M, double *mat)
 {
+	if (mat && M && M->size1 > 0 && M->size2 > 0) {
+		for (size_t j = 0; j < M->size2; j++) {
+			for (size_t i = 0; i < M->size1; i++) {
+				gsl_matrix_set(M, i, j, mat[i + j * M->size1]);
+			}
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_gsl_mat2plain(double **out, double *out_alt, gsl_matrix *mat)
+{
+	// two optional outputs, one that is alloc'ed, one that exists from before. priority in that order (first OUT, then OUT_ALT)
 	if (!mat || mat->size1 == 0 || mat->size2 == 0) {
-		*out = NULL;
+		if (out) {
+			*out = NULL;
+		}
 	} else {
-		*out = Malloc(mat->size1 * mat->size2, double);
+		double *p;
+		if (out) {
+			*out = Malloc(mat->size1 * mat->size2, double);
+			p = *out;
+		} else {
+			p = out_alt;
+		}
+		_assert(p);
 
 		for (size_t j = 0; j < mat->size2; j++) {
 			size_t off = j * mat->size1;
-
 			for (size_t i = 0; i < mat->size1; i++) {
-				(*out)[i + off] = gsl_matrix_get(mat, i, j);
+				p[i + off] = gsl_matrix_get(mat, i, j);
 			}
 		}
 	}

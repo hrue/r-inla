@@ -1,15 +1,4 @@
-#include <assert.h>
-#include <stddef.h>
-#include <float.h>
-#include <time.h>
-#include <math.h>
-#include <strings.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/hashP.h"
 
 #if defined(INLA_WITH_ARMPL)
 #       include "armpl_sparse.h"

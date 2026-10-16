@@ -1,15 +1,5 @@
 #include "GMRFLib/GMRFLib.h"
 
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <string.h>
-#include <strings.h>
-#include <time.h>
-
 static GMRFLib_opt_arg_tp G;				       /* hold arguments */
 static int opt_setup = 0;
 
@@ -762,8 +752,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	}
 
 	tmax = GMRFLib_MAX_THREADS();
-	f1 = Calloc(n, double);
-	fm1 = Calloc(n, double);
+	f1 = Malloc(n, double);
+	fm1 = Malloc(n, double);
 
 	GMRFLib_dfill(n, NAN, f1);
 	GMRFLib_dfill(n, NAN, fm1);
@@ -1047,7 +1037,6 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	GMRFLib_opt_dir_transform_hessian(hessian);
 	if (ok) {
 		char *msg = NULL;
-		//GMRFLib_ensure_spd(hessian, n, -1.0, &msg);
 		GMRFLib_ensure_spd(hessian, n, FLT_EPSILON, &msg);
 		if (msg) {
 			if (G.ai_par->fp_log || debug) {

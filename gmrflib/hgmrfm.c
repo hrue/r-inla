@@ -1,11 +1,3 @@
-#include <assert.h>
-#include <math.h>
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
-#include <time.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 #define HYPER_NEW_LOCAL(name_, initial_)				\

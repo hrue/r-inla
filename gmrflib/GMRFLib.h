@@ -20,18 +20,18 @@
 #       if !defined(_DEFAULT_SOURCE)
 #              define _DEFAULT_SOURCE
 #       endif
-#       include <stdlib.h>
-
-#       include <stdalign.h>
-#       include <errno.h>
 #       include <assert.h>
-#       include <stddef.h>
-#       include <math.h>
-#       include <stdio.h>
-#       include <stdint.h>
+#       include <errno.h>
+#       include <fcntl.h>
 #       include <inttypes.h>
+#       include <math.h>
+#       include <stdalign.h>
+#       include <stdarg.h>
 #       include <stdbool.h>
-
+#       include <stddef.h>
+#       include <stdint.h>
+#       include <stdio.h>
+#       include <stdlib.h>
 #       if defined(__linux__)
 #              include <features.h>
 #       endif
@@ -177,6 +177,7 @@
 #       include "GMRFLib/density.h"
 #       include "GMRFLib/globals.h"
 #       include "GMRFLib/hash.h"
+#       include "GMRFLib/hashP.h"
 #       include "GMRFLib/optimize.h"
 #       include "GMRFLib/blockupdate.h"
 #       include "GMRFLib/distributions.h"

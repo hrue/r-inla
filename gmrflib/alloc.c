@@ -1,7 +1,3 @@
-#include <assert.h>
-#include <stddef.h>
-#include <stdlib.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 // will be over-rided by an adaptive default in inla-parse.c

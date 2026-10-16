@@ -1,9 +1,5 @@
 #include "GMRFLib/GMRFLib.h"
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #if defined(_WIN32) || defined(_WIN64)
 #       include <windows.h>
 #       define PLATFORM_WINDOWS 1

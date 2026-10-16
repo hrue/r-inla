@@ -1,17 +1,4 @@
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-#include <time.h>
-
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/hashP.h"
 
 #define GCPO_RUN_BLOCK() ((((GMRFLib_smtp == GMRFLib_SMTP_TAUCS) && (GMRFLib_taucs_get_block_size() == 1))) ? 0 : 1)
 
@@ -1752,7 +1739,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				misc_output->eigenvalues[i] = 1.0 / gsl_vector_get(eigen_values, i);	/* need the eigenvalues of the cov.mat not
 													 * hessian */
 			}
-			GMRFLib_gsl_mat2plain(&(misc_output->eigenvectors), eigen_vectors);
+			GMRFLib_gsl_mat2plain(&(misc_output->eigenvectors), NULL, eigen_vectors);
 		}
 
 		if (ai_par->fp_log) {

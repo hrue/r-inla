@@ -1,11 +1,3 @@
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 double GMRFLib_rw0(int thread_id, int node, int nnode, double *UNUSED(values), void *def)

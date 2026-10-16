@@ -1,9 +1,3 @@
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 int GMRFLib_default_optimize_param(GMRFLib_optimize_param_tp **optpar)

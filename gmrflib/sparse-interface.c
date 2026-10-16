@@ -1,11 +1,3 @@
-#include <assert.h>
-#include <math.h>
-#include <omp.h>
-#include <stdio.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 static int csr_store_use = 1;

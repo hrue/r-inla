@@ -1,9 +1,4 @@
 #define __GMRFLib_DONT_DEFINE_GLOBALS
-#include <limits.h>
-#include <time.h>
-#include <stdlib.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
 #undef __GMRFLib_DONT_DEFINE_GLOBALS
 

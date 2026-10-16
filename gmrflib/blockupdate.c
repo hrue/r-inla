@@ -1,10 +1,3 @@
-#include <stdio.h>
-#include <assert.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 double GMRFLib_prod_diff(double a, double b, double c, double d)

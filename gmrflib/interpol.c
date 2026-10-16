@@ -1,11 +1,3 @@
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <time.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)

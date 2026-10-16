@@ -1,6 +1,3 @@
-#include <float.h>
-#include <stdio.h>
-#include <math.h>
 #include "GMRFLib/GMRFLib.h"
 
 // 2 * phi((x-mu)*exp(lsinv)) * Phi(a*(x-mu)*exp(lsinv)) * exp(lsinv) * exp(Z), where Z allows for un-normalized density

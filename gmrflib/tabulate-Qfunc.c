@@ -1,10 +1,3 @@
-#include <assert.h>
-#include <limits.h>
-#include <math.h>
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 #define TAB_FUNC_CORE(_prec_scale)					\

@@ -1,19 +1,9 @@
-#include <time.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <string.h>
-#include <stdlib.h>
-#include <omp.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
+#include "GMRFLib/GMRFLib.h"
 #if defined(_WIN32)
 #       include <windows.h>
 #       include <wincrypt.h>
 #endif
 
-#include "GMRFLib/GMRFLib.h"
 
 static unsigned long int GMRFLib_rng_seed;
 

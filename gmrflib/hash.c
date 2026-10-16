@@ -1,11 +1,4 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <omp.h>
-#include <limits.h>
-
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/hashP.h"
 
 #define malloc(a_) malloc_intern(a_)
 #define calloc(a_, b_) calloc_intern(a_, b_)

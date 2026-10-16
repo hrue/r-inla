@@ -1,13 +1,3 @@
-#include <limits.h>
-#include <math.h>
-#include <strings.h>
-#include <assert.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 static map_strvp graph_store;

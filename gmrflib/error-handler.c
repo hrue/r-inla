@@ -1,9 +1,3 @@
-#include <stdarg.h>
-#include <strings.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 #ifndef GITCOMMIT

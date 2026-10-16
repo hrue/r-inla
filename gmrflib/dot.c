@@ -1,7 +1,3 @@
-#include <assert.h>
-#include <omp.h>
-#include <stdlib.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 #define SUM_CORE_PLAIN(TYPE_, n_)				\

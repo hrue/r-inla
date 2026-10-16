@@ -1,11 +1,5 @@
 #include "GMRFLib/GMRFLib.h"
 
-#include <math.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #define MSG(fun_) LOG_WARNING("Fake function [%s] called. This may, or may not, go well.\n\n\n", fun_)
 #define mkfun(fun_) void fun_(void) { static char first = 1;  if (first) MSG(# fun_); first = 0; return; }
 

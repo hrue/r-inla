@@ -1,14 +1,3 @@
-#include <time.h>
-#include <assert.h>
-#include <math.h>
-#include <omp.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-
 #include "GMRFLib/GMRFLib.h"
 #include "no-stiles.h"					       /* this includes stiles.h if defined(INLA_WITH_STILES) */
 

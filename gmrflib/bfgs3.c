@@ -1,13 +1,3 @@
-#include <assert.h>
-#include <errno.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/bfgs3.h"
 

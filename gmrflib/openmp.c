@@ -1,9 +1,3 @@
-#include <time.h>
-#include <assert.h>
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 #define omp_max_max_nested() 3

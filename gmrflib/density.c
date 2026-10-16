@@ -1,12 +1,3 @@
-#include <stddef.h>
-#include <float.h>
-#include <math.h>
-#include <strings.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 #define CONST_1 0.6266570686577500604			       // sqrt(M_PI/8.0);

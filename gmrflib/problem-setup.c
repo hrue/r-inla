@@ -1,9 +1,3 @@
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include <stdio.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 static int constr_store_use = 1;
