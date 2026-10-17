@@ -66,6 +66,7 @@ double GMRFLib_dsum_plain(int n, double *x)
 {
 	SUM_CORE_PLAIN(double, n);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -76,6 +77,7 @@ double GMRFLib_dsum_plain_simd(int n, double *x)
 {
 	SUM_CORE_PLAIN_SIMD(double, n);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -86,6 +88,7 @@ double GMRFLib_dsum_unroll(int n, double *x)
 {
 	SUM_CORE_UNROLL(double, n);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -96,6 +99,7 @@ double GMRFLib_dsum_unroll_simd(int n, double *x)
 {
 	SUM_CORE_UNROLL_SIMD(double, n);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -119,6 +123,7 @@ double GMRFLib_dsum_simde(int n, double *x)
 	SUM_CORE_UNROLL(double, n);
 #endif
 }
+
 #pragma GCC diagnostic pop
 
 double GMRFLib_dsum(int n, double *x)
@@ -134,6 +139,7 @@ int GMRFLib_isum(int n, int *x)
 {
 	SUM_CORE_UNROLL(int, n);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push

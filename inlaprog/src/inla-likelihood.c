@@ -6593,9 +6593,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *RESTRICT 
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *RESTRICT logll, double *RESTRICT x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 
 	if (m == 0) {
 		if (arg) {
@@ -7548,7 +7548,7 @@ int loglikelihood_egp(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT l
 	}
 
 	LINK_INIT;
-	_assert(PREDICTOR_SCALE == 1.0);			       /* need to check... */
+	_assert(PREDICTOR_SCALE == 1.0);		       /* need to check... */
 
 	double a = pow(1.0 - pow(alpha, 1.0 / kappa), -xi) - 1.0;
 	double ia = 1.0 / a;
@@ -7571,7 +7571,7 @@ int loglikelihood_egp(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT l
 					}
 				}
 				// a + b * log1p(-pow(x1[i], c)) - log(x2[i]) + d * log(x1[i])
-				inla_llike_egp_2(m, x1, x2, lkappa, kappa-1.0, xii, xii-1.0, logll);
+				inla_llike_egp_2(m, x1, x2, lkappa, kappa - 1.0, xii, xii - 1.0, logll);
 				VEC_FREE(x1);
 				VEC_FREE(x2);
 			} else {
@@ -9077,7 +9077,7 @@ int loglikelihood_lavm(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 	double prec = map_precision_forward(lprec, NULL, NULL);
 
 	LINK_INIT;
-	_assert(PREDICTOR_SCALE == 1.0);			       /* not prepared for this */
+	_assert(PREDICTOR_SCALE == 1.0);		       /* not prepared for this */
 
 	if (m > 0) {
 		double yp = PREDICTOR_LINK_PLAIN(y);

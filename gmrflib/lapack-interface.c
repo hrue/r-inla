@@ -84,6 +84,7 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 	Free(xx);
 #undef SIZE
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -110,6 +111,7 @@ double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 	}
 	return sqr;
 }
+
 #pragma GCC diagnostic pop
 
 GMRFLib_gsl_ldnorm_store_tp *GMRFLib_gsl_ldnorm_store_alloc(int n)
@@ -253,6 +255,7 @@ double GMRFLib_gsl_ldnorm_x(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_
 
 	return ((-(double) n * 1.83787706640934548356065947281 + log_det_Q - sqr) * 0.5);
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix *S, double epsilon)
@@ -553,6 +556,7 @@ double GMRFLib_gsl_rms(gsl_vector *a, gsl_vector *b)
 	}
 	return sqrt(rms / a->size);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -584,6 +588,7 @@ gsl_matrix *GMRFLib_gsl_transpose_matrix(gsl_matrix *A)
 
 	return At;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -613,6 +618,7 @@ gsl_matrix *GMRFLib_gsl_transpose_matrix_x(gsl_matrix *A, gsl_matrix *At)
 
 	return (At ? NULL : At);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -641,6 +647,7 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix *A)
 
 	return logdet;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -659,6 +666,7 @@ int GMRFLib_gsl_force_symmetric(gsl_matrix *A)
 	}
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -676,6 +684,7 @@ int GMRFLib_gsl_add_diag(gsl_matrix *A, double value)
 	}
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -715,6 +724,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -797,6 +807,7 @@ int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_ensure_spd(double *A, int dim, double tol, char **msg)
@@ -830,6 +841,7 @@ int GMRFLib_ensure_spd_x(double *A, int dim, double tol, char **msg, GMRFLib_gsl
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 int GMRFLib_gsl_ensure_spd(gsl_matrix *A, double tol, char **msg)
@@ -932,7 +944,7 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 			s = gsl_vector_get(S, i);
 			if (s <= 0.0) {
 				n_neg++;
-			} else if (s <= tol * s_max){
+			} else if (s <= tol * s_max) {
 				n_small++;
 			}
 			if (s > 0.0 && s < s_min) {
@@ -992,6 +1004,7 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 
 	return GMRFLib_SUCCESS;
 }
+
 #pragma GCC diagnostic pop
 
 GMRFLib_gsl_spd_solve_store_tp *GMRFLib_gsl_spd_solve_store_alloc(int n)
@@ -1138,25 +1151,25 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_safe_spd_inv(double *A, int dim, double tol, int *try_first) 
+int GMRFLib_safe_spd_inv(double *A, int dim, double tol, int *try_first)
 {
 	size_t n = (size_t) dim;
 	gsl_matrix *Am = gsl_matrix_alloc(n, n);
 	_assert(Am);
-	
-	for(size_t j = 0; j < n; j++) {
-		for(size_t i = 0; i < n; i++) {
+
+	for (size_t j = 0; j < n; j++) {
+		for (size_t i = 0; i < n; i++) {
 			gsl_matrix_set(Am, i, j, A[i + j * dim]);
 		}
 	}
 
 	gsl_matrix_set(Am, 0, 0, 0.0);
-	
+
 	int ecode = GMRFLib_gsl_spd_inv(Am, tol, try_first);
 
-	for(size_t j = 0; j < n; j++) {
-		for(size_t i = 0; i < n; i++) {
-			A[i + j * dim ] = gsl_matrix_get(Am, i, j);
+	for (size_t j = 0; j < n; j++) {
+		for (size_t i = 0; i < n; i++) {
+			A[i + j * dim] = gsl_matrix_get(Am, i, j);
 		}
 	}
 	gsl_matrix_free(Am);
@@ -1286,6 +1299,7 @@ int GMRFLib_gsl_mgs(gsl_matrix *A)
 
 	return (GMRFLib_SUCCESS);
 }
+
 #pragma GCC diagnostic pop
 
 GMRFLib_gsl_low_rank_store_tp *GMRFLib_gsl_low_rank_store_alloc(int n)
@@ -1568,6 +1582,7 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 
 	return kld;
 }
+
 #pragma GCC diagnostic pop
 
 double GMRFLib_dssqr(int n, double *x)
@@ -1597,6 +1612,7 @@ void GMRFLib_dscale(int n, double a, double *x)
 		dscal_(&n, &a, x, &one);
 	}
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -1664,6 +1680,7 @@ int GMRFLib_dscale_tune(FILE *fp)
 	Free(x);
 	return GMRFLib_dscale_cutoff;
 }
+
 #pragma GCC diagnostic pop
 
 #define DSCALE2_CORE()				\
@@ -1689,6 +1706,7 @@ void GMRFLib_dscale2(int n, double a, double *RESTRICT x, double *RESTRICT y)
 	DSCALE2_CORE();
 #endif
 }
+
 #pragma GCC diagnostic pop
 #undef DSCALE2_CORE
 
@@ -1741,6 +1759,7 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 		y[i] = a * x[i] + b;
 	}
 }
+
 #pragma GCC diagnostic pop
 
 // y = a * x + y
@@ -1753,6 +1772,7 @@ void GMRFLib_daxpy(int n, double a, double *x, double *y)
 	// y = a * x + y
 	DAXPY_CORE();
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -1824,6 +1844,7 @@ int GMRFLib_daxpy_tune(FILE *fp)
 
 	return GMRFLib_daxpy_cutoff;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -1834,6 +1855,7 @@ double GMRFLib_ddot(int n, double *RESTRICT x, double *RESTRICT y)
 {
 	DDOT_CORE();
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -1907,6 +1929,7 @@ int GMRFLib_ddot_tune(FILE *fp)
 
 	return GMRFLib_ddot_cutoff;
 }
+
 #pragma GCC diagnostic pop
 
 #define DDOT2_CORE()					\
@@ -1940,6 +1963,7 @@ void GMRFLib_ddot2(double *RESTRICT a, double *RESTRICT b, int n, double *RESTRI
 		DDOT2_CORE();
 	}
 }
+
 #pragma GCC diagnostic pop
 
 #define FILL_CORE(TYPE_, LEN_)						\
@@ -1969,6 +1993,7 @@ void GMRFLib_dfill(int n, double a, double *x)
 {
 	FILL_CORE(double, 64);
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -1979,6 +2004,7 @@ void GMRFLib_ifill(int n, int a, int *x)
 {
 	FILL_CORE(int, 128);
 }
+
 #pragma GCC diagnostic pop
 
 void GMRFLib_bfill(int n, bool a, bool *x)
@@ -2016,6 +2042,7 @@ void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, int *RESTRICT iai
 
 	return;
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -2031,6 +2058,7 @@ void GMRFLib_unpack(int n, double *RESTRICT a, double *RESTRICT y, int *RESTRICT
 		y[iy[i]] = a[i];
 	}
 }
+
 #pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
@@ -2046,4 +2074,5 @@ void GMRFLib_powx(int n, double *x, double a, double *y)
 	}
 #endif
 }
+
 #pragma GCC diagnostic pop

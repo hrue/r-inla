@@ -5916,7 +5916,7 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 		double *x = Calloc(n + 1, double);
-		double tref[5] = {0};
+		double tref[5] = { 0 };
 
 		GMRFLib_dfill(3, 0.0, tref);
 		double err = 0, ierr = 0;
@@ -5953,11 +5953,10 @@ int testit(int argc, char **argv)
 		P(err / n);
 		P(ierr / n);
 		printf("dsum plain %f plain.simd %f unroll %f unroll.simd %f simde %f\n",
-		       tref[0] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]), 
-		       tref[1] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]), 
-		       tref[2] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]), 
-		       tref[3] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]), 
-		       tref[4] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]));
+		       tref[0] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]),
+		       tref[1] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]),
+		       tref[2] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]),
+		       tref[3] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]), tref[4] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]));
 	}
 		break;
 
@@ -7223,35 +7222,26 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-        case 218:
-        {
-                LOG_INFO("This is a info statement: %d", 1);
-                LOG_WARNING("This is a warning statement: %d", 2);
-                LOG_ERROR("This is an error statement: %d", 3);
+	case 218:
+	{
+		LOG_INFO("This is a info statement: %d", 1);
+		LOG_WARNING("This is a warning statement: %d", 2);
+		LOG_ERROR("This is an error statement: %d", 3);
 
-                LOG_INFO_WRAPPER(
-                        fprintf(stderr, "Wrap info line 1\n");
-                        fprintf(stderr, "Wrap info line 2\n");
-                        );
+		LOG_INFO_WRAPPER(fprintf(stderr, "Wrap info line 1\n"); fprintf(stderr, "Wrap info line 2\n"););
 
-                LOG_WARNING_WRAPPER(
-                        fprintf(stderr, "Wrap warning line 1\n");
-                        fprintf(stderr, "Wrap warning line 2\n");
-                        );
+		LOG_WARNING_WRAPPER(fprintf(stderr, "Wrap warning line 1\n"); fprintf(stderr, "Wrap warning line 2\n"););
 
-                LOG_ERROR_WRAPPER(
-                        fprintf(stderr, "Wrap error line 1\n");
-                        fprintf(stderr, "Wrap error line 2\n");
-                        );
+		LOG_ERROR_WRAPPER(fprintf(stderr, "Wrap error line 1\n"); fprintf(stderr, "Wrap error line 2\n"););
 
 		FIXME("_assert should not trigger");
 		_assert(1 == 1);
 		FIXME("_assert should trigger");
 		_assert(1 == 0 && "1 == 0");
-        }
-	break;
-	
-	case 219: 
+	}
+		break;
+
+	case 219:
 	{
 		int nn = atoi(args[0]);
 		int mm = atoi(args[1]);
@@ -7260,20 +7250,20 @@ int testit(int argc, char **argv)
 		int n = IMAX(nn, mm);
 
 		int i = 0;
-		for(; i < n - (m-1); i += m) {
-			for(int j = 0; j < m; j++){
+		for (; i < n - (m - 1); i += m) {
+			for (int j = 0; j < m; j++) {
 				int k = i + j;
 				P(k);
 			}
 		}
-		printf("int the last block %d terms\n", n-i);
-		for(; i < n; i++) {
+		printf("int the last block %d terms\n", n - i);
+		for (; i < n; i++) {
 			int j = i;
 			P(j);
 		}
 	}
-	break;
-		
+		break;
+
 	default:
 	{
 		printf("\nNo such test: %d\n", test_no);

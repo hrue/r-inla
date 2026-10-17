@@ -7470,7 +7470,7 @@ int main(int argc, char **argv)
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
 #endif
-	
+
 	GMRFLib_numa_init();				       /* must init */
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
 	GMRFLib_openmp->max_threads = host_max_threads;	       // might be revised lated
