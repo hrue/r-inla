@@ -8033,7 +8033,7 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 	/*
 	 * duplicate AI_STORE. 'skeleton' only duplicate 'required' features. 'copy_ptr' only copies pointers to some objects known to be 'read only'
 	 */
-#define DUPLICATE(name_, len_, tp_, skeleton_)				\
+#define MY_DUPLICATE(name_, len_, tp_, skeleton_)				\
 	if (1) {							\
 		if (ai_store->name_ && (len_) && !(skeleton_)){		\
 			new_ai_store->name_ = Calloc(len_, tp_);	\
@@ -8061,14 +8061,14 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 	COPY(nidx);
 	COPY(Npred);
 
-	DUPLICATE(mode, n, double, 0);
-	DUPLICATE(aa, Npred, double, skeleton);
-	DUPLICATE(bb, Npred, double, skeleton);
-	DUPLICATE(cc, Npred, double, skeleton);
-	DUPLICATE(stdev, n, double, skeleton);
-	DUPLICATE(correction_term, n, double, skeleton);
-	DUPLICATE(derivative3, n, double, skeleton);
-	DUPLICATE(correction_idx, n, int, skeleton);
+	MY_DUPLICATE(mode, n, double, 0);
+	MY_DUPLICATE(aa, Npred, double, skeleton);
+	MY_DUPLICATE(bb, Npred, double, skeleton);
+	MY_DUPLICATE(cc, Npred, double, skeleton);
+	MY_DUPLICATE(stdev, n, double, skeleton);
+	MY_DUPLICATE(correction_term, n, double, skeleton);
+	MY_DUPLICATE(derivative3, n, double, skeleton);
+	MY_DUPLICATE(correction_idx, n, int, skeleton);
 
 	new_ai_store->d_idx = GMRFLib_idx_duplicate(ai_store->d_idx);
 
@@ -8079,7 +8079,7 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp *ai_store, i
 	GMRFLib_LEAVE_FUNCTION;
 	return new_ai_store;
 
-#undef DUPLICATE
+#undef MY_DUPLICATE
 #undef COPY
 }
 

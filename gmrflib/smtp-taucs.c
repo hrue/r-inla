@@ -258,7 +258,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 
 supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix *L)
 {
-#define DUPLICATE(name,len,type) if (1) {				\
+#define MY_DUPLICATE(name,len,type) if (1) {				\
 		if (L->name && ((len) > 0)) {				\
 			LL->name = (type *)Malloc((len), type);	\
 			Memcpy(LL->name,L->name,(size_t)(len)*sizeof(type)); \
@@ -283,33 +283,33 @@ supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matr
 	np = n + 1;
 	n_sn = LL->n_sn;
 
-	DUPLICATE(sn_size, np, int);
-	DUPLICATE(sn_up_size, np, int);
-	DUPLICATE(first_child, np, int);
-	DUPLICATE(next_child, np, int);
-	DUPLICATE(parent, np, int);
-	DUPLICATE(sn_blocks_ld, n_sn, int);
-	DUPLICATE(up_blocks_ld, n_sn, int);
+	MY_DUPLICATE(sn_size, np, int);
+	MY_DUPLICATE(sn_up_size, np, int);
+	MY_DUPLICATE(first_child, np, int);
+	MY_DUPLICATE(next_child, np, int);
+	MY_DUPLICATE(parent, np, int);
+	MY_DUPLICATE(sn_blocks_ld, n_sn, int);
+	MY_DUPLICATE(up_blocks_ld, n_sn, int);
 
 	LL->sn_struct = (int **) Calloc(n_sn, int *);
 
 	for (int i = 0; i < LL->n_sn; i++) {
-		DUPLICATE(sn_struct[i], LL->sn_up_size[i], int);
+		MY_DUPLICATE(sn_struct[i], LL->sn_up_size[i], int);
 	}
 
 	LL->sn_blocks = (double **) Calloc(n_sn, double *);
 
 	for (int i = 0; i < LL->n_sn; i++) {
-		DUPLICATE(sn_blocks[i], ISQR(LL->sn_size[i]), double);
+		MY_DUPLICATE(sn_blocks[i], ISQR(LL->sn_size[i]), double);
 	}
 
 	LL->up_blocks = (double **) Calloc(n_sn, double *);
 
 	for (int i = 0; i < LL->n_sn; i++) {
-		DUPLICATE(up_blocks[i], (LL->sn_up_size[i] - LL->sn_size[i]) * LL->sn_size[i], double);
+		MY_DUPLICATE(up_blocks[i], (LL->sn_up_size[i] - LL->sn_size[i]) * LL->sn_size[i], double);
 	}
 
-#undef DUPLICATE
+#undef MY_DUPLICATE
 	return LL;
 }
 

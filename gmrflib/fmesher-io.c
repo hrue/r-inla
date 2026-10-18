@@ -37,7 +37,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	 * read a fmesher_file, starting from (offset,whence)
 	 */
 
-#define ERROR(msg)							\
+#define MY_ERROR(msg)							\
 	{								\
 		if (fp) fclose(fp);					\
 		fprintf(stderr, "\n\n%s:%1d: *** ERROR *** \n\t%s\n\n", __FILE__,  __LINE__,  msg); \
@@ -57,7 +57,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 			char *m = NULL;					\
 			GMRFLib_sprintf(&m, "Failed to read [%1u] elems of size [%1u] from file [%s], at position %ld\n", \
 					n, sizeof(type), filename, position); \
-			ERROR(m);					\
+			MY_ERROR(m);					\
 		}							\
 	}
 
@@ -80,7 +80,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	}
 	if (!fp) {
 		GMRFLib_sprintf(&msg, "Failed to open file [%s]", filename);
-		ERROR(msg);
+		MY_ERROR(msg);
 	}
 	if (verbose) {
 		printf("Open file to read [%s]\n", filename);
@@ -90,7 +90,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 
 	if (len_header < 8) {
 		GMRFLib_sprintf(&msg, "Header in file [%s] is only %1d (< 8) ints long.", filename, len_header);
-		ERROR(msg);
+		MY_ERROR(msg);
 	}
 
 	header = Calloc(len_header, int);
@@ -133,7 +133,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 
 	if (dense) {
 		if (symmetric || diagonal) {
-			ERROR(" (dense && (symmetric || diagonal)) is not yet implemented.");
+			MY_ERROR(" (dense && (symmetric || diagonal)) is not yet implemented.");
 		}
 		Assert(general);
 		Assert(elems == nrow * ncol);
@@ -249,7 +249,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 				M->j[k] = IMAX(ij[0], ij[1]);
 			}
 			if ((all_i_st_j && all_j_st_i) || (!all_i_st_j && !all_j_st_i)) {
-				ERROR("Not all entries satisfy all i >= j, or all j <= i, in the symmetric case. Do not know what to do...");
+				MY_ERROR("Not all entries satisfy all i >= j, or all j <= i, in the symmetric case. Do not know what to do...");
 			}
 
 			int nneq = 0;
@@ -339,7 +339,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 		}
 	}
 #undef READ
-#undef ERROR
+#undef MY_ERROR
 
 	/*
 	 * add fileinfo 
@@ -361,7 +361,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 	 * write fmesher-file at (offset,whence).
 	 */
 
-#define ERROR(msg)							\
+#define MY_ERROR(msg)							\
 	{								\
 		if (fp) fclose(fp);					\
 		fprintf(stderr, "\n\n%s:%1d: *** ERROR *** \n\t%s\n\n", __FILE__,  __LINE__,  msg); \
@@ -379,7 +379,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 			char *m = NULL;					\
 			GMRFLib_sprintf(&m, "Failed to write [%1u] elems of size [%1u] to file [%s], at position %ld\n", \
 					n, sizeof(type), filename, ftell(fp)); \
-			ERROR(m);					\
+			MY_ERROR(m);					\
 		}							\
 	}
 
@@ -405,7 +405,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 	}
 	if (!fp) {
 		GMRFLib_sprintf(&msg, "Failed to open file [%s]", filename);
-		ERROR(msg);
+		MY_ERROR(msg);
 	}
 	if (verbose) {
 		printf("Open file to write[%s]\n", filename);
@@ -460,7 +460,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 	fclose(fp);
 	Free(header);
 
-#undef ERROR
+#undef MY_ERROR
 #undef WRITE
 	return (0);
 }
