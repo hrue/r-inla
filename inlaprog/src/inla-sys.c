@@ -82,7 +82,7 @@ unsigned long long getTotalSystemMemory()
 
 #if defined(_WIN32)
 
-BOOL WINAPI inla__signal_func(DWORD ctrl_type)
+BOOL WINAPI inla_signal_func(DWORD ctrl_type)
 {
 	if (ctrl_type == CTRL_C_EVENT || ctrl_type == CTRL_CLOSE_EVENT || ctrl_type == CTRL_BREAK_EVENT) {
 		GMRFLib_color_reset();
