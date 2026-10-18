@@ -1,14 +1,5 @@
 #include "GMRFLib/GMRFLib.h"
 
-#if defined(_WIN32)
-#       include <windows.h>
-#endif
-
-#if defined(__APPLE__)
-#       include <sys/types.h>
-#       include <sys/sysctl.h>
-#endif
-
 #define IDX_ALLOC_INITIAL 64
 #define IDX_ALLOC_ADD     512
 
@@ -887,7 +878,7 @@ int GMRFLib_gsl_mat2plain(double **out, double *out_alt, gsl_matrix *mat)
 		} else {
 			p = out_alt;
 		}
-		_assert(p);
+		Assert(p);
 
 		for (size_t j = 0; j < mat->size2; j++) {
 			size_t off = j * mat->size1;
@@ -991,7 +982,7 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 			}
 			return NAN;
 		} else {
-			_assert(x);
+			Assert(x);
 			if (idx) {
 				*idx = 0;
 			}
@@ -999,7 +990,7 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 		}
 	}
 	// sometimes the max is at the boundary
-	_assert(x);
+	Assert(x);
 	if (idx) {
 		int imax;
 		double max_val;
@@ -1044,7 +1035,7 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 			}
 			return NAN;
 		} else {
-			_assert(x);
+			Assert(x);
 			if (idx) {
 				*idx = 0;
 			}
@@ -1052,7 +1043,7 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 		}
 	}
 	// sometimes the min is at the boundary
-	_assert(x);
+	Assert(x);
 	if (idx) {
 		int imin;
 		double min_val;
@@ -1100,7 +1091,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 			}
 			return INT_MAX;
 		} else {
-			_assert(x);
+			Assert(x);
 			if (idx) {
 				*idx = 0;
 			}
@@ -1108,7 +1099,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 		}
 	}
 	// sometimes the max is at the boundary, but we're just 'almost' sure
-	_assert(x);
+	Assert(x);
 	if (idx) {
 		int imax;
 		int max_val;
@@ -1158,7 +1149,7 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 			}
 			return INT_MIN;
 		} else {
-			_assert(x);
+			Assert(x);
 			if (idx) {
 				*idx = 0;
 			}
@@ -1166,7 +1157,7 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 		}
 	}
 	// sometimes the min is at the boundary, but we're just 'almost' sure
-	_assert(x);
+	Assert(x);
 	if (idx) {
 		int imin;
 		int min_val;
@@ -1287,7 +1278,7 @@ int GMRFLib_debug_functions(const char *name)
 	int idx = 0;
 
 	GMRFLib_CACHE_SET_IDX(idx);
-	_assert(idx < clen);
+	Assert(idx < clen);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_c3afbb5a350a04cd0a2ad81d85df8cc44ff04279)
@@ -1330,7 +1321,7 @@ int GMRFLib_debug_functions(const char *name)
 						int len = s2 - s + 1;
 						int len1 = len + 1;	/* to avoid compiler warning */
 
-						_assert(len >= 0);
+						Assert(len >= 0);
 						ss = Calloc(len + 1, char);
 
 						ss[len1 - 1] = '\0';
@@ -1407,7 +1398,7 @@ int GMRFLib_trace_functions(const char *name)
 	int idx = 0;
 
 	GMRFLib_CACHE_SET_IDX(idx);
-	_assert(idx < clen);
+	Assert(idx < clen);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_e9b04207643dde9dc8734f9ae0e41a3e03910f80)
@@ -1449,7 +1440,7 @@ int GMRFLib_trace_functions(const char *name)
 					} else {
 						int len = s2 - s + 1;
 
-						_assert(len >= 0);
+						Assert(len >= 0);
 						ss = Calloc(len + 1, char);
 
 						ss[len] = '\0';
@@ -1526,7 +1517,7 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 	int idx = 0;
 
 	GMRFLib_CACHE_SET_IDX(idx);
-	_assert(idx < clen);
+	Assert(idx < clen);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_4b0bcb2d4e2c1a81a1672358ca7320e389c962bc)
@@ -1568,7 +1559,7 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 					} else {
 						int len = s2 - s + 1;
 
-						_assert(len >= 0);
+						Assert(len >= 0);
 						ss = Calloc(len + 1, char);
 
 						ss[len] = '\0';

@@ -1,11 +1,3 @@
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
 #include "GMRFLib/GMRFLib.h"
 #include "inla.h"
 #include "spde.h"
@@ -19,8 +11,8 @@ static inla_spde_tp *func_smodel = NULL;
 
 inla_spde_points_tp *inla_spde_set_points(GMRFLib_matrix_tp *M)
 {
-	_assert(M->nrow > 0);
-	_assert(M->ncol > 0);
+	Assert(M->nrow > 0);
+	Assert(M->ncol > 0);
 
 	int i, j;
 	double *hold = NULL;
@@ -144,7 +136,7 @@ int inla_spde_KT_model_init(inla_spde_theta_tp *theta_model, GMRFLib_matrix_tp *
 	int i, j;
 
 	theta_model->ntheta = basis->ncol;
-	_assert(theta_model->ntheta > 0);
+	Assert(theta_model->ntheta > 0);
 
 	HYPER_NEW2(theta, 0.0, theta_model->ntheta);
 	theta_model->theta = theta;
@@ -265,7 +257,7 @@ int inla_spde_build_model(int UNUSED(thread_id), inla_spde_tp **smodel, const ch
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "s");
 	M = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
 	model->s = inla_spde_set_points(M);
-	_assert(model->s->n == n);
+	Assert(model->s->n == n);
 	GMRFLib_matrix_free(M);
 	Free(fnm);
 	if (0) {
@@ -279,7 +271,7 @@ int inla_spde_build_model(int UNUSED(thread_id), inla_spde_tp **smodel, const ch
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "g1");
 	M = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
-	_assert(M->nrow == n);
+	Assert(M->nrow == n);
 	if (0) {
 		int imax = 0;
 		int jmax = 0;
@@ -301,7 +293,7 @@ int inla_spde_build_model(int UNUSED(thread_id), inla_spde_tp **smodel, const ch
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "g2");
 	M = GMRFLib_read_fmesher_file((const char *) fnm, 0, -1);
-	_assert(M->nrow == n);
+	Assert(M->nrow == n);
 	GMRFLib_tabulate_Qfunc_from_list(&(model->G2), &(model->G2_graph), M->elems, M->i, M->j, M->values, n, NULL);
 	GMRFLib_matrix_free(M);
 	Free(fnm);
@@ -343,9 +335,9 @@ double *inla_spde_userfunc0(int thread_id, GMRFLib_problem_tp *UNUSED(problem), 
 	/*
 	 * return the log(deformations). First the T's so the K's
 	 */
-	_assert(func_smodel);
-	_assert(func_smodel->Tmodel->theta_extra[thread_id] == NULL);
-	_assert(func_smodel->Kmodel->theta_extra[thread_id] == NULL);
+	Assert(func_smodel);
+	Assert(func_smodel->Tmodel->theta_extra[thread_id] == NULL);
+	Assert(func_smodel->Kmodel->theta_extra[thread_id] == NULL);
 
 	int i, n = func_smodel->n;
 	const int debug = 0;
@@ -389,9 +381,9 @@ double *inla_spde_userfunc1(int thread_id, double *UNUSED(theta), int nhyper, do
 		return NULL;
 	}
 
-	_assert(func_smodel);
-	_assert(func_smodel->Tmodel->theta_extra[thread_id] == NULL);
-	_assert(func_smodel->Kmodel->theta_extra[thread_id] == NULL);
+	Assert(func_smodel);
+	Assert(func_smodel->Tmodel->theta_extra[thread_id] == NULL);
+	Assert(func_smodel->Kmodel->theta_extra[thread_id] == NULL);
 
 	int idx, i, j, n = func_smodel->n, where_to_start;
 	double mean, var;

@@ -4,19 +4,6 @@
 #include "my.h"
 #include "my-fix.h"
 
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
-
 int my_file_exists(const char *filename)
 {
 	struct stat sb;
@@ -96,7 +83,7 @@ double my_gsl_sf_lnfact(int x)
 		return lng[x];
 	}
 
-	_assert(0 == 1);
+	Assert(0 == 1);
 	return NAN;
 }
 
@@ -122,7 +109,7 @@ int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result *result)
 {
 	// copy of gsl_sf_lnchoose_e
 
-	_assert(m <= n);
+	Assert(m <= n);
 	if (m == n || m == 0) {
 		result->val = 0.0;
 		result->err = 0.0;
@@ -489,7 +476,7 @@ void my_lambert_W0s(int m, double *y, double *res)
 			if (ISZERO(y[k]) || ISNAN(y[k])) {
 				res[k] = y[k];
 			} else {
-				_assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 	}

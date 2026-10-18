@@ -1,11 +1,3 @@
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
-
 #include "GMRFLib/GMRFLib.h"
 #include "inla.h"
 #include "spde3.h"
@@ -32,7 +24,7 @@ int inla_spde3_build_model(int UNUSED(thread_id), inla_spde3_tp **smodel, const 
 	} else if (!strcasecmp(transform, "oldlogit")) {
 		model->transform = SPDE3_TRANSFORM_OLDLOGIT;
 	} else {
-		_assert(0 == 1);
+		Assert(0 == 1);
 	}
 
 	model->B = Calloc(4, GMRFLib_matrix_tp *);
@@ -50,22 +42,22 @@ int inla_spde3_build_model(int UNUSED(thread_id), inla_spde3_tp **smodel, const 
 		 * all need the same dimensions n x (p+1) , except for B[3]
 		 */
 		if (i != 3) {
-			_assert(model->B[0]->nrow == model->B[i]->nrow);
+			Assert(model->B[0]->nrow == model->B[i]->nrow);
 		}
-		_assert(model->B[0]->ncol == model->B[i]->ncol);
+		Assert(model->B[0]->ncol == model->B[i]->ncol);
 
 		/*
 		 * all are square with the same dimension n x n, except M[3]
 		 */
 		if (i != 3) {
-			_assert(model->M[i]->nrow == model->M[i]->ncol);
+			Assert(model->M[i]->nrow == model->M[i]->ncol);
 		}
-		_assert(model->M[0]->ncol == model->M[i]->ncol);
+		Assert(model->M[0]->ncol == model->M[i]->ncol);
 
 		/*
 		 * and the number of rows of B must be the same as the number of cols of M
 		 */
-		_assert(model->B[i]->nrow == model->M[i]->nrow);
+		Assert(model->B[i]->nrow == model->M[i]->nrow);
 	}
 
 	model->n = model->M[0]->nrow;
@@ -157,7 +149,7 @@ int inla_spde3_build_model(int UNUSED(thread_id), inla_spde3_tp **smodel, const 
 	}
 
 	GMRFLib_ged_build(&(model->graph), ged);
-	_assert(model->n == model->graph->n);
+	Assert(model->n == model->graph->n);
 	GMRFLib_ged_free(ged);
 
 	model->Qfunc = inla_spde3_Qfunction;
@@ -278,7 +270,7 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 		}
 		d_j[2] = d_i[2];
 	} else {
@@ -318,7 +310,7 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 		}
 			break;
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 
@@ -446,7 +438,7 @@ double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covm
 	double *row_spde3 = Calloc(ncol, double);	       /* yes, one row has length ncol. */
 	double *row = Calloc(nhyper + 1, double);
 
-	_assert(ncol - 1 == model->ntheta);
+	Assert(ncol - 1 == model->ntheta);
 
 	if (!GMRFLib_ai_INLA_userfunc3_len) {
 		GMRFLib_ai_INLA_userfunc3_len = Calloc(GMRFLib_ai_INLA_userfunc3_n, int);

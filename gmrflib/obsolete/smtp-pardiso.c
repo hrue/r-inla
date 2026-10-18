@@ -100,7 +100,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp **store)
 	for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 		s->pstore[i] = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
 	}
-	_assert(S.mtype == -2 || S.mtype == 2);
+	Assert(S.mtype == -2 || S.mtype == 2);
 	s->mtype = S.mtype;
 	s->msglvl = S.msglvl;
 	s->solver = 0;
@@ -164,7 +164,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 {
 	int tnum = (thread_num ? *thread_num : omp_get_thread_num());
 
-	_assert(store->done_with_init == GMRFLib_TRUE);
+	Assert(store->done_with_init == GMRFLib_TRUE);
 	Memcpy((void *) (store->pstore[tnum]->iparm), (void *) (store->iparm_default), GMRFLib_PARDISO_PLEN * sizeof(int));
 	Memcpy((void *) (store->pstore[tnum]->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
 
@@ -254,7 +254,7 @@ int GMRFLib_pardiso_check_install(int quiet, int no_err)
 			} else {
 				GMRFLib_ERROR(GMRFLib_ESNH);
 			}
-			_assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 	return (err_code == 0 ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
@@ -278,8 +278,8 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp *store, GMRFLib_graph_tp *g
 	int tnum = omp_get_thread_num();
 	int debug = S.debug;
 
-	_assert(store != NULL);
-	_assert(store->done_with_init == GMRFLib_TRUE);
+	Assert(store != NULL);
+	Assert(store->done_with_init == GMRFLib_TRUE);
 
 	if (store->done_with_reorder == GMRFLib_TRUE) {
 		return GMRFLib_SUCCESS;
@@ -291,7 +291,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp *store, GMRFLib_graph_tp *g
 	GMRFLib_graph_duplicate(&(store->graph), graph);
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_REORDER, store, NULL);
 	GMRFLib_Q2csr(0, &Q, store->graph, GMRFLib_pardiso_Qfunc_default, (void *) store->graph);
-	_assert(Q);
+	Assert(Q);
 
 	if (S.csr_check) {
 		GMRFLib_csr_check(Q);
@@ -300,7 +300,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp *store, GMRFLib_graph_tp *g
 		GMRFLib_csr_print(stdout, Q);
 	}
 
-	_assert(Q->s->n == store->graph->n);
+	Assert(Q->s->n == store->graph->n);
 	n = store->graph->n;
 	store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm = Calloc(n, int);
 	store->pstore[GMRFLib_PSTORE_TNUM_REF]->iperm = Calloc(n, int);
@@ -367,8 +367,8 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp *store,
 	int n, *permutation = NULL;
 	double *xx = NULL;
 
-	_assert(store);
-	_assert(store->graph);
+	Assert(store);
+	Assert(store->graph);
 
 	if (store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm_identity) {
 		return GMRFLib_SUCCESS;
@@ -378,8 +378,8 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp *store,
 	xx = Calloc(n * m, double);
 	Memcpy(xx, x, n * m * sizeof(double));
 	permutation = (direction ? store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm : store->pstore[GMRFLib_PSTORE_TNUM_REF]->iperm);
-	_assert(permutation);
-	_assert(m > 0);
+	Assert(permutation);
+	Assert(m > 0);
 
 #define CODE_BLOCK						\
 	for (int j = 0; j < m; j++) {				\
@@ -399,17 +399,17 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp *store,
 
 int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp *store)
 {
-	_assert(store->done_with_init == GMRFLib_TRUE);
-	_assert(store->done_with_reorder == GMRFLib_TRUE);
+	Assert(store->done_with_init == GMRFLib_TRUE);
+	Assert(store->done_with_reorder == GMRFLib_TRUE);
 
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_pardiso_build(int thread_id, GMRFLib_pardiso_store_tp *store, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
-	_assert(store != NULL);
-	_assert(store->done_with_init == GMRFLib_TRUE);
-	_assert(store->done_with_reorder == GMRFLib_TRUE);
+	Assert(store != NULL);
+	Assert(store->done_with_init == GMRFLib_TRUE);
+	Assert(store->done_with_reorder == GMRFLib_TRUE);
 
 	if (store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_build == GMRFLib_TRUE && store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q) {
 		GMRFLib_csr_free(&(store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q));
@@ -437,10 +437,10 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp *store)
 	int tnum = omp_get_thread_num();
 	int debug = S.debug;
 
-	_assert(store->done_with_init == GMRFLib_TRUE);
-	_assert(store->done_with_reorder == GMRFLib_TRUE);
-	_assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_build == GMRFLib_TRUE);
-	_assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q != NULL);
+	Assert(store->done_with_init == GMRFLib_TRUE);
+	Assert(store->done_with_reorder == GMRFLib_TRUE);
+	Assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_build == GMRFLib_TRUE);
+	Assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q != NULL);
 
 	int mnum1 = 1, n = store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->s->n;
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_CHOL, store, NULL);
@@ -456,7 +456,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp *store)
 		omp_set_num_threads(store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 	} else {
 		omp_set_num_threads(IMIN(store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2], GMRFLib_openmp->max_threads_inner));
-		// _assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
+		// Assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 	}
 
 	GMRFLib_csr_tp *Q = store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q;
@@ -516,12 +516,12 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp *store, GMRFLib_pardiso_
 {
 	// note that 'x' = 'b' !!!!!!!!!!!!!!!
 
-	_assert(store);
-	_assert(nrhs > 0);
-	_assert(store->done_with_init == GMRFLib_TRUE);
-	_assert(store->done_with_reorder == GMRFLib_TRUE);
-	_assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_build == GMRFLib_TRUE);
-	_assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_chol == GMRFLib_TRUE);
+	Assert(store);
+	Assert(nrhs > 0);
+	Assert(store->done_with_init == GMRFLib_TRUE);
+	Assert(store->done_with_reorder == GMRFLib_TRUE);
+	Assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_build == GMRFLib_TRUE);
+	Assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_chol == GMRFLib_TRUE);
 
 	// this is so that the RHS can be overwritten
 	int n = store->graph->n, mnum1 = 1, nblock, block_nrhs, err_code = 0, debug = 0;
@@ -541,7 +541,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp *store, GMRFLib_pardiso_
 			} else {
 				nt = GMRFLib_openmp->max_threads_inner;
 			}
-			// _assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
+			// Assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 		}
 	}
 	// printf("possible nt %d S.nrhs_max %d\n", nt, S.nrhs_max);
@@ -597,7 +597,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp *store, GMRFLib_pardiso_
 		Memcpy((void *) bb, (void *) (b + offset), n * local_nrhs * sizeof(double));\
 		/* if diagonal matrix, do this manually as there is an _error_ or _feature_ in the library */ \
 		if (n == Q->s->na) {					\
-			_assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm_identity); \
+			Assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm_identity); \
 			double *xx = x + offset, *qq = Q->a;		\
 			if (store->pstore[tnum]->iparm[25] != 0) {	\
 				/* in this case, Lx=b, L^Tx=b, are both the same */ \
@@ -740,9 +740,9 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp *problem)
 int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp *store)
 {
 	int tnum = omp_get_thread_num();
-	_assert(store->done_with_reorder == GMRFLib_TRUE);
-	_assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_build == GMRFLib_TRUE);
-	_assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_chol == GMRFLib_TRUE);
+	Assert(store->done_with_reorder == GMRFLib_TRUE);
+	Assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_build == GMRFLib_TRUE);
+	Assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_chol == GMRFLib_TRUE);
 
 	if (store->pstore[GMRFLib_PSTORE_TNUM_REF]->Qinv) {
 		GMRFLib_csr_free(&(store->pstore[GMRFLib_PSTORE_TNUM_REF]->Qinv));

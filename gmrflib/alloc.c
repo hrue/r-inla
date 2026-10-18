@@ -29,7 +29,7 @@ void *malloc_intern(size_t size)
 {
 	void *p = malloc(size);
 
-	_assert(p);
+	Assert(p);
 	return p;
 }
 
@@ -44,7 +44,7 @@ void *amalloc_intern(size_t size)
 	} else {
 		p = malloc(size);
 	}
-	_assert(p);
+	Assert(p);
 	return p;
 }
 
@@ -52,7 +52,7 @@ void *calloc_intern(size_t nmemb, size_t size)
 {
 	void *p = calloc(nmemb, size);
 
-	_assert(p);
+	Assert(p);
 	return p;
 }
 
@@ -65,12 +65,12 @@ void *acalloc_intern(size_t nmemb, size_t size)
 		size_t nn = GMRFLib_align_len(n, 1);
 
 		p = aligned_alloc(GMRFLib_memory_alignment, nn);
-		_assert(p);
+		Assert(p);
 		Memset(p, 0, nn);
 	} else {
 		p = calloc(nmemb, size);
 	}
-	_assert(p);
+	Assert(p);
 	return p;
 }
 
@@ -83,7 +83,7 @@ void *realloc_intern(void *ptr, size_t size)
 	} else {
 		p = malloc(size);
 	}
-	_assert(p);
+	Assert(p);
 	return p;
 }
 
@@ -102,7 +102,7 @@ void *arealloc_intern(void *ptr, size_t size)
 				size_t new_size = GMRFLib_align_len(size, 1);
 				void *pp = malloc_intern(new_size);
 
-				_assert(pp);
+				Assert(pp);
 				Memcpy(pp, p, size);
 				Free(p);
 				p = pp;
@@ -112,7 +112,7 @@ void *arealloc_intern(void *ptr, size_t size)
 		}
 	}
 
-	_assert(p);
+	Assert(p);
 	return p;
 }
 

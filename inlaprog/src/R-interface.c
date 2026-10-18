@@ -1,15 +1,5 @@
 #include "GMRFLib/GMRFLib.h"
 
-#include <math.h>
-#include <assert.h>
-#include <time.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
-#include <unistd.h>
-
 #if defined(INLA_WITH_LIBR) && !defined(INLA_WITH_LIBR_DLOPEN)
 #       include <R.h>
 #       include <Rembedded.h>
@@ -313,7 +303,7 @@ int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 		}
 
 		R_rgeneric_cputime += GMRFLib_timer();
@@ -609,7 +599,7 @@ int inla_R_funcall2_(int *n_out, double **x_out, const char *function, const cha
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	_assert(*n_out >= 0);
+	Assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {
@@ -661,7 +651,7 @@ int inla_R_funcall_jp_(int *n_out, double **x_out, const char *function, int *n,
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	_assert(*n_out >= 0);
+	Assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {
@@ -738,7 +728,7 @@ int inla_R_get_(int *n_out, double **x_out, const char *variable)
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	_assert(*n_out >= 0);
+	Assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {
@@ -787,7 +777,7 @@ int inla_R_rgeneric_(int *n_out, double **x_out, const char *cmd, const char *mo
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
-	_assert(*n_out >= 0);
+	Assert(*n_out >= 0);
 	if (*n_out > 0) {
 		*x_out = (double *) calloc((size_t) (*n_out), sizeof(double));	/* otherwise I'' use the R-version... */
 		for (i = 0; i < *n_out; i++) {

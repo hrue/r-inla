@@ -1,11 +1,3 @@
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
-
 #include "GMRFLib/GMRFLib.h"
 #include "inla.h"
 #include "spde2.h"
@@ -285,7 +277,7 @@ double inla_spde2_Qfunction_OLD(int thread_id, int ii, int jj, double *values, v
 				break;
 
 			default:
-				_assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -371,7 +363,7 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 
@@ -429,7 +421,7 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 
@@ -458,7 +450,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 	} else if (strcasecmp(transform, "identity") == 0) {
 		model->transform = SPDE2_TRANSFORM_IDENTITY;
 	} else {
-		_assert(0 == 1);
+		Assert(0 == 1);
 	}
 
 	model->B = Calloc(3, GMRFLib_matrix_tp *);
@@ -475,19 +467,19 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 		/*
 		 * all need the same dimensions n x (p+1) 
 		 */
-		_assert(model->B[0]->nrow == model->B[i]->nrow);
-		_assert(model->B[0]->ncol == model->B[i]->ncol);
+		Assert(model->B[0]->nrow == model->B[i]->nrow);
+		Assert(model->B[0]->ncol == model->B[i]->ncol);
 
 		/*
 		 * all are square with the same dimension n x n 
 		 */
-		_assert(model->M[i]->nrow == model->M[i]->ncol);
-		_assert(model->M[0]->nrow == model->M[i]->nrow);
+		Assert(model->M[i]->nrow == model->M[i]->ncol);
+		Assert(model->M[0]->nrow == model->M[i]->nrow);
 
 		/*
 		 * and the number of rows must be the same 
 		 */
-		_assert(model->B[i]->nrow == model->M[i]->nrow);
+		Assert(model->B[i]->nrow == model->M[i]->nrow);
 	}
 
 	model->n = model->M[0]->nrow;
@@ -533,7 +525,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 #undef ADD_GRAPH
 
 	GMRFLib_ged_build(&(model->graph), ged);
-	_assert(model->n == model->graph->n);
+	Assert(model->n == model->graph->n);
 	GMRFLib_ged_free(ged);
 
 	model->Qfunc = inla_spde2_Qfunction;
@@ -646,7 +638,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 		P(model->ntheta_used);
 	}
 
-	_assert(ncol - 1 == model->ntheta);
+	Assert(ncol - 1 == model->ntheta);
 
 	/*
 	 * build new theta vector and covariance matrix by inserting fixed values
@@ -827,7 +819,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 		}
 	} else {
 		// Not yet modified to deal with the case there ntheta_used < ntheta. hrue 26/7/2016.
-		_assert(model->ntheta == model->ntheta_used);
+		Assert(model->ntheta == model->ntheta_used);
 		for (i = 0; i < nrow; i++) {
 			double mean = 0.0, var = 0.0;
 

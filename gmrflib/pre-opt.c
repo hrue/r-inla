@@ -17,7 +17,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			double *prior_precision, GMRFLib_bfunc_tp **bfunc, GMRFLib_ai_param_tp *UNUSED(ai_par),
 			char *pA_fnm, GMRFLib_matrix_tp **global_constr)
 {
-	_assert(omp_get_thread_num() == 0);
+	Assert(omp_get_thread_num() == 0);
 
 #define SHOW_TIME(_msg)							\
 	if (debug) {							\
@@ -303,7 +303,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 				if (iv) {
 					if (iv->n && !LEGAL(iv->idx[iv->n - 1], nn)) {
 						LOG_ERROR("Illegal index in Alocal: idx.f = %1d idx = %1d n = %1d", jj, iv->idx[iv->n - 1], nn);
-						_assert(LEGAL(iv->idx[iv->n - 1], nn));
+						Assert(LEGAL(iv->idx[iv->n - 1], nn));
 					}
 
 					for (int ii = 0; ii < iv->n; ii++) {
@@ -388,7 +388,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 	SHOW_TIME("begin pA_...");
 	if (pA_fnm) {
 		pA = GMRFLib_read_fmesher_file(pA_fnm, (long int) 0, -1);
-		_assert(pA);
+		Assert(pA);
 
 		if (debug_detailed) {
 			printf("read pA from [%s]\n", pA_fnm);
@@ -400,7 +400,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 		nrow = pA->nrow;
 		ncol = pA->ncol;
-		_assert(ncol == npred);
+		Assert(ncol == npred);
 		SHOW_TIME("read pA");
 
 		// this is need to compute the linear predictor later
@@ -655,7 +655,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 	GMRFLib_ged_build(&g, ged);
 	GMRFLib_ged_free(ged);
-	_assert(g->n == gen_len_At);
+	Assert(g->n == gen_len_At);
 
 	SHOW_TIME("like graph-2");
 
@@ -681,7 +681,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 
 					if (i != j) {
 						index = 1 + GMRFLib_iwhich_sorted(j, arr, m);
-						_assert(index > 0);
+						Assert(index > 0);
 					}
 					double value = gen_At[i]->val[kk] * gen_A[k]->val[jj];
 
@@ -933,7 +933,7 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 	} else {
 		int kk = GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], (unsigned int) a->like_graph->lnnbs[node]);
 
-		_assert(kk >= 0);
+		Assert(kk >= 0);
 		int k = 1 + kk;
 
 		elm = a->AtA_idxval[node][k];
@@ -1115,10 +1115,10 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp *pre
 
 	if (preopt->pA_idxval) {
 		A = preopt->pAAt_idxval;
-		_assert(preopt->mpred > 0);
+		Assert(preopt->mpred > 0);
 	} else {
 		A = preopt->At_idxval;
-		_assert(preopt->mpred == 0);
+		Assert(preopt->mpred == 0);
 	}
 
 	// bnew[i] = GMRFLib_dot_product(elm, blike);
@@ -1170,9 +1170,9 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 
 	if (preopt->pA_idxval) {
 		offset = preopt->mpred;
-		_assert(preopt->mpred > 0);
+		Assert(preopt->mpred > 0);
 	} else {
-		_assert(preopt->mpred == 0);
+		Assert(preopt->mpred == 0);
 	}
 
 	if (data_rich_case) {
@@ -1586,7 +1586,7 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp *preopt, do
 		}
 	}
 	cpu[0] += GMRFLib_timer();
-	_assert(!ISNAN(value));
+	Assert(!ISNAN(value));
 
 	GMRFLib_Qfunc_tp *Qfunc = preopt->preopt_Qfunc;
 	GMRFLib_graph_tp *graph = preopt->preopt_graph;

@@ -67,7 +67,7 @@ int GMRFLib_ged_insert_graph(GMRFLib_ged_tp *ged, GMRFLib_graph_tp *graph, int a
 int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp *ged, GMRFLib_graph_tp *graph, int at_i_node, int at_j_node)
 {
 	if (graph) {
-		_assert(at_i_node <= at_j_node);
+		Assert(at_i_node <= at_j_node);
 		// place this node first, so we get the memory set. otherwise, we cannot do the parallel loop.
 		// note that parallel loop only work in _ged_add(..,i,j) and i <= j
 		GMRFLib_ged_add(ged, graph->n - 1 + at_i_node, graph->n - 1 + at_j_node);
@@ -120,7 +120,7 @@ int GMRFLib_ged_build(GMRFLib_graph_tp **graph, GMRFLib_ged_tp *ged)
 			for (j = 0, p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL; j++) { \
 				nbs[i][j] = p->key;			\
 			}						\
-			_assert(j == nnbs[i]);				\
+			Assert(j == nnbs[i]);				\
 		} else {						\
 			nbs[i] = NULL;					\
 		}							\

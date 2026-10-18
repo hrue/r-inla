@@ -28,15 +28,15 @@ __BEGIN_DECLS
 // not yet convinced that this is the way to do this
 #       if defined(INLA_WITH_COLOR)
 #              if defined(NDEBUG)
-#                     define _assert(condition) ((void)0)
+#                     define Assert(condition) ((void)0)
 #              else
-#                     define _assert(condition) ((void)((condition) ? 0 : \
+#                     define Assert(condition) ((void)((condition) ? 0 : \
 						 (GMRFLib_color_start_error(), \
 						  assert(condition), \
 						  0)))
 #              endif
 #       else
-#              define _assert(...) assert(__VA_ARGS__)
+#              define Assert(...) assert(__VA_ARGS__)
 #       endif
 
 void GMRFLib_color_start_error(void);
