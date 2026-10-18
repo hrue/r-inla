@@ -1,26 +1,36 @@
 #!/usr/bin/env bash
 
+log_error () {
+    echo -e "\x1b[48;5;124m\x1b[1;97m" "$@" "\x1b[0m" "\n"
+}
+log_info () {
+    echo -e "\x1b[48;5;22m\x1b[1;97m" "$@" "\x1b[0m" "\n"
+}
+log_warning () {
+    echo -e "\x1b[48;5;19m\x1b[1;97m" "$@" "\x1b[0m" "\n"
+}
+
 DD=""
 for p in *; do
     if [ -d "$p" -a -f "$p/Makefile" ]; then
-	echo -e "\n\tProcess package [$p]\n"
+	log_info "Process package [$p]"
 	(
 	    cd $p
 	    make download "$@"
 	    find . -name cgeneric.h | while read f; do  mv -vf "$f" "$f"-disabled; done
 	    make build "$@"
 	) && {
-	    echo -e "\n\tPackage [$p] OK and will be included\n"
+	    log_info "Package [$p] OK and will be included"
 	    DD="$p $DD"
 	} || {
-	    echo -e "\n\tPackage [$p] FAIL and will NOT be included\n"
+	    log_error "Package [$p] FAIL and will NOT be included"
 	}
     fi
 done
 
-echo -e "\n\tList of included package:"
+log_info "List of included package:"
 for D in $DD; do
-    echo -e "\t\t[$D]"
+    echo -e "\t[$D]"
 done
 echo 
 
@@ -30,7 +40,7 @@ for D in $DD; do
     (
 	cd $D
 	L=lib$D.a
-	echo -e "\n\tCreate library [$D]\n"
+	log_info "Create library [$D]"
 	find . -name \*.o | while read f; do 
 	    ar crvs $L "$f"
 	done
