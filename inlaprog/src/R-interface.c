@@ -204,8 +204,8 @@ void Rf_error(const char *fmt, ...)
 }
 #endif							       /* INLA_WITH_LIBR_DLOPEN */
 
-static int R_init = 1;
-static int R_debug = 0;
+static int POSSIBLY_UNUSED(R_init) = 1;
+static int POSSIBLY_UNUSED(R_debug) = 0;
 static char *R_home = NULL;
 double R_rgeneric_cputime = 0.0;
 
@@ -806,15 +806,11 @@ void *inla_R_vector_of_strings(int n, char **s)
 	if (n == 0) {
 		return ((void *) NULL);
 	}
-
 	SEXP sexp = PROTECT(allocVector(STRSXP, n));
-
 	for (int i = 0; i < n; i++) {
 		SEXP str = PROTECT(mkChar(s[i]));
-
 		SET_STRING_ELT(sexp, i, str);
 	}
-
 	return ((void *) sexp);
 }
 
@@ -826,74 +822,93 @@ void inla_R_no_lib(void)
 	exit(1);
 }
 
-int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *a5, void *a6)
+int inla_R_do_(inla_R_cmd_tp POSSIBLY_UNUSED(cmd), void POSSIBLY_UNUSED(*a1), void POSSIBLY_UNUSED(*a2),
+	       void POSSIBLY_UNUSED(*a3), void POSSIBLY_UNUSED(*a4), void POSSIBLY_UNUSED(*a5), void POSSIBLY_UNUSED(*a6))
 {
 	inla_R_no_lib();
+	return 1;
 }
 
 int inla_R_exit_(void)
 {
-	inla_R_no_lib();
+	inla_R_no_lib(); 
+	return 1;
 }
 
 int inla_R_init_(void)
 {
-	inla_R_no_lib();
+	inla_R_no_lib(); 
+	return 1;
 }
 
-int inla_R_library_(const char *library)
+int inla_R_library_(const char POSSIBLY_UNUSED(*library))
 {
-	inla_R_no_lib();
+	inla_R_no_lib(); 
+	return 1;
 }
 
-int inla_R_source_(const char *filename)
+int inla_R_source_(const char POSSIBLY_UNUSED(*filename))
 {
-	inla_R_no_lib();
+	inla_R_no_lib(); 
+	return 1;
 }
 
-int inla_R_load_(const char *filename)
+int inla_R_load_(const char POSSIBLY_UNUSED(*filename))
 {
-	inla_R_no_lib();
+	inla_R_no_lib(); 
+	return 1;
 }
 
-int inla_R_inlaload_(const char *filename)
+int inla_R_inlaload_(const char POSSIBLY_UNUSED(*filename))
 {
-	inla_R_no_lib();
+	inla_R_no_lib(); 
+	return 1;
 }
 
-int inla_R_funcall2_(int *n_out, double **x_out, const char *function, const char *tag, int *n, double *x)
+int inla_R_funcall2_(int POSSIBLY_UNUSED(*n_out), double POSSIBLY_UNUSED(**x_out), const char POSSIBLY_UNUSED(*function),
+		     const char POSSIBLY_UNUSED(*tag), int POSSIBLY_UNUSED(*n), double POSSIBLY_UNUSED(*x))
 {
-	inla_R_no_lib();
+	inla_R_no_lib(); 
+	return 1;
 }
 
-int inla_R_funcall1_(int *n_out, double **x_out, const char *function, int *n, double *x)
+int inla_R_funcall1_(int POSSIBLY_UNUSED(*n_out), double POSSIBLY_UNUSED(**x_out), const char POSSIBLY_UNUSED(*function),
+		     int POSSIBLY_UNUSED(*n), double POSSIBLY_UNUSED(*x))
 {
-	inla_R_no_lib();
+	inla_R_no_lib(); 
+	return 1;
 }
 
-int inla_R_funcall_jp_(int *n_out, double **x_out, const char *function, int *n, double *x, void *sexp)
+int inla_R_funcall_jp_(int POSSIBLY_UNUSED(*n_out), double POSSIBLY_UNUSED(**x_out), const char POSSIBLY_UNUSED(*function),
+		       int POSSIBLY_UNUSED(*n), double POSSIBLY_UNUSED(*x), void POSSIBLY_UNUSED(*sexp))
 {
-	inla_R_no_lib();
+	inla_R_no_lib(); 
+	return 1;
 }
 
-int inla_R_assign_(const char *variable, int *n, double *x)
+int inla_R_assign_(const char POSSIBLY_UNUSED(*variable), int POSSIBLY_UNUSED(*n), double POSSIBLY_UNUSED(*x))
 {
-	inla_R_no_lib();
+	inla_R_no_lib(); 
+	return 1;
 }
 
-int inla_R_get_(int *n_out, double **x_out, const char *variable)
+int inla_R_get_(int POSSIBLY_UNUSED(*n_out), double POSSIBLY_UNUSED(**x_out), const char POSSIBLY_UNUSED(*variable))
 {
-	inla_R_no_lib();
+	inla_R_no_lib(); 
+	return 1;
 }
 
-int inla_R_rgeneric_(int *n_out, double **x_out, const char *cmd, const char *model, int *n, double *theta)
+int inla_R_rgeneric_(int POSSIBLY_UNUSED(*n_out), double POSSIBLY_UNUSED(**x_out), const char POSSIBLY_UNUSED(*cmd),
+		     const char POSSIBLY_UNUSED(*model), int POSSIBLY_UNUSED(*n), double POSSIBLY_UNUSED(*theta))
 {
-	inla_R_no_lib();
+	inla_R_no_lib(); 
+	return 1;
 }
 
-void *inla_R_vector_of_strings(int n, char **s)
+void *inla_R_vector_of_strings(int POSSIBLY_UNUSED(n), char POSSIBLY_UNUSED(**s))
 {
-	inla_R_no_lib();
+	inla_R_no_lib(); 
+	return (void *)NULL;
 }
 
 #endif
