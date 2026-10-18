@@ -486,7 +486,7 @@ int inla_lock_to_p_cores(void)
 	return 0;
 }
 
-int inla_lock_thread_to_p_core(int tid)
+int inla_lock_thread_to_p_core(int POSSIBLY_UNUSED(tid))
 {
 	return 0;
 }
