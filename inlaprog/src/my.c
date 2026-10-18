@@ -1,8 +1,5 @@
 #include "GMRFLib/GMRFLib.h"
 #include "inla.h"
-#include "fast-math/special-functions.h"
-#include "my.h"
-#include "my-fix.h"
 
 int my_file_exists(const char *filename)
 {
@@ -31,7 +28,7 @@ int my_setenv(char *str, int prefix)
 
 	p = strchr(str, '=');
 	if (!p) {
-		fprintf(stderr, "*** Error: Argument is void [%s]\n", str);
+		LOG_ERROR("Error: Argument is void [%s]", str);
 		exit(EXIT_FAILURE);
 	}
 	*p = '\0';

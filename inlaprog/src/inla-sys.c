@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include "GMRFLib/GMRFLib.h"
 
 #if defined(__linux__)
 #       if !defined(_GNU_SOURCE)

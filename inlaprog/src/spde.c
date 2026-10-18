@@ -1,6 +1,5 @@
 #include "GMRFLib/GMRFLib.h"
 #include "inla.h"
-#include "spde.h"
 
 extern G_tp G;						       /* import some global parametes from inla */
 

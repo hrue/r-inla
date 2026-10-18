@@ -1,6 +1,5 @@
 #include "GMRFLib/GMRFLib.h"
 #include "inla.h"
-#include "pc-priors.h"
 
 double inla_pc_h_default(double x, int inverse, int derivative)
 {

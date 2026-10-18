@@ -2,7 +2,7 @@
 
 int testit(int UNUSED(argc), char **UNUSED(argv))
 {
-	fprintf(stderr, "\n*** No testing-functions are included in this build.\n\n");
+	LOG_ERROR("No testing-functions are included in this build");
 	return 0;
 }
 

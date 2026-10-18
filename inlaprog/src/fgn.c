@@ -1,5 +1,5 @@
 #include "GMRFLib/GMRFLib.h"
-#include "fgn.h"
+#include "inla.h"
 
 int inla_make_fgn_graph(GMRFLib_graph_tp **graph, inla_fgn_arg_tp *def)
 {

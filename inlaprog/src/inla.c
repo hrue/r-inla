@@ -23,8 +23,6 @@
 #       include <direct.h>
 #endif
 
-#include "rmath.h"
-
 #include "inla.h"
 #include "my.h"
 #include "my-fix.h"

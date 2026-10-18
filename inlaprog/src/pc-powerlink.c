@@ -1,13 +1,5 @@
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "GMRFLib/GMRFLib.h"
 #include "inla.h"
-#include "pc-powerlink.h"
 
 // have to add the pc-prior for the log(power) later....
 

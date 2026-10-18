@@ -27,6 +27,14 @@ __BEGIN_DECLS
 #       include "cgeneric.h"
 #       include "prw2.h"
 #       include "cgeneric-mapper.h"
+#       include "rmath.h"
+#       include "bessel.h"
+#       include "my.h"
+#       include "eval.h"
+#       include "R-interface.h"
+#       include "spde.h"
+#       include "spde2.h"
+#       include "spde3.h"
 #       define ONE_mexp(_x) (-expm1(_x))		       /* 1-exp(_x) */
 #       define LOG_1mp(_x) log1p(-(_x))			       /* log(1-(_x)) */
 #       define LOG_p(_x) log1p((_x) - 1.0)
@@ -2497,6 +2505,10 @@ double inla_logitcdf_normal(double x);
 double inla_logcdf_normal_fast(double x);
 
 GMRFLib_ptr_tp *inla_stiles_get_graphs(void *mbv);
+
+#include "pc-powerlink.h"
+#include "pc-priors.h"
+
 
 /* 
 ***

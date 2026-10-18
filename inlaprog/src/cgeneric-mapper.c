@@ -1,7 +1,4 @@
-#include <stdint.h>
-#include <string.h>
-#include <stdio.h>
-
+#include "GMRFLib/GMRFLib.h"
 #include "cgeneric-mapper.h"
 
 static inla_cgeneric_mapper_elm_tp table_cgeneric[] = {

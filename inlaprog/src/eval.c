@@ -1,11 +1,9 @@
+#include "GMRFLib/GMRFLib.h"
+#include "inla.h"
+
 #if defined(INLA_WITH_MUPARSER)
 #       include <muParserDLL.h>
 #endif
-
-#include "GMRFLib/GMRFLib.h"
-#include "inla.h"
-#include "R-interface.h"
-#include "eval.h"
 
 static const unsigned char debug = 0;
 
@@ -19,7 +17,7 @@ double inla_eval(char *expression, double *x, double *theta, int ntheta)
 #if defined(INLA_WITH_MUPARSER)
 		return (inla_eval_expression(expression + strlen("EXPRESSION:"), x, theta, ntheta));
 #else
-		fprintf(stderr, "\n\n *** ERROR *** EXPRESSION-priors are not supported in this build\n\n");
+		LOG_ERROR("EXPRESSION-priors are not supported in this build");
 		abort();
 #endif
 	} else if (strncasecmp(expression, "TABLE:", strlen("TABLE:")) == 0) {
@@ -148,12 +146,14 @@ double inla_eval_Not(double v)
 
 void inla_eval_OnError(muParserHandle_t hParser)
 {
-	fprintf(stderr, "\n\n\nEval: Error while parsing expression:\n");
-	fprintf(stderr, "----------\n");
-	fprintf(stderr, "Message   :  \"%s\"\n", mupGetErrorMsg(hParser));
-	fprintf(stderr, "Token     :    \"%s\"\n", mupGetErrorToken(hParser));
-	fprintf(stderr, "Position  : %1d\n", mupGetErrorPos(hParser));
-	fprintf(stderr, "Error Code:     %1d\n", mupGetErrorCode(hParser));
+	LOG_ERROR_WRAPPER(
+		fprintf(stderr, "\n\n\nEval: Error while parsing expression:\n");
+		fprintf(stderr, "----------\n");
+		fprintf(stderr, "Message   :  \"%s\"\n", mupGetErrorMsg(hParser));
+		fprintf(stderr, "Token     :    \"%s\"\n", mupGetErrorToken(hParser));
+		fprintf(stderr, "Position  : %1d\n", mupGetErrorPos(hParser));
+		fprintf(stderr, "Error Code:     %1d\n", mupGetErrorCode(hParser));
+		);
 	exit(1);
 }
 

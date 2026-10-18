@@ -1,5 +1,4 @@
 #include "GMRFLib/GMRFLib.h"
-#include "ar.h"
 #include "inla.h"
 
 #define PMATRIX(_M, _dim_i, _dim_j, _msg)				\
