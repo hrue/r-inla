@@ -459,17 +459,6 @@ inla_bm_tp *inla_prw2_build_Q(int thread_id, inla_prw2_arg_tp *arg)
 	P(sBM_VAL(Sinv, 0, 0) - sBM_VAL(S0inv, 0, 0));
 	inla_bm_fprintf(stdout, Sinv, "Sinv");
 	inla_bm_fprintf(stdout, S0inv, "S0inv");
-
-	// maybe use something else? its all about the difference in Sinv and S0inv ? 
-	if (0) {
-		double small = ABS(sBM_VAL(S, 1, 2));
-
-		if (small > 0.2) {
-			fprintf(stderr, "\n *** Warning *** [%s:%1d](%s) correlation between the boundaries is higher than small [%.3g]\n",
-				__FILE__, __LINE__, __GMRFLib_FuncName, small);
-			fflush(stderr);
-		}
-	}
 #endif
 
 	double correction[MVAL * MVAL] = { 0 };

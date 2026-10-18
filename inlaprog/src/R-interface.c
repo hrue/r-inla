@@ -316,8 +316,7 @@ int inla_R_exit_(void)
 {
 	if (!R_init) {
 		if (R_debug) {
-			fprintf(stderr, "R-interface: exit\n");
-			fflush(stderr);
+			LOG_INFO("exit");
 		}
 
 		Rf_endEmbeddedR(0);
@@ -354,16 +353,16 @@ int inla_R_init_(void)
 				} else {
 					LOG_ERROR_WRAPPER(
 						fprintf(stderr, "\n\n");
-						fprintf(stderr, "*** R-interface  ERROR: Environment variable R_HOME is not set or invalid.\n");
-						fprintf(stderr, "*** R_interface  ERROR: Evaluate this in R:  Sys.getenv(\"R_HOME\")\n");
+						fprintf(stderr, "*** ERROR: Environment variable R_HOME is not set or invalid.\n");
+						fprintf(stderr, "*** ERROR: Evaluate this in R:  Sys.getenv(\"R_HOME\")\n");
 						fprintf(stderr, "\n\n");
 						);
 					exit(1);
 				}
 				LOG_ERROR_WRAPPER(
 					fprintf(stderr, "\n\n");
-					fprintf(stderr, "*** R-interface WARNING: Environment variable R_HOME is not set or invalid.\n");
-					fprintf(stderr, "*** R-interface WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome);
+					fprintf(stderr, "*** WARNING: Environment variable R_HOME is not set or invalid.\n");
+					fprintf(stderr, "*** WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome);
 					);
 				my_setenv(rhome, 0);
 			} else {
@@ -386,8 +385,7 @@ int inla_R_init_(void)
 			Rf_initEmbeddedR((R_debug ? 3 : 4), Rargv);
 
 			if (R_debug) {
-				fprintf(stderr, "R-interface: init\n");
-				fflush(stderr);
+				LOG_INFO("init");
 			}
 
 			// Disable C stack limit check
@@ -402,8 +400,8 @@ int inla_R_init_(void)
 			FILE *fp = fopen(filename, "w");
 
 			if (R_debug) {
-				fprintf(fp, "base::searchpaths()\n");
-				fprintf(fp, "utils::sessionInfo()\n");
+				LOG_INFO("base::searchpaths()");
+				LOG_INFO("utils::sessionInfo()");
 			}
 			fprintf(fp, "%s <- function(cmd, model, theta = NULL) INLA::%s(cmd, model, theta)\n", R_GENERIC_WRAPPER, R_GENERIC_WRAPPER);
 			fclose(fp);
@@ -423,8 +421,7 @@ int inla_R_library_(const char *library)
 	}
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: enter: load library [%s]\n", omp_get_thread_num(), library);
-		fflush(stderr);
+		LOG_INFO("enter: load library [%s]", library);
 	}
 
 	SEXP e, result, yy;
@@ -440,8 +437,7 @@ int inla_R_library_(const char *library)
 	UNPROTECT(3);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: leave: load library [%s]\n", omp_get_thread_num(), library);
-		fflush(stderr);
+		LOG_INFO("leave: load library [%s]", library);
 	}
 
 	return (INLA_OK);
@@ -453,8 +449,7 @@ int inla_R_source_(const char *filename)
 		return (INLA_OK);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface: enter: source file [%s]\n", filename);
-		fflush(stderr);
+		LOG_INFO("enter: source file [%s]", filename);
 	}
 
 	SEXP e, result, yy, ffalse, ttrue;
@@ -472,8 +467,7 @@ int inla_R_source_(const char *filename)
 	UNPROTECT(5);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface: leave: source file [%s]\n", filename);
-		fflush(stderr);
+		LOG_INFO("leave: source file [%s]", filename);
 	}
 
 	return (INLA_OK);
@@ -485,8 +479,7 @@ int inla_R_source_quiet_(const char *filename)
 		return (INLA_OK);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface: enter: source file [%s]\n", filename);
-		fflush(stderr);
+		LOG_INFO("enter: source file [%s]", filename);
 	}
 
 	SEXP e, result, yy, logical;
@@ -503,8 +496,7 @@ int inla_R_source_quiet_(const char *filename)
 	UNPROTECT(4);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface: leave: source file [%s]\n", filename);
-		fflush(stderr);
+		LOG_INFO("leave: source file [%s]", filename);
 	}
 
 	return (INLA_OK);
@@ -516,8 +508,7 @@ int inla_R_load_(const char *filename)
 		return (INLA_OK);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface: enter: load file [%s]\n", filename);
-		fflush(stderr);
+		LOG_INFO("enter: load file [%s]", filename);
 	}
 
 	SEXP e, result, yy;
@@ -533,8 +524,7 @@ int inla_R_load_(const char *filename)
 	UNPROTECT(3);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface: leave: load file [%s]\n", filename);
-		fflush(stderr);
+		LOG_INFO("leave: load file [%s]", filename);
 	}
 
 	return (INLA_OK);
@@ -546,8 +536,7 @@ int inla_R_inlaload_(const char *filename)
 		return (INLA_OK);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface: enter: load file [%s]\n", filename);
-		fflush(stderr);
+		LOG_INFO("enter: load file [%s]", filename);
 	}
 
 	SEXP e, result, yy;
@@ -563,8 +552,7 @@ int inla_R_inlaload_(const char *filename)
 	UNPROTECT(3);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface: leave: load file [%s]\n", filename);
-		fflush(stderr);
+		LOG_INFO("leave: load file [%s]", filename);
 	}
 
 	return (INLA_OK);
@@ -577,8 +565,7 @@ int inla_R_funcall2_(int *n_out, double **x_out, const char *function, const cha
 	 */
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: enter: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, *n);
-		fflush(stderr);
+		LOG_INFO("enter: funcall2: function [%s] tag [%s] n [%1d]", function, tag, *n);
 	}
 
 	int error, i;
@@ -614,8 +601,7 @@ int inla_R_funcall2_(int *n_out, double **x_out, const char *function, const cha
 	UNPROTECT((tag ? 4 : 3));
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: leave: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, *n);
-		fflush(stderr);
+		LOG_INFO("leave: funcall2: function [%s] tag [%s] n [%1d]", function, tag, *n);
 	}
 
 	return (INLA_OK);
@@ -634,7 +620,7 @@ int inla_R_funcall_jp_(int *n_out, double **x_out, const char *function, int *n,
 	 */
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: enter: funcall_jp: function[%s] n[%1d]\n", omp_get_thread_num(), function, *n);
+		fprintf(stderr, "enter: funcall_jp: function[%s] n[%1d]\n", function, *n);
 		fflush(stderr);
 	}
 
@@ -666,7 +652,7 @@ int inla_R_funcall_jp_(int *n_out, double **x_out, const char *function, int *n,
 	UNPROTECT(3);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: leave: funcall2: function [%s] n[%1d]\n", omp_get_thread_num(), function, *n);
+		fprintf(stderr, "leave: funcall2: function [%s] n[%1d]\n", function, *n);
 		fflush(stderr);
 	}
 
@@ -680,7 +666,7 @@ int inla_R_assign_(const char *variable, int *n, double *x)
 	 */
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: enter: assign: [%s] n [%1d]\n", omp_get_thread_num(), variable, *n);
+		fprintf(stderr, "enter: assign: [%s] n [%1d]\n", variable, *n);
 		fflush(stderr);
 	}
 
@@ -701,7 +687,7 @@ int inla_R_assign_(const char *variable, int *n, double *x)
 	UNPROTECT(4);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: leave: assign: [%s] n [%1d]\n", omp_get_thread_num(), variable, *n);
+		fprintf(stderr, "leave: assign: [%s] n [%1d]\n", variable, *n);
 		fflush(stderr);
 	}
 
@@ -715,7 +701,7 @@ int inla_R_get_(int *n_out, double **x_out, const char *variable)
 	 */
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: enter: get: [%s]\n", omp_get_thread_num(), variable);
+		fprintf(stderr, "enter: get: [%s]\n", variable);
 		fflush(stderr);
 	}
 
@@ -743,7 +729,7 @@ int inla_R_get_(int *n_out, double **x_out, const char *variable)
 	UNPROTECT(3);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: leave: get: [%s]\n", omp_get_thread_num(), variable);
+		fprintf(stderr, "leave: get: [%s]\n", variable);
 		fflush(stderr);
 	}
 
@@ -757,7 +743,7 @@ int inla_R_rgeneric_(int *n_out, double **x_out, const char *cmd, const char *mo
 	 */
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: enter: rgeneric: cmd [%s] model [%s]\n", omp_get_thread_num(), cmd, model);
+		fprintf(stderr, "enter: rgeneric: cmd [%s] model [%s]\n", cmd, model);
 		fflush(stderr);
 	}
 
@@ -792,7 +778,7 @@ int inla_R_rgeneric_(int *n_out, double **x_out, const char *cmd, const char *mo
 	UNPROTECT(5);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: leave: rgeneric: cmd [%s] model [%s]\n", omp_get_thread_num(), cmd, model);
+		fprintf(stderr, "leave: rgeneric: cmd [%s] model [%s]\n", cmd, model);
 		fflush(stderr);
 	}
 
@@ -818,7 +804,7 @@ void *inla_R_vector_of_strings(int n, char **s)
 
 void inla_R_no_lib(void)
 {
-	fprintf(stderr, "\n\n *** ERROR *** libR is not supported in this build\n\n");
+	LOG_ERROR("libR is not supported in this build");
 	exit(1);
 }
 
