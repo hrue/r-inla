@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include "GMRFLib/GMRFLib.h"
 
 #if defined(__linux__)
 #       if !defined(_GNU_SOURCE)
@@ -85,7 +82,7 @@ unsigned long long getTotalSystemMemory()
 
 #if defined(_WIN32)
 
-BOOL WINAPI inla__signal_func(DWORD ctrl_type)
+BOOL WINAPI inla_signal_func(DWORD ctrl_type)
 {
 	if (ctrl_type == CTRL_C_EVENT || ctrl_type == CTRL_CLOSE_EVENT || ctrl_type == CTRL_BREAK_EVENT) {
 		GMRFLib_color_reset();
@@ -512,7 +509,7 @@ int inla_lock_to_p_cores(void)
 	return 0;
 }
 
-int inla_lock_thread_to_p_core(int tid)
+int inla_lock_thread_to_p_core(int POSSIBLY_UNUSED(tid))
 {
 	return 0;
 }

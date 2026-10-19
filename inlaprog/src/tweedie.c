@@ -1,17 +1,5 @@
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
-#include <time.h>
-
-#include "rmath.h"
-#undef ISNAN
-
 #include "GMRFLib/GMRFLib.h"
-#include "fast-math/special-functions.h"
-#include "tweedie.h"
+#include "inla.h"
 
 // the 'dtweedie'-code is inspired from tweedie.c in cplm_0.7-9.tar.gz package of Wayne Zhang <actuary_zhang@hotmail.com>, but got largly
 // rewritten to incorporate caching and interpolation and other optimization features. This to optimize it to how its used within the INLA

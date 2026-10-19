@@ -59,7 +59,7 @@ double GMRFLib_noncentral_moment(int i, int j, double mi, double mj, double Sii,
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 		}
 
 		return val;
@@ -74,7 +74,7 @@ double GMRFLib_noncentral_moment(int i, int j, double mi, double mj, double Sii,
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 			break;
 		}
 		return val;
@@ -93,7 +93,7 @@ double GMRFLib_noncentral_moment(int i, int j, double mi, double mj, double Sii,
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 			break;
 		}
 		return val;
@@ -121,7 +121,7 @@ double GMRFLib_noncentral_moment(int i, int j, double mi, double mj, double Sii,
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 			break;
 		}
 		return val;
@@ -164,7 +164,7 @@ double GMRFLib_noncentral_moment(int i, int j, double mi, double mj, double Sii,
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 			break;
 		}
 		return val;
@@ -229,7 +229,7 @@ double GMRFLib_noncentral_moment(int i, int j, double mi, double mj, double Sii,
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 			break;
 		}
 		return val;
@@ -237,7 +237,7 @@ double GMRFLib_noncentral_moment(int i, int j, double mi, double mj, double Sii,
 		break;
 
 	default:
-		_assert(0 == 1);
+		Assert(0 == 1);
 		break;
 	}
 
@@ -295,7 +295,7 @@ double GMRFLib_central_moment(int i, int j, double Sii, double Sij, double Sjj)
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 		}
 
 		return val;
@@ -310,7 +310,7 @@ double GMRFLib_central_moment(int i, int j, double Sii, double Sij, double Sjj)
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 			break;
 		}
 		return val;
@@ -329,7 +329,7 @@ double GMRFLib_central_moment(int i, int j, double Sii, double Sij, double Sjj)
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 			break;
 		}
 		return val;
@@ -352,7 +352,7 @@ double GMRFLib_central_moment(int i, int j, double Sii, double Sij, double Sjj)
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 			break;
 		}
 		return val;
@@ -379,7 +379,7 @@ double GMRFLib_central_moment(int i, int j, double Sii, double Sij, double Sjj)
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 			break;
 		}
 		return val;
@@ -410,7 +410,7 @@ double GMRFLib_central_moment(int i, int j, double Sii, double Sij, double Sjj)
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 			break;
 		}
 		return val;
@@ -418,7 +418,7 @@ double GMRFLib_central_moment(int i, int j, double Sii, double Sij, double Sjj)
 		break;
 
 	default:
-		_assert(0 == 1);
+		Assert(0 == 1);
 		break;
 	}
 

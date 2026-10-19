@@ -324,9 +324,9 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 	double **par = NULL, intercept, intercept_intern, intercept_alpha;
 
 	par = (double **) param;
-	_assert(par);
-	_assert(par[0]);
-	_assert(par[1]);
+	Assert(par);
+	Assert(par[0]);
+	Assert(par[1]);
 	skew_intern = *(par[0]);
 	intercept_intern = *(par[1]);
 
@@ -1170,7 +1170,7 @@ double map_group_rho(double x, map_arg_tp typ, void *param)
 	/*
 	 * extern = 
 	 */
-	_assert(param != NULL);
+	Assert(param != NULL);
 	int ngroups = *((int *) param);
 	double xx;
 
@@ -1572,7 +1572,7 @@ double link_sslogit(int thread_id, double x, map_arg_tp typ, void *param, double
 		return a / (1.0 + exp(-x)) + b;
 
 	case MAP_BACKWARD:
-		_assert((x - b) / (x - b - a) > 0.0);
+		Assert((x - b) / (x - b - a) > 0.0);
 		return log((x - b) / (x - b - a));
 
 	case MAP_DFORWARD:
@@ -1675,7 +1675,7 @@ double link_qpoisson(int thread_id, double x, map_arg_tp typ, void *param, doubl
 
 	default:
 	{
-		_assert(0 == 1);
+		Assert(0 == 1);
 	}
 		break;
 
@@ -1705,7 +1705,7 @@ double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, doubl
 		}
 			break;
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 		break;
@@ -1753,7 +1753,7 @@ double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, doubl
 
 	default:
 	{
-		_assert(0 == 1);
+		Assert(0 == 1);
 	}
 		break;
 
@@ -1808,7 +1808,7 @@ double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double 
 
 	default:
 	{
-		_assert(0 == 1);
+		Assert(0 == 1);
 	}
 		break;
 
@@ -1889,7 +1889,7 @@ double link_qexppower(int thread_id, double x, map_arg_tp typ, void *param, doub
 			break;
 
 		default:
-			_assert(0 == 1);
+			Assert(0 == 1);
 			break;
 		}
 		return ret;
@@ -1936,7 +1936,7 @@ double link_qexppower(int thread_id, double x, map_arg_tp typ, void *param, doub
 		break;
 
 	default:
-		_assert(0 == 1);
+		Assert(0 == 1);
 		break;
 	}
 
@@ -1985,7 +1985,7 @@ double link_qbinomial(int thread_id, double x, map_arg_tp typ, void *param, doub
 
 	default:
 	{
-		_assert(0 == 1);
+		Assert(0 == 1);
 	}
 		break;
 
@@ -2036,7 +2036,7 @@ double link_pqbinomial(int thread_id, double x, map_arg_tp typ, void *param, dou
 
 	default:
 	{
-		_assert(0 == 1);
+		Assert(0 == 1);
 	}
 		break;
 
@@ -2071,7 +2071,7 @@ double link_special1(int thread_id, double x, map_arg_tp typ, void *param, doubl
 	for (i = 0; i < p->order; i++) {
 		covariate_contribution += p->betas[i][thread_id][0] * cov[i];
 	}
-	_assert(!ISNAN(covariate_contribution));
+	Assert(!ISNAN(covariate_contribution));
 
 	switch (typ) {
 	case MAP_FORWARD:

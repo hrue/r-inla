@@ -6,12 +6,12 @@
 	int idx, i, len_par;
 	double weight, tmp;
 
-	_assert(k == K);
+	Assert(k == K);
 	// make sure its in the range. Hack...
 	H_intern = DMAX(H_intern, H_intern_start + H_intern_by);
 	H_intern = DMIN(H_intern, H_intern_end - H_intern_by);
 
-	_assert(H_intern >= H_intern_start && H_intern <= H_intern_end);
+	Assert(H_intern >= H_intern_start && H_intern <= H_intern_end);
 	idx = (int) floor((H_intern - H_intern_start) / H_intern_by);	/* idx is the block-index */
 	weight = (H_intern - (H_intern_start + idx * H_intern_by)) / H_intern_by;
 	len_par = 2 * K - 1;

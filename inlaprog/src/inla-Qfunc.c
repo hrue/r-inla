@@ -185,7 +185,7 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 		break;
 
 	default:
-		_assert(0 == 1);
+		Assert(0 == 1);
 	}
 
 	val = a->Qfunc(thread_id, irem, jrem, NULL, a->Qfunc_arg) * fac;
@@ -386,14 +386,14 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 				if (debug) {
 					printf("\tReturn from rgeneric with n_out= %1d\n", n_out);
 				}
-				_assert(n_out >= 2);
+				Assert(n_out >= 2);
 
-				_assert(a->graph);
+				Assert(a->graph);
 				if ((int) x_out[0] == -1) {
 					// optimized output
 					k = 1;
 					len = (int) x_out[k++];
-					_assert(len == a->len_list);
+					Assert(len == a->len_list);
 					n = a->graph->n;
 					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n,
 									  NULL);
@@ -411,7 +411,7 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 					}
 
 					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, len, ilist, jlist, Qijlist, n, NULL);
-					_assert(a->graph->n == a->n);
+					Assert(a->graph->n == a->n);
 				}
 				Free(x_out);
 
@@ -489,13 +489,13 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 				inla_cgeneric_debug(stdout, a->secname, INLA_CGENERIC_Q, x_out);
 			}
 
-			_assert(a->graph);
-			_assert((int) x_out[0] == -1);	       /* ONLY SUPPORT THIS, as its the same in any case... */
+			Assert(a->graph);
+			Assert((int) x_out[0] == -1);	       /* ONLY SUPPORT THIS, as its the same in any case... */
 
 			// optimized output
 			k = 1;
 			len = (int) x_out[k++];
-			_assert(len == a->len_list);
+			Assert(len == a->len_list);
 			n = a->graph->n;
 			GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n, NULL);
 
@@ -622,10 +622,10 @@ double mfunc_rgeneric(int thread_id, int i, void *arg)
 				printf("Return from rgeneric with n_out= %1d\n", n_out);
 			}
 
-			_assert(n_out > 0);
+			Assert(n_out > 0);
 			n = (int) x_out[0];
 			if (n > 0) {
-				_assert(n == a->n);
+				Assert(n == a->n);
 				if (!(a->mu[id])) {
 					a->mu[id] = Malloc(n, double);
 				}
@@ -656,7 +656,7 @@ double mfunc_cgeneric(int thread_id, int i, void *arg)
 		return 0.0;
 	}
 	// this is true even if theta_all_n=0
-	_assert(a->data->theta_all_names);
+	Assert(a->data->theta_all_names);
 
 	GMRFLib_CACHE_SET_IDX(id);
 	rebuild = (a->mu_param[id] == NULL || a->mu[id] == NULL);
@@ -689,7 +689,7 @@ double mfunc_cgeneric(int thread_id, int i, void *arg)
 
 		n = (int) x_out[0];
 		if (n > 0) {
-			_assert(n == a->n);
+			Assert(n == a->n);
 			if (!(a->mu[id])) {
 				a->mu[id] = Malloc(n, double);
 			}
@@ -717,7 +717,7 @@ double Qfunc_clinear(int UNUSED(thread_id), int i, int j, double *UNUSED(values)
 
 	inla_clinear_tp *a = (inla_clinear_tp *) arg;
 
-	_assert(i == j);
+	Assert(i == j);
 	return (a->precision);
 }
 
@@ -729,7 +729,7 @@ double Qfunc_sigm(int UNUSED(thread_id), int i, int j, double *UNUSED(values), v
 
 	inla_sigm_tp *a = (inla_sigm_tp *) arg;
 
-	_assert(i == j);
+	Assert(i == j);
 	return (a->precision);
 }
 
@@ -741,7 +741,7 @@ double Qfunc_log1exp(int UNUSED(thread_id), int i, int j, double *UNUSED(values)
 
 	inla_log1exp_tp *a = (inla_log1exp_tp *) arg;
 
-	_assert(i == j);
+	Assert(i == j);
 	return (a->precision);
 }
 
@@ -753,7 +753,7 @@ double Qfunc_logdist(int UNUSED(thread_id), int i, int j, double *UNUSED(values)
 
 	inla_log1exp_tp *a = (inla_log1exp_tp *) arg;
 
-	_assert(i == j);
+	Assert(i == j);
 	return (a->precision);
 }
 
@@ -774,7 +774,7 @@ double mfunc_sigm(int thread_id, int i, void *arg)
 	halflife = map_precision_forward(a->log_halflife[thread_id][0], MAP_FORWARD, NULL);
 	shape = map_precision_forward(a->log_shape[thread_id][0], MAP_FORWARD, NULL);
 	x = a->x[i];
-	_assert(x >= 0.0);
+	Assert(x >= 0.0);
 
 	xx = pow(x / halflife, shape);
 	return beta * xx / (1.0 + xx);
@@ -789,7 +789,7 @@ double mfunc_revsigm(int thread_id, int i, void *arg)
 	halflife = map_precision_forward(a->log_halflife[thread_id][0], MAP_FORWARD, NULL);
 	shape = map_precision_forward(a->log_shape[thread_id][0], MAP_FORWARD, NULL);
 	x = a->x[i];
-	_assert(x >= 0.0);
+	Assert(x >= 0.0);
 
 	xx = pow(x / halflife, shape);
 	return beta * 1.0 / (1.0 + xx);
@@ -804,7 +804,7 @@ double mfunc_log1exp(int thread_id, int i, void *arg)
 	alpha = a->alpha[thread_id][0];
 	gama = a->gamma[thread_id][0];
 	x = a->x[i];
-	_assert(x >= 0.0);
+	Assert(x >= 0.0);
 
 	return beta * log1p(exp(alpha - gama * x));
 }
@@ -818,7 +818,7 @@ double mfunc_logdist(int thread_id, int i, void *arg)
 	alpha1 = map_exp_forward(a->alpha1[thread_id][0], MAP_FORWARD, NULL);
 	alpha2 = map_exp_forward(a->alpha2[thread_id][0], MAP_FORWARD, NULL);
 	x = a->x[i];
-	_assert(x > 0.0);
+	Assert(x > 0.0);
 
 	return beta * (1.0 + exp(alpha1 * log(x) - alpha2 * x));
 }
@@ -835,7 +835,7 @@ double Qfunc_mec(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	double beta = map_beta(a->beta[thread_id][0], MAP_FORWARD, a->map_beta_arg);
 	double *scale = a->scale;
 
-	_assert(i == j);
+	Assert(i == j);
 	return (prec_x + prec_obs * scale[i]) / SQR(beta);
 }
 
@@ -864,7 +864,7 @@ double Qfunc_meb(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	double beta = map_beta(a->beta[thread_id][0], MAP_FORWARD, a->map_beta_arg);
 	double *scale = a->scale;
 
-	_assert(i == j);
+	Assert(i == j);
 	return prec * scale[i] / SQR(beta);
 }
 
@@ -918,7 +918,7 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 	 * using this prevent us for using '#pragma omp critical' below, so its much quicker 
 	 */
 	GMRFLib_CACHE_SET_IDX(id);
-	_assert(a->hold);
+	Assert(a->hold);
 	hold = a->hold[id];
 	if (hold == NULL) {
 		a->hold[id] = Calloc(1, inla_wishart_hold_tp);
@@ -940,7 +940,7 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 		vec[k] = map_rho_forward(a->rho_intern[i][thread_id][0], MAP_FORWARD, NULL);
 		k++;
 	}
-	_assert(k == n_theta);
+	Assert(k == n_theta);
 
 	if (memcmp((void *) vec, (void *) hold->vec, n_theta * sizeof(double))) {
 		inla_iid_wishart_adjust(dim, vec);
@@ -958,7 +958,7 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 				k++;
 			}
 		}
-		_assert(k == n_theta);
+		Assert(k == n_theta);
 
 		if (debug) {
 			for (i = 0; i < n_theta; i++)
@@ -991,7 +991,7 @@ int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix *Q, gsl_matrix *L)
 			gsl_matrix_set(L, i, j, theta[k++]);
 		}
 	}
-	_assert(k == n_theta);
+	Assert(k == n_theta);
 	gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, L, L, 0.0, Q);
 	if (debug) {
 		for (i = 0; i < n_theta; i++) {
@@ -1269,13 +1269,13 @@ double Qfunc_besag(int thread_id, int i, int j, double *UNUSED(values), void *ar
 			return prec * (i == j ? a->graph->nnbs[i] : -1.0);
 		} else if (a->prec_scale[i] < 0.0) {
 			// node with no neibours and marg variance = 1
-			_assert((i == j) && a->graph->nnbs[i] == 0);
+			Assert((i == j) && a->graph->nnbs[i] == 0);
 			return (prec);
 		} else if (a->prec_scale[i] == 0.0) {
 			// uniform
 			return 0.0;
 		} else {
-			_assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 	// ``classical model''
@@ -1414,7 +1414,7 @@ double Qfunc_intslope(int thread_id, int node, int nnode, double *UNUSED(values)
 		return a->precision * val;
 	}
 
-	_assert(0 == 1);
+	Assert(0 == 1);
 	return 0.0;
 }
 
@@ -1487,7 +1487,7 @@ double Qfunc_scopy_part00(int thread_id, int i, int j, double *UNUSED(values), v
 	if (build) {
 #pragma omp critical (Name_a1fd55509a70889a1417fb08664e246f4517ee2a)
 		{
-			_assert(a->nbeta == a->W->ncol);
+			Assert(a->nbeta == a->W->ncol);
 			for (int k = 0; k < a->nbeta; k++) {
 				a->cache00[cache_idx]->betas_tmp[k] = a->betas[k][thread_id][0];
 			}
@@ -1550,7 +1550,7 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 	if (build) {
 #pragma omp critical (Name_562559af23fb070f255b55089f79f0c69a8b73a2)
 		{
-			_assert(a->nbeta == a->W->ncol);
+			Assert(a->nbeta == a->W->ncol);
 			for (int k = 0; k < a->nbeta; k++) {
 				a->cache01[cache_idx]->betas_tmp[k] = a->betas[k][thread_id][0];
 			}
@@ -1573,7 +1573,7 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 		}
 	}
 
-	_assert(i == j);
+	Assert(i == j);
 
 	double beta_i;
 

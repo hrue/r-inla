@@ -258,7 +258,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL, GMRFLib_taucs_cac
 
 supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix *L)
 {
-#define DUPLICATE(name,len,type) if (1) {				\
+#define MY_DUPLICATE(name,len,type) if (1) {				\
 		if (L->name && ((len) > 0)) {				\
 			LL->name = (type *)Malloc((len), type);	\
 			Memcpy(LL->name,L->name,(size_t)(len)*sizeof(type)); \
@@ -283,33 +283,33 @@ supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matr
 	np = n + 1;
 	n_sn = LL->n_sn;
 
-	DUPLICATE(sn_size, np, int);
-	DUPLICATE(sn_up_size, np, int);
-	DUPLICATE(first_child, np, int);
-	DUPLICATE(next_child, np, int);
-	DUPLICATE(parent, np, int);
-	DUPLICATE(sn_blocks_ld, n_sn, int);
-	DUPLICATE(up_blocks_ld, n_sn, int);
+	MY_DUPLICATE(sn_size, np, int);
+	MY_DUPLICATE(sn_up_size, np, int);
+	MY_DUPLICATE(first_child, np, int);
+	MY_DUPLICATE(next_child, np, int);
+	MY_DUPLICATE(parent, np, int);
+	MY_DUPLICATE(sn_blocks_ld, n_sn, int);
+	MY_DUPLICATE(up_blocks_ld, n_sn, int);
 
 	LL->sn_struct = (int **) Calloc(n_sn, int *);
 
 	for (int i = 0; i < LL->n_sn; i++) {
-		DUPLICATE(sn_struct[i], LL->sn_up_size[i], int);
+		MY_DUPLICATE(sn_struct[i], LL->sn_up_size[i], int);
 	}
 
 	LL->sn_blocks = (double **) Calloc(n_sn, double *);
 
 	for (int i = 0; i < LL->n_sn; i++) {
-		DUPLICATE(sn_blocks[i], ISQR(LL->sn_size[i]), double);
+		MY_DUPLICATE(sn_blocks[i], ISQR(LL->sn_size[i]), double);
 	}
 
 	LL->up_blocks = (double **) Calloc(n_sn, double *);
 
 	for (int i = 0; i < LL->n_sn; i++) {
-		DUPLICATE(up_blocks[i], (LL->sn_up_size[i] - LL->sn_size[i]) * LL->sn_size[i], double);
+		MY_DUPLICATE(up_blocks[i], (LL->sn_up_size[i] - LL->sn_size[i]) * LL->sn_size[i], double);
 	}
 
-#undef DUPLICATE
+#undef MY_DUPLICATE
 	return LL;
 }
 
@@ -406,7 +406,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 
 	ret = METIS_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
 	if (ret != METIS_OK) {
-		_assert(0 == 1);
+		Assert(0 == 1);
 		return;
 	}
 
@@ -528,7 +528,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 				imap[i] = graph->n - 1 - i;
 			}
 		} else {
-			_assert(0 == 1);
+			Assert(0 == 1);
 		}
 		*remap = imap;
 		return GMRFLib_SUCCESS;
@@ -728,7 +728,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 				j++;
 			}
 		}
-		_assert(j == ng);
+		Assert(j == ng);
 
 		/*
 		 * sort with respect to number of neigbours and carry the node-number along 
@@ -739,7 +739,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFL
 		for (i = 0, j = ns; i < ng; i++, j++) {
 			iperm_new[node[i]] = j;
 		}
-		_assert(j == n);
+		Assert(j == n);
 
 		Free(node);
 		Free(nnbs);
@@ -842,7 +842,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	cache = graph->cache[idx];
 
 	int *iperm = remap;
-	_assert(iperm);
+	Assert(iperm);
 	int n = graph->n;
 	int nnz = n + graph->nnz / 2;
 
@@ -908,7 +908,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFL
 	}
 
 	iperm = remap;					       /* yes, this is correct */
-	_assert(iperm);
+	Assert(iperm);
 
 	if (cache->sha && cache->rowind && cache->colptr && cache->vperm && (strcmp((const char *) cache->sha, (const char *) md) == 0)) {
 		// we can reuse
@@ -975,7 +975,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 	if (!L) {
 		return GMRFLib_SUCCESS;
 	}
-	_assert(*L);
+	Assert(*L);
 
 	/*
 	 * compute some info about the factorization 
@@ -989,7 +989,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 	flags = (*L)->flags;
 	if (!*symb_fact) {
 		*symb_fact = (supernodal_factor_matrix *) taucs_ccs_factor_llt_symbolic(*L);
-		_assert(*symb_fact);
+		Assert(*symb_fact);
 	}
 
 	retval = taucs_ccs_factor_llt_numeric(*L, *symb_fact);
@@ -1002,7 +1002,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_facto
 	taucs_ccs_free(*L);
 
 	*L = my_taucs_dsupernodal_factor_to_ccs(*symb_fact, cache);
-	_assert(*L);
+	Assert(*L);
 	(*L)->flags = flags & ~TAUCS_SYMMETRIC;		       /* fixes a bug in ver 2.0 av TAUCS */
 	taucs_supernodal_factor_free_numeric(*symb_fact);      /* remove the numerics, preserve the symbolic */
 
@@ -1047,7 +1047,7 @@ int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLi
 	int *rinv = (rr ? rr->remap_inv : NULL);
 
 	if (r) {
-		_assert(rinv);
+		Assert(rinv);
 		GMRFLib_convert_from_mapped(rhs, NULL, graph, rinv, r);
 	} else {
 		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
@@ -1100,7 +1100,7 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 	int *rinv = (rr ? rr->remap_inv : NULL);
 
 	if (r) {
-		_assert(rinv);
+		Assert(rinv);
 		GMRFLib_convert_from_mapped(rhs, NULL, graph, rinv, r);
 	} else {
 		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
@@ -1122,8 +1122,8 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFL
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, taucs_crs_matrix *LL, GMRFLib_graph_tp *graph, int *remap, double *work)
 {
-	_assert(graph->n == L->n);
-	_assert(work);
+	Assert(graph->n == L->n);
+	Assert(work);
 
 	// as '_from_mapped' is faster than '_to_mapped' then we check if 'remap' is in the cache, and if so, we use the inverse
 	// mapping to allow us to use '_from_mapped'. Note that _remap_get will register 'remap' in the cache if its not there, and
@@ -1134,7 +1134,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, tauc
 	int *rinv = (rr ? rr->remap_inv : NULL);
 
 	if (r) {
-		_assert(rinv);
+		Assert(rinv);
 		GMRFLib_convert_from_mapped(work, rhs, graph, rinv, r);
 	} else {
 		GMRFLib_convert_to_mapped(work, rhs, graph, remap);
@@ -1180,7 +1180,7 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 	int *rinv = (rr ? rr->remap_inv : NULL);
 
 	if (r)
-		_assert(rinv);
+		Assert(rinv);
 
 	if (r) {
 		// this is doing the full reordering, also the one in llt2 that 'skip_reordering' handle
@@ -1219,7 +1219,7 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMR
 			double *wtest = Calloc(N, double);
 			GMRFLib_convert_from_mapped(wtest, rhs, &g, rinv, r);
 			for (int i = 0; i < N; i++) {
-				_assert(wtest[i] == work[i]);
+				Assert(wtest[i] == work[i]);
 			}
 			Free(wtest);
 #endif
@@ -1520,7 +1520,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 
 	L = (Lmatrix ? Lmatrix : problem->sub_sm_fact.TAUCS_L);	/* chose matrix to use */
 	n = L->n;
-	_assert(n >= 0);
+	Assert(n >= 0);
 
 	/*
 	 * construct a row-list of L_ij's including the diagonal 
@@ -1760,7 +1760,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *RESTRICT vL, double *RESTRICT x, doubl
 		return 0;
 	}
 
-	_assert(w);
+	Assert(w);
 	double *y = w;
 
 	double *d = L->values;
@@ -1926,7 +1926,7 @@ int GMRFLib_my_taucs_dccs_solve_llt3(void *vL, void *vLL, double *x, double *w)
 		return 0;
 	}
 
-	_assert(w);
+	Assert(w);
 	double *y = w;
 	double *d = LL->values;
 	int *rowptr = LL->rowptr;

@@ -1,12 +1,4 @@
-#include <assert.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "GMRFLib/GMRFLib.h"
-#include "ar.h"
 #include "inla.h"
 
 #define PMATRIX(_M, _dim_i, _dim_j, _msg)				\
@@ -37,7 +29,7 @@ int ar_pacf2phi(int p, double *pacf, double *phi)
 	int j, k;
 	double a, *work = NULL;
 
-	_assert(p > 0);
+	Assert(p > 0);
 	work = Calloc(p, double);
 
 	for (j = 0; j < p; j++) {
@@ -75,7 +67,7 @@ int ar_phi2pacf(int p, double *phi, double *pacf)
 	int j, k;
 	double a, *work = NULL;
 
-	_assert(p > 0);
+	Assert(p > 0);
 	work = Calloc(p, double);
 
 	for (j = 0; j < p; j++) {
@@ -112,7 +104,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 	const int debug = 0;
 	double *phi = NULL;
 
-	_assert(p > 0);
+	Assert(p > 0);
 	pdim = (size_t) p;
 	phi = Calloc(pdim, double);
 
@@ -249,7 +241,7 @@ double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	const int debug = 0;
 	int eq, dimQ, id = 0;
 
-	_assert(def->n >= 2 * def->p);
+	Assert(def->n >= 2 * def->p);
 
 	dimQ = 2 * def->p + 1;
 	GMRFLib_CACHE_SET_IDX(id);
@@ -282,8 +274,8 @@ double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 			ii = def->p;
 			jj = def->p + (nnode - node);
 		}
-		// _assert(LEGAL(ii, dimQ));
-		// _assert(LEGAL(jj, dimQ));
+		// Assert(LEGAL(ii, dimQ));
+		// Assert(LEGAL(jj, dimQ));
 
 		val = exp(def->log_prec[thread_id][0]) * (Qmarg_contrib + def->hold_Q[id][ii + jj * dimQ]);
 		return (val);

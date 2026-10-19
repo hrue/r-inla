@@ -1,11 +1,5 @@
-#include <assert.h>
-#include <math.h>
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "GMRFLib/GMRFLib.h"
-#include "fgn.h"
+#include "inla.h"
 
 int inla_make_fgn_graph(GMRFLib_graph_tp **graph, inla_fgn_arg_tp *def)
 {
@@ -27,7 +21,7 @@ int inla_make_fgn_graph(GMRFLib_graph_tp **graph, inla_fgn_arg_tp *def)
 			GMRFLib_ged_insert_graph2(ged, g_I, (1 + i) * def->n, (1 + i + j) * def->n);
 		}
 	}
-	_assert(ged->n == def->N);
+	Assert(ged->n == def->N);
 	GMRFLib_ged_build(graph, ged);
 
 	GMRFLib_ged_free(ged);
@@ -52,7 +46,7 @@ int inla_make_fgn2_graph(GMRFLib_graph_tp **graph, inla_fgn2_arg_tp *def)
 	for (i = 0; i < def->k - 1; i++) {
 		GMRFLib_ged_insert_graph2(ged, g_ar1, i * def->n, (i + 1) * def->n);
 	}
-	_assert(ged->n == def->N);
+	Assert(ged->n == def->N);
 	GMRFLib_ged_build(graph, ged);
 	GMRFLib_graph_free(g_ar1);
 
@@ -160,7 +154,7 @@ double inla_fgn2_helper(int i, int j, int n, double phi)
 		}
 		return val / (1.0 - phi2);		       /* correction to get unit variance */
 	}
-	_assert(0 == 1);
+	Assert(0 == 1);
 	return 0.0;
 }
 

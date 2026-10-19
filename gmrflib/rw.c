@@ -194,7 +194,7 @@ double GMRFLib_crw(int thread_id, int node, int nnode, double *UNUSED(values), v
 	if (order == 0) {
 		return (node == nnode ? (crwdef->scale0 ? crwdef->scale0[node] : 1.0) * prec : 0.0);
 	}
-	_assert(order > 0);
+	Assert(order > 0);
 
 	if (crwdef->position) {
 		/*
@@ -257,7 +257,7 @@ double GMRFLib_crw(int thread_id, int node, int nnode, double *UNUSED(values), v
 
 		if (idiff == 0) {
 			if (use_pos) {
-				_assert(idelta);
+				Assert(idelta);
 				if (imin == 0) {
 					return prec * idelta[0];
 				}
@@ -391,7 +391,7 @@ double GMRFLib_crw(int thread_id, int node, int nnode, double *UNUSED(values), v
 		}
 
 		idiff = nnode_i - node_i;
-		_assert(idiff >= 0);
+		Assert(idiff >= 0);
 
 		if (idiff > 1) {
 			return 0.0;			       /* nothing here */
@@ -402,9 +402,9 @@ double GMRFLib_crw(int thread_id, int node, int nnode, double *UNUSED(values), v
 		 */
 
 		if (use_pos) {
-			_assert(idelta);
-			_assert(idelta2);
-			_assert(idelta3);
+			Assert(idelta);
+			Assert(idelta2);
+			Assert(idelta3);
 
 			if (idiff == 0) {
 				if (node_tp == TP_POS) {
@@ -729,7 +729,7 @@ int GMRFLib_make_crw_graph(GMRFLib_graph_tp **graph, GMRFLib_crwdef_tp *def)
 	GMRFLib_graph_tp *gg = NULL;
 
 	n = def->n;
-	_assert(n > 0);
+	Assert(n > 0);
 	if (def->order <= 1 || (def->order == 2 && def->layout == GMRFLib_CRW_LAYOUT_SIMPLE)) {
 		// FIXME("\n\n!!!!modify the graph to a complete graph!!!");GMRFLib_graph_mk_linear(graph, n, n, 0);
 		GMRFLib_graph_mk_linear(graph, n, def->order, 0);
@@ -818,11 +818,11 @@ int GMRFLib_crw_scale(int thread_id, void *def)
 	*prec_scale_guess = 1.0;
 
 	crwdef->n = odef->n;
-	_assert(odef->order > 0);
+	Assert(odef->order > 0);
 	crwdef->order = odef->order;
 	crwdef->log_prec_omp = NULL;
 	crwdef->position = odef->position;
-	_assert(odef->layout == GMRFLib_CRW_LAYOUT_SIMPLE);
+	Assert(odef->layout == GMRFLib_CRW_LAYOUT_SIMPLE);
 	crwdef->layout = odef->layout;
 	crwdef->work = NULL;
 	crwdef->scale0 = NULL;
@@ -831,7 +831,7 @@ int GMRFLib_crw_scale(int thread_id, void *def)
 	GMRFLib_graph_tp *graph = NULL;
 
 	GMRFLib_make_crw_graph(&graph, crwdef);
-	_assert(graph->n > 0);
+	Assert(graph->n > 0);
 
 	int i, free_position = 0;
 
@@ -894,7 +894,7 @@ int GMRFLib_crw_scale(int thread_id, void *def)
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 	// GMRFLib_printf_constr(stdout, constr, graph);
 
-	_assert(graph->n > 0);
+	Assert(graph->n > 0);
 	double *c = Calloc(graph->n, double);
 	double eps = GSL_SQRT_DBL_EPSILON;
 
@@ -966,7 +966,7 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 	*prec_scale_guess = 1.0;
 
 	rwdef->n = odef->n;
-	_assert(odef->order > 0);
+	Assert(odef->order > 0);
 	rwdef->order = odef->order;
 	rwdef->cyclic = odef->cyclic;
 	rwdef->log_prec_omp = NULL;
@@ -1005,7 +1005,7 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 			}
 			*prec_scale_guess = (double) ISQR(graph->n - 1);
 		} else {
-			_assert(0 == 1);
+			Assert(0 == 1);
 		}
 	} else {
 		/*
@@ -1022,7 +1022,7 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 			}
 			*prec_scale_guess = (double) (rwdef->order == 1 ? graph->n - 1 : ISQR(graph->n - 1));
 		} else {
-			_assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 
@@ -1035,7 +1035,7 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 		constr = NULL;
 	}
 
-	_assert(graph->n > 0);
+	Assert(graph->n > 0);
 	double *c = Calloc(graph->n, double);
 	double eps = GSL_SQRT_DBL_EPSILON;
 
@@ -1101,7 +1101,7 @@ int GMRFLib_rw2d_scale(int thread_id, void *def)
 	rw2ddef->nrow = odef->nrow;
 	rw2ddef->ncol = odef->ncol;
 	rw2ddef->order = odef->order;
-	_assert(rw2ddef->order == 2);
+	Assert(rw2ddef->order == 2);
 	rw2ddef->cyclic = odef->cyclic;
 	rw2ddef->bvalue = odef->bvalue;
 	rw2ddef->log_prec_omp = NULL;

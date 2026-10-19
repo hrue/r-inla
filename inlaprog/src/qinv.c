@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "GMRFLib/GMRFLib.h"
 
 #if 0

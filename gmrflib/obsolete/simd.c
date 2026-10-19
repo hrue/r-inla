@@ -13,7 +13,7 @@
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_abs(int n, double *x, double *y)
 {
-	_assert(0 == 1 && "this function is not verified");
+	Assert(0 == 1 && "this function is not verified");
 #if defined(INLA_WITH_MKL)
 	vdAbs(n, x, y);
 #elif defined(INLA_WITH_FRAMEWORK_ACCELERATE)

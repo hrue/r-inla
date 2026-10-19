@@ -501,7 +501,7 @@ static rule *make_rule75genzmalik(unsigned dim)
 		return 0;
 
 	r = (rule75genzmalik *) malloc(sizeof(rule75genzmalik));
-	_assert(r);
+	Assert(r);
 	r->parent.dim = dim;
 
 	r->weight1 = (real(12824 - 9120 * to_int(dim) + 400 * isqr(to_int(dim)))
@@ -513,7 +513,7 @@ static rule *make_rule75genzmalik(unsigned dim)
 	r->weightE3 = real(265 - 100 * to_int(dim)) / real(1458);
 
 	r->p = (double *) malloc(sizeof(double) * dim * 3);
-	_assert(r->p);
+	Assert(r->p);
 	r->widthLambda = r->p + dim;
 	r->widthLambda2 = r->p + 2 * dim;
 
@@ -572,7 +572,7 @@ static unsigned rule15gauss_evalError(rule *UNUSED(r), integrand f, void *fdata,
 		0.209482141084727828012999174891714
 	};
 
-	_assert(h->data);
+	Assert(h->data);
 	const double center = h->data[0];
 	const double halfwidth = h->data[1];
 	double fv1[7], fv2[7];
@@ -649,7 +649,7 @@ static rule *make_rule15gauss(unsigned dim)
 	if (dim != 1)
 		return 0;				       /* this rule is only for 1d integrals */
 	r = (rule *) malloc(sizeof(rule));
-	_assert(r);
+	Assert(r);
 	r->dim = dim;
 	r->num_points = 15;
 	r->evalError = rule15gauss_evalError;
@@ -702,8 +702,8 @@ static void heap_push(heap *h, heap_item hi)
 {
 	int insert;
 
-	_assert(h);
-	_assert(h->items);
+	Assert(h);
+	Assert(h->items);
 	h->ee.val += hi.ee.val;
 	h->ee.err += hi.ee.err;
 	insert = h->n;
@@ -1038,9 +1038,9 @@ int main(int argc, char **argv)
 	fdata = which_integrand == 6 ? (1.0 + sqrt(10.0)) / 9.0 : 0.1;
 
 	xmin = (double *) malloc(dim * sizeof(double));
-	_assert(xmin);
+	Assert(xmin);
 	xmax = (double *) malloc(dim * sizeof(double));
-	_assert(xmax);
+	Assert(xmax);
 	for (i = 0; i < dim; ++i) {
 		xmin[i] = 0;
 		xmax[i] = 1 + (which_integrand >= 2 ? 0 : 0.4 * sin(i));

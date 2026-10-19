@@ -1,16 +1,5 @@
-#include <assert.h>
-#include <math.h>
-#include <strings.h>
-#include <stdio.h>
-
-#include "rmath.h"
-#if defined(ISNAN)
-#       undef ISNAN
-#endif
-
 #include "GMRFLib/GMRFLib.h"
-#include "fast-math/special-functions.h"
-#include "tweedie2.h"
+#include "inla.h"
 
 // this code is very insprired from tweedie.c in cplm_0.7-9.tar.gz package of Wayne Zhang <actuary_zhang@hotmail.com>, but rewritten
 // to incorporate caching to optimize it to how its used within the INLA context

@@ -21,10 +21,13 @@
 #              define _DEFAULT_SOURCE
 #       endif
 #       include <assert.h>
+#       include <ctype.h>
 #       include <errno.h>
 #       include <fcntl.h>
 #       include <inttypes.h>
+#       include <ltdl.h>
 #       include <math.h>
+#       include <signal.h>
 #       include <stdalign.h>
 #       include <stdarg.h>
 #       include <stdbool.h>
@@ -32,9 +35,21 @@
 #       include <stdint.h>
 #       include <stdio.h>
 #       include <stdlib.h>
+#       include <sys/stat.h>
 #       if defined(__linux__)
 #              include <features.h>
 #       endif
+#       if !defined(_WIN32)
+#              include <sys/resource.h>
+#       endif
+#       if defined(_WIN32)
+#              include <windows.h>
+#       endif
+#       if defined(__APPLE__)
+#              include <sys/types.h>
+#              include <sys/sysctl.h>
+#       endif
+
 
 /* ... */
 #       if defined(INLA_WITH_SIMDE)
