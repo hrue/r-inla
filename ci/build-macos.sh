@@ -268,6 +268,18 @@ if [ "$(echo "$OMPRT" | grep -c .)" -gt 1 ]; then
     exit 1
 fi
 
+## The R linkage this lane asked for must actually be in the binary; see the
+## long note on the same check in ci/build.sh. Here WITH_LIBR is 1 or 2, both
+## of which define -DINLA_WITH_LIBR, so the stub string must be absent.
+if LC_ALL=C grep -aq "libR is not supported in this build" "$PREFIX/bin/inla"; then
+    echo "ERROR: WITH_LIBR=$WITH_LIBR, but the binary was built WITHOUT libR:"
+    echo "       -DINLA_WITH_LIBR never reached the compiler."
+    echo "       RLIB_INC was: $RLIB_INC"
+    echo "       Check that inlaprog/Makefile's src/%.o rule compiles with \$(CFLAGS)."
+    exit 1
+fi
+echo "== libR support in the binary: yes (WITH_LIBR=$WITH_LIBR) =="
+
 ## ---- 5. Sanity --------------------------------------------------------------
 ## ---- mimalloc: shipped beside the binary, never linked (see build.sh) -------
 if [ -n "${MIMALLOC_VERSION:-}" ]; then
