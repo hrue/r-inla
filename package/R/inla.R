@@ -2197,7 +2197,6 @@
     timeout.used <- Sys.time()
     
     env <- inla.run.environment.set()
-
     ## write the list of environment variables set, so they can be reset if needed
     eenv <- Sys.getenv()
     eenv.n <- names(eenv)
