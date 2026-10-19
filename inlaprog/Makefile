@@ -86,8 +86,13 @@ FMFLAGS := $(FMFLAGS) $(filter -I%,$(FFLAGS))
 src/fast-math/%.o: src/fast-math/%.c
 	$(CC) -c $(FMFLAGS) -o $@ $<
 
+## $(CFLAGS), not $(FLAGS): INCL carries RLIB_INC, and that is where
+## -DINLA_WITH_LIBR lives. With only FLAGS, R-interface.c compiles its
+## no-libR stub and every rgeneric model dies at run time with "libR is
+## not supported in this build". The built-in rule this replaced used
+## $(CFLAGS), so the defines came along.
 src/%.o: src/%.c
-	$(CC) -c $(FLAGS) -o $@ $<
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(INLA) : $(OBJ) $(OBJFM)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ) $(OBJFM) -L$(PREFIX)/lib $(EXTLIBS)
