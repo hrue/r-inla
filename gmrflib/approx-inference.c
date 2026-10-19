@@ -1718,10 +1718,20 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		 */
 		inverse_hessian = Calloc(ISQR(nhyper), double);
 
+		// This one failed, once: GMRFLib_comp_posdef_inverse(inverse_hessian, nhyper);
+		char *msg = NULL;
+		gsl_matrix *Atmp = gsl_matrix_alloc(nhyper, nhyper);
+		double tol = sqrt(FLT_EPSILON * DBL_EPSILON);
 		Memcpy(inverse_hessian, hessian, ISQR(nhyper) * sizeof(double));
-		// GMRFLib_comp_posdef_inverse(inverse_hessian, nhyper);
-		GMRFLib_safe_spd_inv(inverse_hessian, nhyper, FLT_EPSILON, NULL);
-
+		GMRFLib_gsl_plain2mat(Atmp, inverse_hessian);
+		GMRFLib_gsl_ensure_spd_inverse(Atmp, tol, &msg);
+		GMRFLib_gsl_mat2plain(NULL, inverse_hessian, Atmp);
+		if (ai_par->fp_log) {
+			fprintf(ai_par->fp_log, "Compute inverse Hessian: %s\n", msg);
+		}
+		gsl_matrix_free(Atmp);
+		Free(msg);
+		
 		if (misc_output) {
 			misc_output->nhyper = nhyper;
 			misc_output->cov_m = Calloc(ISQR(nhyper), double);
