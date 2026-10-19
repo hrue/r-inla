@@ -109,10 +109,12 @@ int inla_parse_lincomb(inla_tp *mb, dictionary *ini, int sec)
 			 * check that the index is legal
 			 */
 			if (!LEGAL(idx[i] - 1, n)) {
-				fprintf(stderr, "\n\n");
-				fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
-				fprintf(stderr, "*** ERROR ***\t[%s] has length %1d, but idx=%1d (R-style index) is given\n", ptr, n, idx[i]);
-				GMRFLib_ASSERT(0 == 1, GMRFLib_EPARAMETER);
+				LOG_ERROR_WRAPPER(
+					fprintf(stderr, "\n\n");
+					fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
+					fprintf(stderr, "*** ERROR ***\t[%s] has length %1d, but idx=%1d (R-style index) is given\n", ptr, n, idx[i]);
+					);
+				abort();
 			}
 		}
 
@@ -139,10 +141,12 @@ int inla_parse_lincomb(inla_tp *mb, dictionary *ini, int sec)
 	GMRFLib_io_close(io);
 
 	if (all_weights_are_zero) {
-		fprintf(stderr, "\n\n");
-		fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
-		fprintf(stderr, "*** ERROR ***\tAll weights are zero.\n");
-		GMRFLib_ASSERT(0 == 1, GMRFLib_EPARAMETER);
+		LOG_ERROR_WRAPPER(
+			fprintf(stderr, "\n\n");
+			fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
+			fprintf(stderr, "*** ERROR ***\tAll weights are zero.\n");
+			);
+		abort();
 	}
 
 	/*
@@ -535,8 +539,10 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 				printf("\t\tfail to create directory [%s]: %s\n", tmp, strerror(errno));
 			}
 			if (!accept_argument) {
-				fprintf(stderr, "\n\t\tFail to create directory [%s]: %s\n", tmp, strerror(errno));
-				fprintf(stderr, "\t\tmb->dir=[%s] does not accept integer arguments. Cannot proceed.\n\n", mb->dir);
+				LOG_ERROR_WRAPPER(
+					fprintf(stderr, "\n\t\tFail to create directory [%s]: %s\n", tmp, strerror(errno));
+					fprintf(stderr, "\t\tmb->dir=[%s] does not accept integer arguments. Cannot proceed.\n\n", mb->dir);
+					);
 				exit(EXIT_FAILURE);
 			}
 		} else {
@@ -655,7 +661,7 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 	// mb->output->dic
 	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->predictor_compute) {
-			fprintf(stderr, "*** Warning: HYPER_MODE require predictor_compute = 0\n");
+			LOG_WARNING("HYPER_MODE require predictor_compute = 0");
 		}
 		mb->predictor_compute = 0;
 	}
@@ -691,16 +697,6 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 				       mb->predictor_n + mb->predictor_m, 0, 1, mb->verbose, 0.0);
 	} else {
 		mb->link_fitted_values = NULL;
-	}
-
-	if (0) {
-		if (mb->link_fitted_values) {
-			for (int i = 0; i < mb->predictor_n + mb->predictor_m; i++)
-				if (gsl_isnan(mb->link_fitted_values[i]))
-					fprintf(stderr, "link[%d] = NAN\n", i);
-				else
-					fprintf(stderr, "link[%d] = %g (%g)\n", i, mb->link_fitted_values[i], GSL_NAN);
-		}
 	}
 
 	mb->predictor_cross_sumzero = NULL;
@@ -12111,7 +12107,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	mb->f_compute[mb->nf] = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE"), 1);
 	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->f_compute[mb->nf]) {
-			fprintf(stderr, "*** Warning: HYPER_MODE require f_compute[%1d] = 0\n", mb->nf);
+			LOG_WARNING("HYPER_MODE require f_compute[%1d] = 0", mb->nf);
 		}
 		mb->f_compute[mb->nf] = 0;
 	}
@@ -18008,9 +18004,6 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		mb->f_rankdef[mb->nf] = 1.0;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_id[mb->nf] = F_BESAG;
-
-		// arg->log_prec[0][0] = 0;
-		// GMRFLib_printf_Qfunc(stderr, mb->f_graph[mb->nf], mb->f_Qfunc[mb->nf], mb->f_Qfunc_arg[mb->nf]);
 	}
 		break;
 
@@ -18177,11 +18170,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
 			}
 		} else {
-			fprintf(stderr,
-				"\n\n*** Warning ***\tModel[%s] in Section[%s] use scale.model=FALSE which is NOT recommended!!!\n\n",
-				model, secname);
+			LOG_WARNING("Model[%s] in Section[%s] use scale.model=FALSE which is NOT recommended!!!", model, secname);
 			arg->besag_arg->prec_scale = Calloc(arg->besag_arg->graph->n, double);
-
 			for (k = 0; k < arg->besag_arg->graph->n; k++) {
 				arg->besag_arg->prec_scale[k] = 1.0;
 			}
@@ -19495,10 +19485,12 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 					}
 				}
 				if (!ok) {
-					fprintf(stderr, "\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but values != NULL.\n",
-						model, secname);
-					fprintf(stderr, "*** Warning ***\tCylic = TRUE is not implemented for non-equal spaced values.\n");
-					fprintf(stderr, "*** Warning ***\tAssume values are equal spaced.\n\n");
+					LOG_WARNING_WRAPPER(
+						fprintf(stderr, "\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but values != NULL.\n",
+							model, secname);
+						fprintf(stderr, "*** Warning ***\tCylic = TRUE is not implemented for non-equal spaced values.\n");
+						fprintf(stderr, "*** Warning ***\tAssume values are equal spaced.\n\n");
+						);
 				}
 			}
 
@@ -20345,7 +20337,7 @@ int inla_parse_linear(inla_tp *mb, dictionary *ini, int sec)
 	mb->linear_compute[mb->nlinear] = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE"), 1);
 	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->linear_compute[mb->nlinear]) {
-			fprintf(stderr, "*** Warning: HYPER_MODE require linear_compute[%1d] = 0\n", mb->nlinear);
+			LOG_WARNING("HYPER_MODE require linear_compute[%1d] = 0", mb->nlinear);
 		}
 		mb->linear_compute[mb->nlinear] = 0;
 	}
@@ -20583,7 +20575,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 	}
 	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_GRID) {
-			fprintf(stderr, "*** Warning: HYPER_MODE require int_strategy = GMRFLib_AI_INT_STRATEGY_GRID\n");
+			LOG_WARNING("HYPER_MODE require int_strategy = GMRFLib_AI_INT_STRATEGY_GRID");
 		}
 		mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
 	}
@@ -20606,10 +20598,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 	mb->ai_par->f0 = iniparser_getdouble(ini, inla_string_join(secname, "F0"), mb->ai_par->f0);
 	tmp = iniparser_getdouble(ini, inla_string_join(secname, "DZ"), mb->ai_par->dz);
 	if (G.mode == INLA_MODE_HYPER && tmp > mb->ai_par->dz) {
-		/*
-		 * cannot set it to a larger value 
-		 */
-		fprintf(stderr, "*** Warning: HYPER_MODE require dz <= %f\n", mb->ai_par->dz);
+		LOG_WARNING("HYPER_MODE require dz <= %f", mb->ai_par->dz);
 	} else {
 		mb->ai_par->dz = tmp;
 	}
@@ -20619,14 +20608,14 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 	mb->ai_par->diff_log_dens = iniparser_getdouble(ini, inla_string_join(secname, "DIFF.LOG.DENS"), mb->ai_par->diff_log_dens);
 	mb->ai_par->diff_log_dens = iniparser_getdouble(ini, inla_string_join(secname, "DIFF.LOGDENS"), mb->ai_par->diff_log_dens);
 	if (G.mode == INLA_MODE_HYPER && mb->ai_par->diff_log_dens < tmp_ref) {
-		fprintf(stderr, "*** Warning: HYPER_MODE require diff_log_dens >= %f\n", tmp_ref);
+		LOG_WARNING("HYPER_MODE require diff_log_dens >= %f", tmp_ref);
 		mb->ai_par->diff_log_dens = tmp_ref;
 	}
 	mb->ai_par->skip_configurations =
 	    iniparser_getboolean(ini, inla_string_join(secname, "SKIP.CONFIGURATIONS"), mb->ai_par->skip_configurations);
 
 	if (G.mode == INLA_MODE_HYPER && mb->ai_par->skip_configurations) {
-		fprintf(stderr, "*** Warning: HYPER_MODE require skip_configurations = 0\n");
+		LOG_WARNING("HYPER_MODE require skip_configurations = 0");
 		mb->ai_par->skip_configurations = 0;
 	}
 
@@ -20739,15 +20728,17 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 
 	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->ai_par->compute_nparam_eff) {
-			fprintf(stderr, "*** Warning: HYPER_MODE require compute_nparam_eff = GMRFLib_FALSE\n");
+			LOG_WARNING("HYPER_MODE require compute_nparam_eff = GMRFLib_FALSE");
 		}
 		mb->ai_par->compute_nparam_eff = GMRFLib_FALSE;
 	}
 
 	tmp = iniparser_getboolean(ini, inla_string_join(secname, "HUGE"), -1);
 	if (tmp != -1) {
-		fprintf(stderr, "\n\n*** Warning *** option control.inla(huge=TRUE) is disabled and obsolete.\n");
-		fprintf(stderr, "*** Warning *** use control.compute = list(strategy = \"SMALL|MEDIUM|LARGE|HUGE|DEFAULT\") instead.\n\n");
+		LOG_WARNING_WRAPPER(
+			fprintf(stderr, "\n\n*** Warning *** option control.inla(huge=TRUE) is disabled and obsolete.\n");
+			fprintf(stderr, "*** Warning *** use control.compute = list(strategy = \"SMALL|MEDIUM|LARGE|HUGE|DEFAULT\") instead.\n\n");
+			);
 	}
 
 	GMRFLib_global_node.factor = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL.NODE.FACTOR"), GMRFLib_global_node.factor);

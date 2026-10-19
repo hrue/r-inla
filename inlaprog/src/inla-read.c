@@ -460,81 +460,74 @@ const char *inla_string_join(const char *a, const char *b)
 	return ans;
 }
 
-int inla_error_missing_required_field(const char *funcname, const char *secname, const char *field)
+int inla_error_missing_required_field(const char POSSIBLY_UNUSED(*funcname), const char *secname, const char *field)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s: section [%s]: missing required field [%s]\n\n", funcname, secname, field);
+	LOG_ERROR("section [%s]: missing required field [%s]", secname, field);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_open_file(const char *msg)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \tfail to open file[%s] for writing. Exit...\n\n", msg);
+	LOG_ERROR("Fail to open file[%s] for writing. Exit...", msg);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_general(const char *msg)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s\n\n", msg);
+	LOG_ERROR("%s", msg);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_general2(const char *msg, const char *msg2)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s: %s\n\n", msg, msg2);
+	LOG_ERROR("%s %s", msg, msg2);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_field_is_void(const char *funcname, const char *secname, const char *field, const char *value)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s: section [%s]: field [%s] is void: [%s]\n\n", funcname, secname, field, value);
+	LOG_ERROR("function [%s] section [%s]: field [%s] is void: [%s]\n\n", funcname, secname, field, value);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_file_numelm(const char *funcname, const char *filename, int n, int idiv)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, which is not a multiple of [%1d]\n\n", funcname,
-		filename, n, idiv);
+	LOG_ERROR("function [%s] file [%s] contains [%1d] elements, which is not a multiple of [%1d]", funcname, filename, n, idiv);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_file_totnumelm(const char *funcname, const char *filename, int n, int total)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, which is different from [n] = [%1d]\n\n",
-		funcname, filename, n, total);
+	LOG_ERROR("function [%s] file [%s] contains [%1d] elements, which is different from [n] = [%1d]", funcname, filename, n, total);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_file_error_sorted(const char *funcname, const char *filename, int n, int element_number, double val)
 {
-	fprintf(stderr,
-		"\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, but element [%1d] = [%g] is void. The 'values' needs to be increasing!\n\n",
-		funcname, filename, n, element_number, val);
-	abort();
+	LOG_ERROR("function [%s] file [%s] contains [%1d] elements, but element [%1d] = [%g] is void. The 'values' needs to be increasing!",
+		  funcname, filename, n, element_number, val);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_file_error(const char *funcname, const char *filename, int n, int element_number, double val)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, but element [%1d] = [%g] is void.\n\n",
-		funcname, filename, n, element_number, val);
-	abort();
+	LOG_ERROR("function [%s] file [%s] contains [%1d] elements, but element [%1d] = [%g] is void", funcname, filename, n, element_number, val);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_file_error2(const char *funcname, const char *filename, int n, int element_number, double val, int element_number2, double val2)
 {
-	fprintf(stderr,
-		"\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, but element [%1d] = [%g] or [%1d] = [%g] is void.\n\n",
-		funcname, filename, n, element_number, val, element_number2, val2);
+	LOG_ERROR("function [%s] file [%s] contains [%1d] elements, but element [%1d] = [%g] or [%1d] = [%g] is void",
+		  funcname, filename, n, element_number, val, element_number2, val2);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }

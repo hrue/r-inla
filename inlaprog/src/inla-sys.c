@@ -500,22 +500,18 @@ int inla_num_p_cores(void)
 	if (!GetLogicalProcessorInformationEx(RelationProcessorCore, NULL, &bufferSize)) {
 		if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
 			if (p_cores_verbose) {
-				fprintf(stderr, "Error determining buffer size. Code: %lu\n", GetLastError());
+				LOG_ERROR("Error determining buffer size. Code: %lu\n", GetLastError());
 			}
 			return p_cores_default;
 		}
 	}
 
 	PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX) malloc(bufferSize);
-
-	if (!buffer) {
-		fprintf(stderr, "Memory allocation failed.\n");
-		return p_cores_default;
-	}
+	Assert(buffer);
 
 	// Second call to actually populate the buffer
 	if (!GetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize)) {
-		fprintf(stderr, "Error retrieving processor information. Code: %lu\n", GetLastError());
+		LOG_ERROR("Error retrieving processor information. Code: %lu", GetLastError());
 		free(buffer);
 		return p_cores_default;
 	}

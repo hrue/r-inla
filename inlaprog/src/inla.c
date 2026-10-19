@@ -167,7 +167,7 @@ int R_load_INLA = 0;
 
 #define CODE_NEEDED \
 	if (1) {							\
-		fprintf(stderr, "\n\n%s: %d  CODE NEEDED HERE!\n\n", __FILE__, __LINE__); \
+		LOG_ERROR("CODE NEEDED HERE!");				\
 		exit(1);						\
 		Assert(0==1);						\
 	}
@@ -721,10 +721,12 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 		 * carry on. A genuinely malformed Model.ini still fails later, on the
 		 * entry that actually matters.
 		 */
-		fprintf(stderr, "\n\ninla_build: [%s] contain[%1d] unused entries (listed above).\n", dict_filename, count);
-		fprintf(stderr, "\tThis binary does not know them and will IGNORE them.\n");
-		fprintf(stderr, "\tUsually this means the R-package is newer than this binary [%s];\n", __GMRFLib_symbol_to_string(GITCOMMIT));
-		fprintf(stderr, "\tPlease upgrade the binary with 'inla.stiles.install()'\n\n");
+		LOG_ERROR_WRAPPER(
+			fprintf(stderr, "inla_build: [%s] contain[%1d] unused entries (listed above).\n", dict_filename, count);
+			fprintf(stderr, "\tThis binary does not know them and will IGNORE them.\n");
+			fprintf(stderr, "\tUsually this means the R-package is newer than this binary [%s];\n", __GMRFLib_symbol_to_string(GITCOMMIT));
+			fprintf(stderr, "\tPlease upgrade the binary with 'inla.stiles.install()'");
+			);
 	}
 
 	if (0) {
@@ -827,10 +829,11 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 			need_link++;
 	}
 
-	// fprintf(stderr, "%d\n", GMRFLib_gaussian_data);
 	if (need_link && !GMRFLib_gaussian_data) {
-		fprintf(stderr, "\n\n*** Warning *** You might want to consider to setting ``control.predictor=list(link=...)''\n");
-		fprintf(stderr, "*** Warning *** otherwise the identity link will be used to compute the fitted values for NA data\n\n\n");
+		LOG_WARNING_WRAPPER(
+			fprintf(stderr, "*** Warning *** You might want to consider to setting ``control.predictor=list(link=...)''\n");
+			fprintf(stderr, "*** Warning *** otherwise the identity link will be used to compute the fitted values for NA data");
+			);
 	}
 
 	// register 'mb'
@@ -5091,7 +5094,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 		case F_2DIID:
 		{
 			if (mb->f_ngroup[i] > 1) {
-				fprintf(stderr, "\n\n F_2DIID is not yet prepared for ngroup > 1\n");
+				LOG_ERROR("F_2DIID is not yet prepared for ngroup > 1");
 				exit(EXIT_FAILURE);
 			}
 
@@ -5222,9 +5225,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 					static char first = 1;
 
 					if (first) {
-						fprintf(stderr,
-							"\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n",
-							nfixed);
+						LOG_WARNING("Wishart prior is not corrected to account for %d fixed hyperparameters", nfixed);
 						first = 0;
 					}
 				}
@@ -5345,9 +5346,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 					static char first = 1;
 
 					if (first) {
-						fprintf(stderr,
-							"\n\n\nWARNING: Wishart prior is not corrected to account for %d fixed hyperparameters.\n\n",
-							nfixed);
+						LOG_WARNING("Wishart prior is not corrected to account for %d fixed hyperparameters", nfixed);
 						first = 0;
 					}
 				}
@@ -7542,8 +7541,8 @@ int main(int argc, char **argv)
 				bnt = IMAX(bnt, 0);
 				GMRFLib_openmp->blas_num_threads_force = bnt;
 			} else {
-				fprintf(stderr, "Fail to read BLAS_NUM_THREADS from %s\n", optarg);
-				exit(EXIT_SUCCESS);
+				LOG_ERROR("Fail to read BLAS_NUM_THREADS from %s", optarg);
+				exit(EXIT_FAILURE);
 			}
 		}
 			break;
@@ -7557,8 +7556,8 @@ int main(int argc, char **argv)
 				model_n_is_set = 1;
 				Assert(nm >= 0);
 			} else {
-				fprintf(stderr, "Fail to read MODEL_N from %s\n", optarg);
-				exit(EXIT_SUCCESS);
+				LOG_ERROR("Fail to read MODEL_N from %s", optarg);
+				exit(EXIT_FAILURE);
 			}
 		}
 			break;
@@ -7590,7 +7589,7 @@ int main(int argc, char **argv)
 			} else if (!strncasecmp(optarg, "TESTIT", 6)) {
 				G.mode = INLA_MODE_TESTIT;
 			} else {
-				fprintf(stderr, "\n*** Error: Unknown mode (argument to '-m') : %s\n", optarg);
+				LOG_ERROR("Unknown mode (argument to '-m') : %s", optarg);
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -7629,10 +7628,12 @@ int main(int argc, char **argv)
 					char *pC = strchr(token, 'C');
 
 					if (pP || pC) {
-						fprintf(stderr, "\n");
-						fprintf(stderr, "*** ERROR *** Parse num.threads argument %1d: [%s]\n", ii + 1, token);
-						fprintf(stderr, "              No 'muparser'-library in this build, so\n");
-						fprintf(stderr, "              expressions cannot use 'P' or 'C'\n\n");
+						LOG_ERROR_WRAPPER(
+							fprintf(stderr, "\n");
+							fprintf(stderr, "*** ERROR *** Parse num.threads argument %1d: [%s]\n", ii + 1, token);
+							fprintf(stderr, "              No 'muparser'-library in this build, so\n");
+							fprintf(stderr, "              expressions cannot use 'P' or 'C'\n\n");
+							);
 						exit(1);
 					}
 				}
@@ -7660,8 +7661,8 @@ int main(int argc, char **argv)
 			GMRFLib_openmp->adaptive = GMRFLib_openmp->max_threads_nested[2] = ntt[2];
 
 			if (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS()) {
-				fprintf(stderr, "\n\n\tYou ask for %1d x %1d = %1d number of threads,\n", ntt[0], ntt[1], ntt[0] * ntt[1]);
-				fprintf(stderr, "\twhich is more that I got from the system: %1d\n", GMRFLib_MAX_THREADS());
+				LOG_WARNING("You ask for %1d x %1d = %1d number of threads, which is more than %1d",
+					    ntt[0], ntt[1], ntt[0] * ntt[1], GMRFLib_MAX_THREADS());
 
 				if (ntt[0] > GMRFLib_MAX_THREADS()) {
 					ntt[0] = GMRFLib_MAX_THREADS();
@@ -7675,7 +7676,7 @@ int main(int argc, char **argv)
 					}
 				}
 				GMRFLib_openmp->adaptive = ntt[2] = IMIN(ntt[2], GMRFLib_MAX_THREADS());
-				fprintf(stderr, "\tNumber of threads is reduced to %1d:%1d:%1d\n\n", ntt[0], ntt[1], ntt[2]);
+				LOG_WARNING("Number of threads is reduced to %1d:%1d:%1d", ntt[0], ntt[1], ntt[2]);
 			}
 
 			for (i = 0; i < 3; i++) {
@@ -7698,7 +7699,7 @@ int main(int argc, char **argv)
 		case 'z':
 		{
 			if (!(G.mode == INLA_MODE_FINN || G.mode == INLA_MODE_QSAMPLE || G.mode == INLA_MODE_TESTIT)) {
-				fprintf(stderr, "\n *** ERROR *** Option `-z seed' only available in selected modes\n");
+				LOG_ERROR("Option `-z seed' only available in selected modes");
 				exit(EXIT_FAILURE);
 			} else {
 				int int_seed = 0;
@@ -7706,8 +7707,8 @@ int main(int argc, char **argv)
 				if (inla_sread_ints(&int_seed, 1, optarg) == INLA_OK) {
 					;
 				} else {
-					fprintf(stderr, "Fail to read FINN_SEED from %s\n", optarg);
-					exit(EXIT_SUCCESS);
+					LOG_ERROR("Fail to read FINN_SEED from %s", optarg);
+					exit(EXIT_FAILURE);
 				}
 				if (int_seed != 0) {
 					/*
@@ -7913,7 +7914,7 @@ int main(int argc, char **argv)
 	}
 
 	if (optind >= argc) {
-		fprintf(stderr, "\n*** Error: Expected argument after options.\n");
+		LOG_ERROR("Expected argument after options");
 		_USAGE;
 		exit(EXIT_FAILURE);
 	}
@@ -7928,7 +7929,7 @@ int main(int argc, char **argv)
 	}
 	if (verbose) {
 		if (G.mode == INLA_MODE_HYPER) {
-			fprintf(stderr, "\nRun in mode=[%s]\n", "HYPER");
+			LOG_INFO("Run in mode=[%s]", "HYPER");
 		}
 	}
 
@@ -8008,7 +8009,7 @@ int main(int argc, char **argv)
 
 					Assert(ret == 0);
 				} else {
-					fprintf(stderr, "\n\n *** ERROR *** This is neither a file or directory[%s]\n\n\n", argv[arg]);
+					LOG_ERROR("This is neither a file or directory[%s]", argv[arg]);
 					continue;
 				}
 			}

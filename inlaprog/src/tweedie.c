@@ -110,7 +110,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 
 	nterms = IMIN(TWEEDIE_MAX_IDX, (int) ceil(jmax));
 	if (nterms == TWEEDIE_MAX_IDX) {
-		fprintf(stderr, "\ndtweedie: Reached upper limit. Increase TWEEDIE_MAX_IDX or scale your data!\n");
+		LOG_ERROR("Reached upper limit. Increase TWEEDIE_MAX_IDX or scale your data!");
 	}
 	if (verbose) {
 #pragma omp atomic

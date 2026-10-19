@@ -496,10 +496,10 @@ typedef enum {
 #       endif
 
 #       define ABS(x) fabs(x)
-#       define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
+#       define FIXME(msg) if (1) { LOG_INFO("{%1d}[%s:%1d] %s: FIXME [%s]",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #       define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}
 #       define FIXME1stderr(msg) if (1) { static int first=1; if (first) { first=0; FIXMEstderr(msg); }}
-#       define FIXMEstderr( msg) if (1) { fprintf(stderr, "\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
+#       define FIXMEstderr( msg) if (1) { LOG_INFO("{%1d}[%s:%1d] %s: FIXME [%s]",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #       define IABS(x)   abs(x)
 #       define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
 #       define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)

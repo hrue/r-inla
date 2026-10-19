@@ -2470,10 +2470,8 @@ int loglikelihood_bgev(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 
 	if (ab != 5.0) {
 		static char first = 1;
-
 		if (first) {
-			fprintf(stderr, "*** Warning ***: loglikelihood_bgev: argument beta_ab=[%.2f] is not used\n", ab);
-			fprintf(stdout, "*** Warning ***: loglikelihood_bgev: argument beta_ab=[%.2f] is not used\n", ab);
+			LOG_WARNING("argument beta_ab=[%.2f] is not used", ab);
 		}
 		first = 0;
 	}
@@ -4898,7 +4896,7 @@ int loglikelihood_zeroinflated_poisson2(int thread_id, int *UNUSED(lcache_idx), 
 						P(p);
 						P(logll[i]);
 						P(x[i] + off);
-						fprintf(stderr, "inla.c: Don't know what to do. Please report problem...");
+						LOG_ERROR("Don't know what to do. Please report problem...");
 						exit(EXIT_FAILURE);
 					}
 				}

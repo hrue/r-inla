@@ -152,8 +152,6 @@ int inla_output_hyperid(const char *dir, const char *sdir, char *hyperid)
 	FILE *fp = NULL;
 	char *fnm = NULL, *ndir = NULL;
 
-	// fprintf(stderr, "output hyperid %s / %s [%s]\n", dir, sdir, hyperid);
-
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
 	GMRFLib_sprintf(&fnm, "%s/hyperid.dat", ndir);
 
@@ -2210,7 +2208,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 	}
 	if (G.mode == INLA_MODE_HYPER) {
 		if (!((*out)->hyperparameters)) {
-			fprintf(stderr, "*** Warning: HYPER_MODE require (*out)->hyperparameters = 1\n");
+			LOG_WARNING("HYPER_MODE require (*out)->hyperparameters = 1");
 		}
 		(*out)->hyperparameters = 1;
 	}
@@ -2316,7 +2314,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 int inla_R(char **argv)
 {
 	while (*argv) {
-		fprintf(stderr, "R> source file [%s]...\n", *argv);
+		LOG_INFO("R> source file [%s]...", *argv);
 		inla_R_source(*argv);
 		argv++;
 	}

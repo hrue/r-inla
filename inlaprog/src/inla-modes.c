@@ -170,7 +170,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	FILE *fp = NULL;
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: start pre...\n");
+		LOG_INFO("inla_qsample: start pre...");
 	}
 	fp = fopen(rngfile, "rb");
 	if (fp) {
@@ -245,11 +245,11 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: end pre %.2fs\n", GMRFLib_timer() - t_ref);
+		LOG_INFO("end pre %.2fs", GMRFLib_timer() - t_ref);
 	}
 	t_ref = GMRFLib_timer();
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: start prepare the model...\n");
+		LOG_INFO("start prepare the model...");
 	}
 
 	int thread_id = 0;
@@ -273,7 +273,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 			     stiles_idx, NULL);
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: end prepare the model %.2fs\n", GMRFLib_timer() - t_ref);
+		LOG_INFO("end prepare the model %.2fs", GMRFLib_timer() - t_ref);
 	}
 	t_ref = GMRFLib_timer();
 
@@ -287,7 +287,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	M->A = Calloc(M->nrow * M->ncol, double);
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: start to sample %1d samples...\n", ns);
+		LOG_INFO("start to sample %1d samples...", ns);
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
@@ -309,7 +309,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 			M->A[(i + 1) * M->nrow - 1] = problem->sub_logdens;
 
 			if (verbose && (!((i + 1) % output_every) || i == (ns - 1))) {
-				fprintf(stderr, "inla_qsample: done with %1d samples, with %.2f samples/s and %.2fs in total\n",
+				LOG_INFO("done with %1d samples, with %.2f samples/s and %.2fs in total",
 					i + 1, (i + 1.0) / (GMRFLib_timer() - t_ref), (GMRFLib_timer() - t_ref));
 			}
 		}
@@ -342,12 +342,12 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: end in %.2fs with %.2f samples/s\n", GMRFLib_timer() - t_ref,
+		LOG_INFO("end in %.2fs with %.2f samples/s", GMRFLib_timer() - t_ref,
 			(double) ns / (GMRFLib_timer() - t_ref));
 	}
 	t_ref = GMRFLib_timer();
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: start post...\n");
+		LOG_INFO("start post...");
 	}
 
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
@@ -374,8 +374,10 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	fclose(fp);
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: end post %.2fs\n", GMRFLib_timer() - t_ref);
-		fprintf(stderr, "inla_qsample: total time %.2fs\n", GMRFLib_timer() - t_reff);
+		LOG_INFO_WRAPPER(
+			fprintf(stderr, "inla_qsample: end post %.2fs\n", GMRFLib_timer() - t_ref);
+			fprintf(stderr, "inla_qsample: total time %.2fs\n", GMRFLib_timer() - t_reff);
+			);
 	}
 
 	return 0;

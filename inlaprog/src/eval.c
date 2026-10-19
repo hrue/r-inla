@@ -48,7 +48,7 @@ double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), in
 		expression++;
 	}
 	if (debug) {
-		fprintf(stderr, "OPEN FILE[%s]\n", expression);
+		LOG_ERROR("OPEN FILE[%s]", expression);
 	}
 	M = GMRFLib_read_fmesher_file((const char *) expression, 0, -1);
 	Assert(M->nrow >= 4);

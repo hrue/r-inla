@@ -346,7 +346,7 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 			}
 			if (recompute) {
 				if (debug) {
-					fprintf(stderr, "recompute id=%1d\n", id);
+					LOG_INFO("recompute id=%1d\n", id);
 				}
 				for (k = 0; k < model->ntheta; k++) {
 					model->store[id]->theta[k] = model->theta[k][thread_id][0];

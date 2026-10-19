@@ -1676,32 +1676,24 @@ double priorfunc_pc_egptail(double *x, double *parameters)
 
 double priorfunc_pc_spde_ga(double *x, double *parameters)
 {
-	double theta1 = x[0], theta2 = x[1], *par = parameters, ldens, lam1, lam2;
-	const int debug = 0;
-
-	lam1 = -par[0] * log(par[1]);
-	lam2 = -log(par[3]) / par[2];
-	ldens = (log(lam1) - theta1 - lam1 * exp(-theta1)) + (log(lam2) + theta2 - lam2 * exp(theta2));
-
-	if (debug) {
-		fprintf(stderr, "pc_spde_ga: x = %g %g\n", x[0], x[1]);
-		fprintf(stderr, "            param = %g %g %g %g\n", par[0], par[1], par[2], par[3]);
-		fprintf(stderr, "            lam1 = %g  lam2 = %g  ldens = %g\n", lam1, lam2, ldens);
-	}
+	double theta1 = x[0];
+	double theta2 = x[1];
+	double *par = parameters;
+	double lam1 = -par[0] * log(par[1]);
+	double lam2 = -log(par[3]) / par[2];
+	double ldens = (log(lam1) - theta1 - lam1 * exp(-theta1)) + (log(lam2) + theta2 - lam2 * exp(theta2));
 
 	return ldens;
 }
 
 double priorfunc_pc_matern(double *x, double *parameters)
 {
-	double theta1 = x[0], theta2 = x[1], *par = parameters, ldens, lam1, lam2, dHalf;
-	const int debug = 0;
-
-	lam1 = parameters[0];
-	lam2 = parameters[1];
-	dHalf = parameters[2] / 2.0;
-
-	ldens = 0.0;
+	double theta1 = x[0];
+	double theta2 = x[1]; 
+	double lam1 = parameters[0];
+	double lam2 = parameters[1];
+	double dHalf = parameters[2] / 2.0;
+	double ldens = 0.0;
 
 	// Check if range is fixed
 	if (!ISNAN(theta1))
@@ -1711,30 +1703,16 @@ double priorfunc_pc_matern(double *x, double *parameters)
 	if (!ISNAN(theta2))
 		ldens += log(lam2) + theta2 - lam2 * exp(theta2);
 
-	if (debug) {
-		fprintf(stderr, "pc_matern: x = %g %g\n", x[0], x[1]);
-		fprintf(stderr, "           param = %g %g %g\n", par[0], par[1], par[2]);
-		fprintf(stderr, "           lam1 = %g  lam2 = %g  ldens = %g\n", lam1, lam2, ldens);
-	}
-
 	return ldens;
 }
 
 double priorfunc_pc_range(double *x, double *parameters)
 {
 	double theta1 = x[0], ldens, lam, dHalf;
-	const int debug = 0;
 
 	lam = parameters[0];
 	dHalf = parameters[1] / 2.0;
-
 	ldens = log(lam * dHalf) - dHalf * theta1 - lam * exp(-dHalf * theta1);
-
-	if (debug) {
-		fprintf(stderr, "pc_range: x = %g\n", x[0]);
-		fprintf(stderr, "          param = %g %g\n", parameters[0], parameters[1]);
-		fprintf(stderr, "          lam = %g  dHalf = %g  ldens = %g\n", lam, dHalf, ldens);
-	}
 
 	return ldens;
 }
@@ -1889,14 +1867,12 @@ double priorfunc_pc_prec(double *x, double *parameters)
 double priorfunc_pc_cor0(double *x, double *parameters)
 {
 	// alpha = Prob(|rho| > u)
-	const int debug = 0;
 	double u = parameters[0], alpha = parameters[1];
 	double rho = map_rho(*x, MAP_FORWARD, NULL);
 	double ldens, lambda, ljac, val, mu;
 
 	mu = sqrt(-LOG_1mp(SQR(rho)));
 	if (alpha <= 0 || alpha >= 1.0) {
-		FIXME1("*****************************  USING lambda = u **********************************");
 		lambda = u;
 	} else {
 		lambda = -log(alpha) / sqrt(-LOG_1mp(SQR(u)));
@@ -1905,11 +1881,6 @@ double priorfunc_pc_cor0(double *x, double *parameters)
 	ldens = log(lambda) - lambda * mu + log((ABS(rho) + INLA_REAL_SMALL) / (1.0 - SQR(rho))) - log(mu + INLA_REAL_SMALL);
 	ljac = log(ABS(map_rho(*x, MAP_DFORWARD, NULL)));
 	val = ldens + ljac;
-
-	if (debug) {
-		fprintf(stderr, "priorfunc_pc_cor0: mu %g lambda %g ldens %g ljac %g\n", mu, lambda, ldens, ljac);
-		fprintf(stderr, "priorfunc_pc_cor0: theta %g val %g\n", *x, val);
-	}
 
 	return val;
 }
