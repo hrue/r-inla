@@ -1045,69 +1045,72 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *grap
 		return GMRFLib_SUCCESS;
 	}
 
-	if (graph_store_use && graph_old->sha) {
-		void **p = NULL;
+#pragma omp critical (Name_fc475f20f495b388c7953ffc2fc3449b6e0e358c)
+	{
+		int found = 0;
+		if (graph_store_use && graph_old->sha) {
+			void **p = NULL;
 
-		p = map_strvp_ptr(&graph_store, (char *) graph_old->sha);
-		if (graph_store_debug) {
+			p = map_strvp_ptr(&graph_store, (char *) graph_old->sha);
+			if (graph_store_debug) {
+				if (p) {
+					printf("\t[%1d] graph_store: graph is found in store: do not duplicate.\n", omp_get_thread_num());
+				} else {
+					printf("\t[%1d] graph_store: graph is not found in store: duplicate.\n", omp_get_thread_num());
+				}
+			}
 			if (p) {
-				printf("\t[%1d] graph_store: graph is found in store: do not duplicate.\n", omp_get_thread_num());
+				*graph_new = (GMRFLib_graph_tp *) * p;
+				found = 1;
+			}
+		}
+
+		if (!found) {
+			GMRFLib_graph_mk_empty(&g);
+			g->n = n = graph_old->n;
+			g->nnbs = Calloc(n, int);
+			Memcpy(g->nnbs, graph_old->nnbs, (size_t) (n * sizeof(int)));
+			m = graph_old->nnz;
+			hold = Calloc(IMAX(1, m), int);
+			g->nbs = Calloc(n, int *);
+
+			if (0) {
+				for (int i = 0, hold_idx = 0; i < n; i++) {
+					if (g->nnbs[i]) {
+						g->nbs[i] = &hold[hold_idx];
+						Memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
+						hold_idx += g->nnbs[i];
+					}
+				}
 			} else {
-				printf("\t[%1d] graph_store: graph is not found in store: duplicate.\n", omp_get_thread_num());
-			}
-		}
-		if (p) {
-			*graph_new = (GMRFLib_graph_tp *) * p;
-			GMRFLib_LEAVE_FUNCTION;
-			return GMRFLib_SUCCESS;
-		}
-	}
-
-	GMRFLib_graph_mk_empty(&g);
-	g->n = n = graph_old->n;
-	g->nnbs = Calloc(n, int);
-
-	Memcpy(g->nnbs, graph_old->nnbs, (size_t) (n * sizeof(int)));
-
-	m = graph_old->nnz;
-	hold = Calloc(IMAX(1, m), int);
-	g->nbs = Calloc(n, int *);
-
-	if (0) {
-		for (int i = 0, hold_idx = 0; i < n; i++) {
-			if (g->nnbs[i]) {
-				g->nbs[i] = &hold[hold_idx];
-				Memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
-				hold_idx += g->nnbs[i];
-			}
-		}
-	} else {
-		int *arr = Calloc(n, int);
-		for (int i = 1; i < n; i++) {
-			arr[i] = arr[i - 1] + g->nnbs[i - 1];
-		}
+				int *arr = Calloc(n, int);
+				for (int i = 1; i < n; i++) {
+					arr[i] = arr[i - 1] + g->nnbs[i - 1];
+				}
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
-		for (int i = 0; i < n; i++) {
-			if (g->nnbs[i]) {
-				int hold_idx = arr[i];
-				g->nbs[i] = &hold[hold_idx];
-				Memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
+				for (int i = 0; i < n; i++) {
+					if (g->nnbs[i]) {
+						int hold_idx = arr[i];
+						g->nbs[i] = &hold[hold_idx];
+						Memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
+					}
+				}
+				Free(arr);
+			}
+
+			*graph_new = g;
+			GMRFLib_graph_prepare(g);
+
+			if (graph_store_use && graph_old->sha) {
+				if (graph_store_debug) {
+					printf("\t[%1d] graph_store: store graph 0x%p\n", omp_get_thread_num(), (void *) g);
+				}
+#pragma omp critical (Name_c524502943d363cb45e15d587b32804a133415b2)
+				map_strvp_set(&graph_store, (char *) g->sha, (void *) g);
 			}
 		}
-		Free(arr);
 	}
-
-	*graph_new = g;
-	GMRFLib_graph_prepare(g);
-
-	if (graph_store_use && graph_old->sha) {
-		if (graph_store_debug) {
-			printf("\t[%1d] graph_store: store graph 0x%p\n", omp_get_thread_num(), (void *) g);
-		}
-#pragma omp critical (Name_c524502943d363cb45e15d587b32804a133415b2)
-		map_strvp_set(&graph_store, (char *) g->sha, (void *) g);
-	}
-
+	
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }
