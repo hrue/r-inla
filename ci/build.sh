@@ -337,6 +337,34 @@ if [ "$(echo "$OMPRT" | grep -c .)" -gt 1 ]; then
     exit 1
 fi
 
+## The binary must have the R linkage this lane asked for. Losing it is
+## silent: -DINLA_WITH_LIBR arrives through RLIB_INC, so anything that drops
+## it (a makefile rule compiling with FLAGS instead of CFLAGS, say) still
+## builds, links and runs every model. Only rgeneric fails, at run time,
+## with "libR is not supported in this build" -- a message about the build
+## that appears nowhere near it. That string lives in the no-libR stub and
+## nowhere else, so finding it in the binary IS "compiled without libR".
+## grep -a rather than strings: one less tool to have installed, and it
+## reads a cross-compiled binary just as well.
+if LC_ALL=C grep -aq "libR is not supported in this build" "$PREFIX/bin/inla"; then
+    HAVE_LIBR=0
+else
+    HAVE_LIBR=1
+fi
+case "$WITH_LIBR" in
+    0) WANT_LIBR=0 ;;
+    *) WANT_LIBR=1 ;;
+esac
+echo "== libR support in the binary: $HAVE_LIBR (WITH_LIBR=$WITH_LIBR wants $WANT_LIBR) =="
+if [ "$HAVE_LIBR" != "$WANT_LIBR" ]; then
+    echo "ERROR: WITH_LIBR=$WITH_LIBR, but the binary was built"
+    [ "$HAVE_LIBR" = 0 ] && echo "       WITHOUT libR: -DINLA_WITH_LIBR never reached the compiler." \
+                        || echo "       WITH libR, which this lane did not ask for."
+    echo "       RLIB_INC was: $RLIB_INC"
+    echo "       Check that inlaprog/Makefile's src/%.o rule compiles with \$(CFLAGS)."
+    exit 1
+fi
+
 ## ---- 5. Sanity --------------------------------------------------------------
 ## libR.so lives outside the default loader path; R's own launcher normally
 ## provides it via LD_LIBRARY_PATH, but here the binary runs straight from

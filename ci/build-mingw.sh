@@ -191,6 +191,19 @@ make -C "$ROOT/inlaprog" -j"$JOBS" PREFIX="$PREFIX" \
      inla
 [ -f "$ROOT/inlaprog/inla.exe" ] || { echo "ERROR: inla.exe was not produced"; exit 1; }
 
+## The R linkage this lane asked for must actually be in the exe; see the long
+## note on the same check in ci/build.sh. This lane cannot run what it builds,
+## so a string in the binary is the only evidence available before a Windows
+## runner gets it, which makes the check worth more here than anywhere else.
+if LC_ALL=C grep -aq "libR is not supported in this build" "$ROOT/inlaprog/inla.exe"; then
+    echo "ERROR: WITH_LIBR=$WITH_LIBR, but inla.exe was built WITHOUT libR:"
+    echo "       -DINLA_WITH_LIBR never reached the compiler."
+    echo "       RLIB_INC was: $RLIB_INC"
+    echo "       Check that inlaprog/Makefile's src/%.o rule compiles with \$(CFLAGS)."
+    exit 1
+fi
+echo "== libR support in the exe: yes (WITH_LIBR=$WITH_LIBR) =="
+
 ## No 32-bit pseudo-relocations may survive in the exe. They are created
 ## when code references DATA from a DLL without dllimport: the linker
 ## leaves a 32-bit slot the mingw runtime patches at startup, and with
