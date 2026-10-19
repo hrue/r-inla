@@ -50,7 +50,6 @@
 #              include <sys/sysctl.h>
 #       endif
 
-
 /* ... */
 #       if defined(INLA_WITH_SIMDE)
 #              if !defined(_WIN32)

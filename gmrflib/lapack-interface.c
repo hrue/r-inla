@@ -2022,7 +2022,7 @@ void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, int *RESTRICT iai
 	const int lim = 1.5E6;
 
 	if (n > lim && !iainv) {
-		fprintf(stderr, "\n*** Warning *** n = %1d > lim = %1d, but 'iainv' is NULL\n", n, lim);
+		LOG_WARNING("n = %1d > lim = %1d, but 'iainv' is NULL", n, lim);
 	}
 
 	GMRFLib_ENTER_FUNCTION;

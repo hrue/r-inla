@@ -160,7 +160,8 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 		 */
 		LOG_ERROR_WRAPPER(fprintf
 				  (stderr, " *** Error in graph: n=%1d but min_node=%1d and max_node=%1d\n", (*graph)->n, min_node, max_node);
-				  fprintf(stderr, " *** The position in reported in the file is not correct...\n"););
+				  fprintf(stderr, " *** The position in reported in the file is not correct...\n");
+		    );
 		GMRFLib_io_error(io, GMRFLib_IO_ERR_READLINE);
 		return GMRFLib_EREADFILE;
 	}

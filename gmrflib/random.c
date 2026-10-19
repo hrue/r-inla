@@ -12,7 +12,6 @@ int GMRFLib_rng_set_default_seed(void)
 {
 	unsigned long int seed_default = (unsigned long int) time(NULL);
 	unsigned long int seed;
-	const int debug = 0;
 	size_t len = sizeof(unsigned long int);
 
 #pragma omp critical (Name_96da5f632ecbd97ae1e5504794f8724fabfdee73)
@@ -52,9 +51,6 @@ int GMRFLib_rng_set_default_seed(void)
 		}
 #endif
 	}
-
-	if (debug)
-		fprintf(stderr, "Init RNG with seed %zu\n", (size_t) seed);
 
 	GMRFLib_rng_init(seed);
 	return GMRFLib_SUCCESS;

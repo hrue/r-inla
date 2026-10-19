@@ -304,15 +304,6 @@ int GMRFLib_solve_llt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMR
 	dtbsv_("L", "T", "N", &(graph->n), &nband, bchol, &ldim, rhs, &stride, F_ONE, F_ONE, F_ONE);
 	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap, NULL);
 
-	if (0) {
-		double *rrhs = Calloc(graph->n, double);
-
-		rrhs[idx] = 1.0;
-		GMRFLib_solve_llt_sparse_matrix_BAND(rrhs, bchol, graph, remap, bandwidth, NULL);
-		for (int i = 0; i < graph->n; i++)
-			fprintf(stderr, "%d %g %g %g\n", i, rhs[i], rrhs[i], rhs[i] - rrhs[i]);
-	}
-
 	return GMRFLib_SUCCESS;
 }
 
