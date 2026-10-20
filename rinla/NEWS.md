@@ -1,4 +1,4 @@
-# INLA 26.10.19
+# INLA 26.10.20
 * Fixed an issue with rprior on Windows
 * Restored the remote/submit scripts
 * Some code improvements
