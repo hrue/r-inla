@@ -1133,8 +1133,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, tauc
 	int *r = (rr ? rr->remap : NULL);
 	int *rinv = (rr ? rr->remap_inv : NULL);
 
-	if (r) {
-		Assert(rinv);
+	if (r && rinv) {
 		GMRFLib_convert_from_mapped(work, rhs, graph, rinv, r);
 	} else {
 		GMRFLib_convert_to_mapped(work, rhs, graph, remap);

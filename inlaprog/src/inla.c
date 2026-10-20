@@ -6656,7 +6656,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
 		GMRFLib_stiles_setup_tp *setup = GMRFLib_stiles_get_setup((void *) mb);
-
 		GMRFLib_stiles_setup(setup);
 		if (mb->verbose) {
 			GMRFLib_stiles_print(stdout);
@@ -6664,6 +6663,9 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	}
 
 	GMRFLib_overall_cpu[2] = GMRFLib_timer();
+
+	GMRFLib_remap_reset();
+	GMRFLib_remap_init_store();
 
 	GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
@@ -6687,7 +6689,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
 		if (mb->density[i] && ISNONZERO(OFFSET3(i))) {
 			GMRFLib_density_tp *d = mb->density[i];
-
 			if (d->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 				GMRFLib_density_new_user_mean(d, d->user_mean + OFFSET3(i));
 			} else {

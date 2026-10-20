@@ -531,7 +531,6 @@ int GMRFLib_init_problem_store(int thread_id,
 	sub_Qfunc = GMRFLib_Qfunc_wrapper;
 	sub_Qfunc_arg = Calloc(1, GMRFLib_Qfunc_arg_tp);
 	sub_Qfunc_arg->diagonal_adds = Calloc(sub_n, double);
-
 	sub_Qfunc_arg->graph = (*problem)->sub_graph;
 
 	if (c) {

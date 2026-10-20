@@ -208,24 +208,24 @@ int main()
 	EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
 
 	if (mdctx == NULL) {
-		fprintf(stderr, "Failed to create EVP_MD_CTX\n");
+		LOG_ERROR("Failed to create EVP_MD_CTX");
 		return 1;
 	}
 	// 1. MODERN INITIALIZATION (Replaces deprecated SHA256_Init)
 	if (EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL) != 1) {
-		fprintf(stderr, "Digest initialization failed\n");
+		LOG_ERROR("Digest initialization failed");
 		EVP_MD_CTX_free(mdctx);
 		return 1;
 	}
 	// 2. MODERN UPDATE (Replaces deprecated SHA256_Update)
 	if (EVP_DigestUpdate(mdctx, text, strlen(text)) != 1) {
-		fprintf(stderr, "Digest update failed\n");
+		LOG_ERROR("Digest update failed");
 		EVP_MD_CTX_free(mdctx);
 		return 1;
 	}
 	// 3. MODERN FINAL (Replaces deprecated SHA256_Final)
 	if (EVP_DigestFinal_ex(mdctx, md_value, &md_len) != 1) {
-		fprintf(stderr, "Digest finalization failed\n");
+		LOG_ERROR("Digest finalization failed");
 		EVP_MD_CTX_free(mdctx);
 		return 1;
 	}

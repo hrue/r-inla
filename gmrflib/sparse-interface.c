@@ -1268,7 +1268,7 @@ const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r)
 	case GMRFLib_REORDER_STILES:
 		return "stiles";
 	default:
-		fprintf(stderr, "\n\t*** ERROR *** Reordering [%d] not defined.\n", r);
+		LOG_ERROR("Rordering [%d] not defined.", r);
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_EPARAMETER, "(unknown reording)");
 	}
 
@@ -1304,7 +1304,7 @@ int GMRFLib_reorder_id(const char *name)
 	else if (!strcasecmp(name, "stiles"))
 		return GMRFLib_REORDER_STILES;
 	else {
-		fprintf(stderr, "\n\t*** ERROR *** Reordering [%s] not defined.\n", name);
+		LOG_ERROR("Reordering [%s] not defined.", name);
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_EPARAMETER, -1);
 	}
 

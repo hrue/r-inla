@@ -40,7 +40,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 #define MY_ERROR(msg)							\
 	{								\
 		if (fp) fclose(fp);					\
-		fprintf(stderr, "\n\n%s:%1d: *** ERROR *** \n\t%s\n\n", __FILE__,  __LINE__,  msg); \
+		LOG_ERROR("%s", msg);					\
 		GMRFLib_ASSERT_RETVAL(1==0,  GMRFLib_EMISC, (GMRFLib_matrix_tp *)NULL);	\
 		exit(EXIT_FAILURE);					\
 		return (GMRFLib_matrix_tp *)NULL;			\
@@ -364,7 +364,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 #define MY_ERROR(msg)							\
 	{								\
 		if (fp) fclose(fp);					\
-		fprintf(stderr, "\n\n%s:%1d: *** ERROR *** \n\t%s\n\n", __FILE__,  __LINE__,  msg); \
+		LOG_ERROR("%s", msg);					\
 		GMRFLib_ASSERT_RETVAL(1==0,  GMRFLib_EMISC, !GMRFLib_SUCCESS);	\
 		exit(EXIT_FAILURE);					\
 		return 1;						\
@@ -617,28 +617,23 @@ double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp *M)
 	 * return the diagonal of the matrix as a new and alloced double vector. 
 	 */
 
-	double *diag = NULL;
-	int i, k;
+	if (!M || (M && M->nrow == 0))
+		return NULL;
 
-	if (M) {
-		if (M->nrow != M->ncol) {
-			fprintf(stderr, "*** %s:%1d ***  Not a diagonal matrix: %1d != %1d\n", __FILE__, __LINE__, M->nrow, M->ncol);
-			exit(1);
+	if (M->nrow != M->ncol) {
+		LOG_ERROR("Not a diagonal matrix: %1d != %1d", M->nrow, M->ncol);
+		exit(1);
+	}
+
+	double *diag = Calloc(M->nrow, double);
+	if (M->A) {
+		for (int i = 0; i < M->nrow; i++) {
+			diag[i] = M->A[i + i * M->nrow];
 		}
-
-		if (M->nrow) {
-			diag = Calloc(M->nrow, double);
-
-			if (M->A) {
-				for (i = 0; i < M->nrow; i++) {
-					diag[i] = M->A[i + i * M->nrow];
-				}
-			} else {
-				for (k = 0; k < M->elems; k++) {
-					if (M->i[k] == M->j[k]) {
-						diag[M->i[k]] = M->values[k];
-					}
-				}
+	} else {
+		for (int k = 0; k < M->elems; k++) {
+			if (M->i[k] == M->j[k]) {
+				diag[M->i[k]] = M->values[k];
 			}
 		}
 	}

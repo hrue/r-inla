@@ -178,7 +178,7 @@ int GMRFLib_stiles_setup(GMRFLib_stiles_setup_tp *setup)
 		 * mode-finding on the groups that fit before dying on one that did not. Older libstiles always returns 0 here, so this is a no-op
 		 * until a library with failure propagation is paired. 
 		 */
-		fprintf(stderr, "\n*** sTiles_init failed (see errors above); cannot continue.\n");
+		LOG_ERROR("sTiles_init failed (see errors above); cannot continue.");
 		exit(1);
 	}
 	store->perm = Calloc(ngt, int *);
@@ -501,11 +501,9 @@ int GMRFLib_stiles_chol(GMRFLib_stiles_idx_tp *stiles_idx)
 	GMRFLib_stiles_unbind(&lidx);
 
 	if (status) {
-		fprintf(stderr, "\n\n*** ERROR *** sTiles_chol %d \n\n", status);
-		fflush(stderr);
+		LOG_ERROR("sTiles_chol %d", status);
 		store->chol_done[lidx.in_group][lidx.within_group] = false;
 	} else {
-		// printf("set chol_done TRUE %1d %1d\n", lidx.in_group, lidx.within_group);
 		store->chol_done[lidx.in_group][lidx.within_group] = true;
 	}
 

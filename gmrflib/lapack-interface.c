@@ -953,7 +953,7 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 		}
 		tol = s_min / s_max;
 		if (msg) {
-			GMRFLib_sprintf(msg, "max tol=[%.4g] no.neg.evals=[%1d]  no.small.evals[%1d]", tol, n_neg, n_small);
+			GMRFLib_sprintf(msg, "max tol=[%.4g] eigenvalues: negative=[%1d]  small[%1d]", tol, n_neg, n_small);
 		}
 	}
 
@@ -2022,7 +2022,7 @@ void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, int *RESTRICT iai
 	const int lim = 1.5E6;
 
 	if (n > lim && !iainv) {
-		fprintf(stderr, "\n*** Warning *** n = %1d > lim = %1d, but 'iainv' is NULL\n", n, lim);
+		LOG_WARNING("n = %1d > lim = %1d, but 'iainv' is NULL", n, lim);
 	}
 
 	GMRFLib_ENTER_FUNCTION;
