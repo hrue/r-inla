@@ -13,8 +13,7 @@
 // oops: need to call GMRFLib_numa_init() before use (this is done from main()...)
 static int POSSIBLY_UNUSED(NUMA_have) = -1;		       // we have (=1) NUMA support or not (=0)
 static int POSSIBLY_UNUSED(NUMA_nodes) = -1;		       // number of NUMA nodes. =1 if no NUMA */
-static int NUMA_enable = 1;				       // if not enabled, then all NUMA support is disabled (and we return
-
+static int NUMA_enable = 0;				       // if not enabled, then all NUMA support is disabled (and we return
 							       // to the behaviour as if INLA_WITH_NUMA was not defined)
 #include "my-numa.h"
 
@@ -163,9 +162,7 @@ void GMRFLib_numa_free(void *start, size_t size)
 			numa_free(start, size);
 		}
 	} else {
-		if (size > 0) {
-			Free(start);
-		}
+		Free(start);
 	}
 }
 

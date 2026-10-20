@@ -24,9 +24,10 @@ __BEGIN_DECLS
 	int n;
 	int nrhs;
 	int numa_node;
-	int *remap;					       /* length n * nrhs */
-	int *remap_inv;					       /* length n * nrhs */
 	int count;
+	int use_numa_if_available;
+	int *RESTRICT remap;				       /* length n * nrhs */
+	int *RESTRICT remap_inv;			       /* length n * nrhs */
 	unsigned char *sha;
 } GMRFLib_remap_tp;
 
@@ -35,7 +36,6 @@ int GMRFLib_remap_init_store(void);
 unsigned char *GMRFLib_remap_sha(int *remap, int n, int nrhs);
 void GMRFLib_remap_print(FILE * fp);
 void GMRFLib_remap_reset(void);
-
 
 __END_DECLS
 #endif
