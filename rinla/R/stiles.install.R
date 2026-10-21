@@ -17,9 +17,32 @@
     ok
 }
 
-## The repository holding the releases. One value, overridable for a fork or
-## a move, so the name is not spelled out in five places.
+## The repository holding the binary releases.
 `inla.repo` <- function() Sys.getenv("INLA_REPO", "hrue/r-inla")
+
+## Where a binary can live, newest layout first:
+##   <cache>/Version_xx            where installs go
+##   <cache>/stiles-binary/...     earlier layout
+##   <pkg>/stiles-binary/...       earlier layout, inside the package
+`inla.binary.bases` <- function() {
+    cache <- inla.cache.dir()
+    pkg <- tryCatch(find.package("INLA"), error = function(e) "")
+    c(cache,
+      file.path(cache, "stiles-binary"),
+      if (nzchar(pkg)) file.path(pkg, "stiles-binary") else character(0))
+}
+
+## Version directories under one base. Named, not globbed with "*": the cache
+## root holds whatever else INLA caches, and a stray directory there must not
+## be taken for a binary.
+`inla.binary.dirs` <- function(base) {
+    d <- c(Sys.glob(file.path(base, "Version_*")),
+           Sys.glob(file.path(base, "v*")))
+    d[dir.exists(d)]
+}
+
+## The repository holding the R package, root = the package.
+`inla.install.repo` <- function() Sys.getenv("INLA_INSTALL_REPO", "r-inla/install")
 
 ## Per-user cache directory for downloaded binaries.
 ##
@@ -59,12 +82,14 @@
 #' `BUILDINFO` file recording the compiler, flags and library versions that
 #' produced it.
 #'
-#' @param dir     Where to unpack. By default the installed package, so the
-#'                binary travels with it, or a per-user cache when the package
-#'                directory is not writable. Those two are the only places
-#'                INLA searches, so a binary put anywhere else has to be named
-#'                with `inla.setOption(inla.call = ...)` before anything uses
-#'                it; the function prints that line.
+#' @param dir     Where to unpack. By default the per-user cache, which
+#'                `R_USER_CACHE_DIR` relocates; the installed package is never
+#'                written to. Each version gets its own directory, so an
+#'                upgrade adds a binary rather than replacing one. The cache
+#'                and the installed package are the only places INLA searches,
+#'                so a binary put anywhere else has to be named with
+#'                `inla.setOption(inla.call = ...)` before anything uses it;
+#'                the function prints that line.
 #' @param force   Re-download even when the binary is already installed.
 #' @param smtp    Also select the sTiles sparse-matrix backend (default `TRUE`).
 #' @param verbose Report each step.
@@ -180,12 +205,8 @@
         if (sysname == "Linux" && arm && !is.na(armv82)) paste0(", armv8.2: ", armv82) else "")
     say("binary:   ", asset)
 
-    ## Resolve which release "latest" currently means, and cache under THAT
-    ## name. Caching under a directory called "latest" makes the first install
-    ## permanent: a newer release lands on the same path, the binary is found,
-    ## and the caller keeps the old one until they think to pass force = TRUE.
-    ## One request to the releases API, and the tag comes back in the JSON; if
-    ## it cannot be reached, fall back to the redirecting URL as before.
+    ## Resolve the tag first and cache under that name, so a path always means
+    ## one release. One request to the releases API returns it.
     tag_name_of <- function(u) {
         js <- tryCatch(paste(readLines(u, warn = FALSE), collapse = ""),
                        error = function(e) "", warning = function(w) "")
@@ -256,21 +277,23 @@
 
     default.dir <- is.null(dir)
     if (is.null(dir)) {
-        ## Prefer the installed package: the binary then travels with it, so a
-        ## NULL inla.call finds the one that belongs to this version and no
-        ## cache has to be kept in step. The cache is the fallback for a site
-        ## library, where the package directory belongs to root. Reinstalling
-        ## the package removes a package-side binary, which is accepted.
-        tag.dir <- if (!is.null(resolved)) resolved else "latest"
-        pkg <- tryCatch(find.package("INLA"), error = function(e) "")
-        cand <- if (nzchar(pkg)) file.path(pkg, "stiles-binary", tag.dir) else ""
-        dir <- ""
-        if (nzchar(cand) && inla.dir.writable(cand)) dir <- cand
-        if (!nzchar(dir)) {
-            dir <- file.path(inla.cache.dir(), "stiles-binary", tag.dir)
+        ## Write the binary to the per-user cache. The installed package is
+        ## never written to.
+        ## A release tag is always known by name from BinaryVersion, so a NULL
+        ## here means the API was unreachable and we do not know what the
+        ## download redirect will give us. Refuse rather than invent a name.
+        if (is.null(resolved)) {
+            stop("Cannot determine which release to install (GitHub unreachable).",
+                 "\n  Try again when online, or pass dir= to choose the location.",
+                 call. = FALSE)
         }
-        say("target:   ", dir,
-            if (identical(dir, cand)) "  (inside the package)" else "  (user cache)")
+        dir <- file.path(inla.cache.dir(), resolved)
+        if (!inla.dir.writable(dir)) {
+            stop("Cannot write to the binary cache at ", dir,
+                 ".\n  Set R_USER_CACHE_DIR to a writable location, or pass dir=.",
+                 call. = FALSE)
+        }
+        say("target:   ", dir, "  (user cache)")
     }
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -331,106 +354,18 @@
         say("binary answers -ping")
     }
 
-    ## A stable "latest" entry beside the versioned ones (mirrors ~/R/*/default
-    ## and MKL's own .../mkl/latest), so a path saved in ~/.Rprofile survives a
-    ## new release instead of needing hand-editing every time one lands. Only
-    ## when following the latest release (a pinned tag means the caller wants
-    ## an exact, unmoving path) -- and never when `dir` itself is ALREADY named
-    ## "latest", which happens when the release-tag API call failed but the
-    ## download redirect still worked (see `resolved` above): there is nothing
-    ## to point at that is not already sitting at that name.
+    ## No "latest" entry. Each install lives under its own Version_* name.
     alive <- any(grepl("ALIVE", ping))
-    if (default.dir && alive && !identical(basename(dir), "latest")) {
-        latest <- file.path(dirname(dir), "latest")
-        ## Remove whatever is there, symlink or directory, and VERIFY it went.
-        ##
-        ## On Windows a directory symlink is a reparse point, and R's own
-        ## unlink() can fail on it:
-        ##     cannot delete reparse point ... mismatch between the tag
-        ##     specified in the request and the tag present
-        ## It warns and returns as if nothing happened, so the stale link
-        ## survived and the copy below wrote into a symlink, dying with the
-        ## unhelpful "more 'from' files than 'to' files".
-        ##
-        ## Which call succeeds depends on how the link was made (symlink or
-        ## junction) and on the Windows version, so try the plausible ones in
-        ## order and CHECK after each rather than trusting any single one.
-        ## Nothing here can be tested on Linux: the failure needs a reparse
-        ## point, so the Windows lane is the only real test.
-        ## Sys.readlink() returns "" for a real file, the target for a link,
-        ## and NA when the path does not exist. nzchar(NA) is TRUE, so the
-        ## obvious !nzchar(Sys.readlink(x)) test reports "still there" for a
-        ## path that is already gone. Handle the NA explicitly.
-        gone <- function() {
-            rl <- suppressWarnings(Sys.readlink(latest))
-            is_link <- !is.na(rl) && nzchar(rl)
-            !file.exists(latest) && !is_link
-        }
-        if (!gone()) suppressWarnings(unlink(latest, recursive = TRUE, force = TRUE))
-        if (!gone()) suppressWarnings(unlink(latest, force = TRUE))
-        if (!gone()) suppressWarnings(try(file.remove(latest), silent = TRUE))
-        if (!gone()) {
-            stop("could not replace the stable path '", latest, "'.\n",
-                 "  Delete it by hand and re-run: unlink(\"", latest, "\")\n",
-                 "  or, on Windows: rmdir \"", gsub("/", "\\\\", latest), "\"")
-        }
-        ## Relative target: the link (and the cache root, if the user ever
-        ## relocates it) keeps working without repointing.
-        ## suppressWarnings, not just tryCatch: on Windows file.symlink()
-        ## does not raise an error, it WARNS and returns FALSE. The warning is
-        ## deferred to the end of the session, so a user saw
-        ##     cannot symlink 'Version_...' to '.../latest', reason
-        ##     'A required privilege is not held by the client'
-        ## printed after a successful install, which reads like a failure. The
-        ## copy below handles it; there is nothing for anyone to act on.
-        ## INLA_STILES_NO_SYMLINK forces the copy branch below. It exists for
-        ## CI: the GitHub Windows runner is an ADMINISTRATOR (runneradmin) and
-        ## therefore holds SeCreateSymbolicLinkPrivilege, so the symlink always
-        ## succeeds there and the fallback that every ordinary Windows user
-        ## takes was never once executed in a test.
-        made <- if (nzchar(Sys.getenv("INLA_STILES_NO_SYMLINK"))) {
-            FALSE
-        } else {
-            suppressWarnings(
-                tryCatch(file.symlink(basename(dir), latest), error = function(e) FALSE))
-        }
-        if (!isTRUE(made)) {
-            ## Symlinks need a privilege Windows does not always grant; a
-            ## real copy costs disk (one release, ~100 MB) but always works.
-            ## dir and latest are always siblings (same parent), so copying
-            ## `dir` itself INTO dirname(latest) would try to create dir at
-            ## its own existing path -- a self-copy that corrupts it. Copy
-            ## CONTENTS into a freshly made "latest" instead.
-            say("symlink unavailable, copying to 'latest' instead")
-            dir.create(latest, recursive = TRUE, showWarnings = FALSE)
-            ## file.copy() needs `to` to be one EXISTING directory, otherwise it
-            ## pairs from/to elementwise and fails with "more 'from' files than
-            ## 'to' files", which says nothing about the real cause. Check it.
-            if (!dir.exists(latest)) {
-                stop("could not create the stable path '", latest, "'")
-            }
-            ok <- file.copy(list.files(dir, full.names = TRUE), latest,
-                            recursive = TRUE, copy.mode = TRUE)
-            if (!all(ok)) warning("copying to 'latest' was incomplete")
-        }
-        ## bin[1] already reflects the inla.run substitution above; keep that
-        ## choice, just reached through the stable name instead of the
-        ## version-pinned one.
-        bin[1] <- file.path(latest, substring(bin[1], nchar(dir) + 2L))
-        say("stable path: ", bin[1])
-    }
 
     ## Superseded releases serve nobody once a newer one has answered -ping:
     ## each is ~100 MB, and keeping them is how a cache quietly grows to
     ## gigabytes. Clean AFTER the ping, never before, and only in the default
     ## cache (a caller-supplied dir has siblings that are none of our
     ## business) when following the latest release (a pinned tag means the
-    ## caller manages versions deliberately). "latest" is never superseded --
-    ## it was just re-pointed above, or (the offline-fallback case) it IS the
-    ## live install -- either way it must survive this pass.
+    ## caller manages versions deliberately).
     if (default.dir && alive) {
         for (d in list.dirs(dirname(dir), recursive = FALSE)) {
-            if (!identical(basename(d), basename(dir)) && !identical(basename(d), "latest")) {
+            if (!identical(basename(d), basename(dir))) {
                 say("removing superseded ", basename(d))
                 unlink(d, recursive = TRUE)
             }
@@ -467,7 +402,7 @@
         cat("\nThis is outside the places INLA searches, so nothing will use it\n")
         cat("until you say so:\n\n")
         cat(sprintf('    inla.setOption(inla.call = "%s")\n', bin[1]))
-        cat("\nPut that line in ~/.Rprofile to keep it across restarts, or run\n")
+        cat("\nIt has to be set again in every session. To avoid that, run\n")
         cat("inla.stiles.install() with no dir to install where INLA looks.\n")
     } else {
         cat("\nDone. Check with inla.stiles.status().\n")
@@ -491,7 +426,8 @@
 #' @param verbose Print the report (default `TRUE`).
 #'
 #' @return Invisibly, a list with `inla.call`, `smtp`, `release`, `alive`,
-#'         `buildinfo` (character vector) and `cache` (installed releases).
+#'         `buildinfo` (character vector) and `installed` (every release found,
+#'         in the cache and in the package).
 #'
 #' @seealso [inla.stiles.install()]
 #' @rdname stiles.install
@@ -510,29 +446,30 @@
     if (length(call) != 1L || is.na(call) || !nzchar(call)) call <- NULL
     smtp <- tryCatch(inla.getOption("smtp"), error = function(e) NULL)
 
-    ## Both places a binary can live, and everything installed in either.
-    pkg <- tryCatch(find.package("INLA"), error = function(e) "")
-    pkg.base <- if (nzchar(pkg)) file.path(pkg, "stiles-binary") else ""
-    cache <- file.path(inla.cache.dir(), "stiles-binary")
-    installed <- c(
-        if (nzchar(pkg.base)) paste0(basename(list.dirs(pkg.base, recursive = FALSE)),
-                                     " (package)") else character(0),
-        paste0(basename(list.dirs(cache, recursive = FALSE)), " (cache)"))
+    ## Every place a binary can live, and everything installed in each.
+    bases <- inla.binary.bases()
+    cache <- inla.cache.dir()
+    installed <- unlist(lapply(bases, function(b) {
+        d <- inla.binary.dirs(b)
+        if (!length(d)) return(character(0))
+        where <- if (startsWith(b, cache)) "cache" else "package"
+        paste0(basename(d), " (", where, ")")
+    }))
 
-    ## Which of the two it came from, and which release. Both layouts are
+    ## Which base it came from, and which release. Every layout is
     ## <base>/<tag>/bin/<exe>, so the tag is two levels up and the base three.
     release <- NA_character_
     source <- if (!is.null(set)) "set in inla.call" else NA_character_
     if (!is.null(call) && file.exists(call)) {
         root <- dirname(dirname(call))
         base <- normalizePath(dirname(root), mustWork = FALSE)
-        if (identical(base, normalizePath(cache, mustWork = FALSE))) {
+        known <- normalizePath(bases, mustWork = FALSE)
+        if (base %in% known) {
             release <- basename(root)
-            if (is.na(source)) source <- "user cache"
-        } else if (nzchar(pkg.base) &&
-                   identical(base, normalizePath(pkg.base, mustWork = FALSE))) {
-            release <- basename(root)
-            if (is.na(source)) source <- "inside the package"
+            if (is.na(source)) {
+                source <- if (startsWith(base, normalizePath(cache, mustWork = FALSE)))
+                              "user cache" else "inside the package"
+            }
         } else if (is.na(source)) {
             source <- "elsewhere"
         }
@@ -616,7 +553,7 @@
                    binary.version = binary.version,
                    binary.required = binary.required,
                    binary.ok = ok,
-                   alive = alive, buildinfo = buildinfo, cache = installed))
+                   alive = alive, buildinfo = buildinfo, installed = installed))
 }
 
 #' @title Binary releases available to install
@@ -661,13 +598,9 @@
     if (length(pub) != length(tags)) pub <- rep(NA_character_, length(tags))
     if (!length(tags)) return(invisible(data.frame()))
 
-    ## Installed in EITHER place, not just the cache: the default target is
-    ## now the package itself.
-    pkg <- tryCatch(find.package("INLA"), error = function(e) "")
-    have <- basename(c(
-        if (nzchar(pkg)) list.dirs(file.path(pkg, "stiles-binary"), recursive = FALSE)
-        else character(0),
-        list.dirs(file.path(inla.cache.dir(), "stiles-binary"), recursive = FALSE)))
+    ## Installed anywhere a binary can live: the cache, where new installs go,
+    ## and the older layouts an earlier install may have used.
+    have <- basename(unlist(lapply(inla.binary.bases(), inla.binary.dirs)))
     ## Resolve, do not read the option: it is NULL on a healthy installation,
     ## so reading it marked nothing as in use.
     call <- tryCatch(inla.binary.path(check = FALSE), error = function(e) NULL)

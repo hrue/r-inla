@@ -1,3 +1,18 @@
+`inla.remote.script` <- function(what = c("inla.remote", "inla.submit")) {
+    ## What inla.call="remote" and "submit" translate into: the scripts in
+    ## inst/remote/, not inst/bin/remote/, which does not exist and so returned
+    ## "" and ran nothing. They are bash over ssh, so NULL on Windows.
+    what <- match.arg(what)
+    if (inla.os("windows")) {
+        return(NULL)
+    }
+    f <- system.file(file.path("remote", what), package = "INLA")
+    if (!nzchar(f)) {
+        stop("Missing from the installation: inst/remote/", what, call. = FALSE)
+    }
+    return(f)
+}
+
 `inla.call.no.remote` <- function() {
     ## return what is defined in options$inla.call except for 'remote', for
     ## which we revert back to the resolved binary. must = TRUE because the
@@ -56,6 +71,25 @@
     ## this function replaced it, so an unset inla.call means no binary at all.
     path <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
 
+    ## "remote" and "submit" are names inla() translates into its own scripts,
+    ## not binaries, so they are neither warned about nor returned as a path.
+    special <- c("remote", "inla.remote", "submit", "inla.submit")
+    if (!is.null(path) && is.character(path) && tolower(path[1]) %in% special) {
+        return(path[1])
+    }
+
+    ## A binary set here is used as given, with no version check. Say so once.
+    if (!is.null(path) && is.character(path) && nzchar(path[1])) {
+        key <- paste0(".binary.set.warned:", path[1])
+        e <- inla.get.inlaEnv()
+        if (!(exists(key, envir = e) && isTRUE(get(key, envir = e)))) {
+            assign(key, TRUE, envir = e)
+            warning("using the inla binary set in inla.call: ", path[1],
+                    "\n  Its version is not checked against the R package.",
+                    call. = FALSE)
+        }
+    }
+
     ## Nothing set? Look where inla.stiles.install() puts it.
     ##
     ## The option is normally set at attach time, or from the block the
@@ -81,19 +115,35 @@
         want <- if (!is.null(need) && nzchar(need)) {
             c(paste0("Version_", need), paste0("v", need))
         } else character(0)
-        bases <- character(0)
-        pkg <- tryCatch(find.package("INLA"), error = function(e) "")
-        if (nzchar(pkg)) bases <- file.path(pkg, "stiles-binary")
-        bases <- c(bases, file.path(inla.cache.dir(), "stiles-binary"))
-        roots <- character(0)
-        for (b in bases) {
-            roots <- c(roots, file.path(b, want), file.path(b, "latest"),
-                       Sys.glob(file.path(b, "*")))
+        ## The declared version in ANY location beats a mismatch in any other,
+        ## so the exact match is searched everywhere before any fallback.
+        bases <- inla.binary.bases()
+        exact <- as.vector(t(outer(bases, want, file.path)))
+        ## Newest first: taking the first hit gave the OLDEST. Tags are
+        ## zero-padded, so decreasing name order is version order.
+        other <- sort(unlist(lapply(bases, inla.binary.dirs)), decreasing = TRUE)
+        pick <- function(dirs) {
+            cand <- unlist(lapply(dirs, function(d)
+                c(Sys.glob(file.path(d, "bin", exe)), Sys.glob(file.path(d, exe)))))
+            cand <- cand[file.exists(cand) & !dir.exists(cand)]
+            if (length(cand)) cand[1] else NULL
         }
-        cand <- unlist(lapply(roots, function(d)
-            c(Sys.glob(file.path(d, "bin", exe)), Sys.glob(file.path(d, exe)))))
-        cand <- cand[file.exists(cand) & !dir.exists(cand)]
-        if (length(cand)) path <- cand[1]
+        path <- pick(exact)
+        if (is.null(path)) {
+            ## No binary for the declared version: warn once. The attach
+            ## message is not enough, it is skipped when R_CMD is set.
+            path <- pick(other)
+            if (!is.null(path) && !is.null(need) && nzchar(need)) {
+                key <- paste0(".binary.mismatch.warned:", path)
+                e <- inla.get.inlaEnv()
+                if (!(exists(key, envir = e) && isTRUE(get(key, envir = e)))) {
+                    assign(key, TRUE, envir = e)
+                    warning("no inla binary for INLA ", need, "; using ", path,
+                            ".\n  Run inla.stiles.install() to get the matching one.",
+                            call. = FALSE)
+                }
+            }
+        }
     }
 
 

@@ -553,14 +553,10 @@
     ownfun <- FALSE
     submit.id <- ""
 
-    ## No binary, no run. inla.getOption() returns NULL for inla.call when none
-    ## is installed, so that the other options stay usable on a fresh install;
-    ## the refusal belongs here, where the binary is about to be used, and it
-    ## names the command that fixes it. Without this the NULL reaches
-    ## inla.strcasecmp() below and fails as "argument is of length zero".
-    if (!is.function(inla.call) &&
-        (is.null(inla.call) || is.na(inla.call) ||
-         (nzchar(inla.call) && !file.exists(inla.call)))) {
+    ## A NULL or NA reaches inla.strcasecmp() below as "argument is of length
+    ## zero", so refuse it here. The file.exists() check waits until after the
+    ## special names are translated.
+    if (!is.function(inla.call) && (is.null(inla.call) || is.na(inla.call))) {
         stop("No inla binary is installed. Run 'inla.stiles.install()' to install one.",
              call. = FALSE)
     }
@@ -569,17 +565,37 @@
         ## in this case, the responsibility is with the user
         ownfun <- TRUE
     } else if (inla.strcasecmp(inla.call, "remote") ||
-               inla.strcasecmp(inla.call, "inla.remote") ||
-               length(grep("/inla.remote$", inla.call)) > 0) {
+               inla.strcasecmp(inla.call, "inla.remote")) {
+        ## The name translates to the script this package ships.
         remote <- TRUE
-        inla.call <- system.file("bin/remote/inla.remote", package = "INLA")
+        inla.call <- inla.remote.script("inla.remote")
+        if (is.null(inla.call)) {
+            stop("inla.call = \"remote\" is not supported on Windows.", call. = FALSE)
+        }
     } else if (inla.strcasecmp(inla.call, "submit") ||
-               inla.strcasecmp(inla.call, "inla.submit") ||
-               length(grep("/inla.submit$", inla.call)) > 0) {
+               inla.strcasecmp(inla.call, "inla.submit")) {
         remote <- TRUE
         submit <- TRUE
         submit.id <- paste(gsub("[ :]", "-", date()), "---", as.integer(runif(1, min = 1E8, max = 1E9 - 1)), sep = "")
-        inla.call <- system.file("bin/remote/inla.submit", package = "INLA")
+        inla.call <- inla.remote.script("inla.submit")
+        if (is.null(inla.call)) {
+            stop("inla.call = \"submit\" is not supported on Windows.", call. = FALSE)
+        }
+    } else if (length(grep("/inla.remote$", inla.call)) > 0) {
+        ## A path you set yourself. Use it as given: overwriting it here is how
+        ## a deliberately chosen script got replaced, or emptied.
+        remote <- TRUE
+    } else if (length(grep("/inla.submit$", inla.call)) > 0) {
+        remote <- TRUE
+        submit <- TRUE
+        submit.id <- paste(gsub("[ :]", "-", date()), "---", as.integer(runif(1, min = 1E8, max = 1E9 - 1)), sep = "")
+    }
+
+    ## Now that "remote" and "submit" have become real script paths, the file
+    ## must exist. Before the translation this refused inla.call="remote".
+    if (!ownfun && nzchar(inla.call) && !file.exists(inla.call)) {
+        stop("No inla binary is installed. Run 'inla.stiles.install()' to install one.",
+             call. = FALSE)
     }
 
     ## Need to merge with the defaults here.

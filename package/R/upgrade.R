@@ -1,13 +1,12 @@
 ### The upgrade utility
 
 #' Upgrade the INLA-package
-#' 
-#' Function to upgrade the `INLA`-package to the most recent version
-#' 
+#'
+#' Upgrades the `INLA` R package and then the matching inla-program.
+#'
 #' @aliases inla.upgrade inla.update
-#' @param ... `testing=TRUE` installs the newest release of any kind,
-#'   prereleases included, instead of the one marked "Latest" on GitHub.
-#'   The default installs the stable release.
+#' @param ... `testing=TRUE` installs from the `testing` branch of the install
+#'   repository instead of `master`.
 #' @return `inla.upgrade` returns nothing
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @seealso `update.packages`
@@ -38,52 +37,35 @@
     if (!is.logical(testing) || length(testing) != 1L || is.na(testing)) {
         stop("`testing` must be TRUE or FALSE.", call. = FALSE)
     }
-    ## Install the RELEASE TARBALL, not the repository.
-    ##
-    ## remotes::install_github() unpacks the raw repository, which carries ~211
-    ## symlinks (the documentation PDFs, inst/include, build-configs). Windows
-    ## tar.exe cannot create a symlink without Developer Mode or admin rights,
-    ## so on Windows the extraction aborts with "Invalid argument" once per
-    ## symlink and the install never starts. R CMD build follows symlinks and
-    ## stores real files, so the tarball attached to each release has none of
-    ## them and installs anywhere with no special privileges.
-    ##
-    ## Falls back to install_github when no tarball is published for the
-    ## newest release (older releases predate it), which is the old behaviour.
-    repo <- inla.repo()
-    url <- tryCatch({
-        ## stable  = the release carrying GitHub's "Latest" badge, which skips
-        ##           prereleases and can be pointed at any older build.
-        ## testing = the newest release of any kind. /releases is ordered
-        ##           newest first and does not skip prereleases.
-        api <- if (testing) {
-            paste0("https://api.github.com/repos/", repo, "/releases?per_page=1")
-        } else {
-            paste0("https://api.github.com/repos/", repo, "/releases/latest")
-        }
-        js <- paste(readLines(api, warn = FALSE), collapse = "")
-        m <- regmatches(js, gregexpr('"browser_download_url"[^"]*"[^"]+"', js))[[1]]
-        u <- sub('.*"([^"]+)"$', "\\1", m)
-        u <- grep("/INLA_.*\\.tar\\.gz$", u, value = TRUE)
-        if (length(u)) u[1] else NULL
-    }, error = function(e) NULL, warning = function(w) NULL)
+    ## The R package comes from the install repository, whose root IS the
+    ## package: no subdir, and none of the symlinks that make Windows tar.exe
+    ## abort. `testing` selects the branch there.
+    repo <- inla.install.repo()
+    ref  <- if (testing) "testing" else "master"
 
-    if (!is.null(url)) {
-        cat("\nInstalling the R package from the newest release:\n  ", url, "\n\n")
-        f <- file.path(tempdir(), basename(url))
-        utils::download.file(url, f, mode = "wb", quiet = FALSE)
-        utils::install.packages(f, repos = NULL, type = "source")
-        return (invisible())
+    if (!requireNamespace("remotes", quietly = TRUE)) {
+        stop("package 'remotes' is needed here. install.packages(\"remotes\")",
+             call. = FALSE)
     }
-
-    cat('\nNo release tarball found; falling back to GitHub.\n')
-    ## subdir = "package", NOT "rinla": the generated source archives no longer
-    ## carry rinla/ (it holds the symlinks that make Windows tar.exe abort).
-    ## package/ is the same sources with the symlinks resolved, so this works on
-    ## every platform and no longer needs Developer Mode.
-    cat('Run remotes::install_github("', repo, '", subdir = "package", ref = "master")\n', sep = "")
+    cat('\nInstalling the R package:\n  remotes::install_github("', repo,
+        '", ref = "', ref, '")\n', sep = "")
     cat("If you have 'library(INLA)' in your '~/.Rprofile',  this will fail...\n\n")
-    remotes::install_github(repo, subdir = "package", ref = "master")
+    remotes::install_github(repo, ref = ref)
+
+    ## The binary belongs to the R package version, so it is refreshed here too.
+    ## In a separate R process: this session still holds the namespace that was
+    ## loaded before the upgrade, and would install the binary for that version.
+    cat("\nInstalling the matching inla-program:\n\n")
+    rbin <- file.path(R.home("bin"), if (.Platform$OS.type == "windows") "R.exe" else "R")
+    st <- tryCatch(
+        system2(rbin, c("--vanilla", "-q", "-e", shQuote("INLA::inla.stiles.install()")),
+                env = paste0("R_LIBS=",
+                             paste(.libPaths(), collapse = .Platform$path.sep))),
+        error = function(e) 1L)
+    if (!identical(as.integer(st), 0L)) {
+        cat("\nThe inla-program was NOT installed. Restart R and run\n",
+            "  INLA::inla.stiles.install()\n", sep = "")
+    }
     return (invisible())
 }
 
