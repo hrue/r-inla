@@ -427,6 +427,9 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(INLA_WITH_LIBR)
 		printf("\t\tCompiled with -DINLA_WITH_LIBR\n");
 #endif
+#if defined(INLA_WITH_LIBR_DLOPEN)
+		printf("\t\tCompiled with -DINLA_WITH_LIBR_DLOPEN\n");
+#endif
 #if defined(INLA_WITH_MUPARSER)
 		printf("\t\tCompiled with -DINLA_WITH_MUPARSER\n");
 #endif
@@ -454,6 +457,25 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(INLA_WITH_SIMDE)
 		printf("\t\tCompiled with -DINLA_WITH_SIMDE\n");
 #endif
+#if defined(INLA_WITH_CLONE_TARGETS)
+		printf("\t\tCompiled with -DINLA_WITH_CLONE_TARGETS\n");
+#endif
+#if defined(INLA_WITH_EXTERNAL_PACKAGE)
+		printf("\t\tCompiled with -DINLA_WITH_EXTERNAL_PACKAGES\n");
+#endif
+#if defined(INLA_WITH_MVEC)
+		printf("\t\tCompiled with -DINLA_WITH_MVEC\n");
+#endif
+#if defined(INLA_WITH_OPENSSL)
+		printf("\t\tCompiled with -DINLA_WITH_OPENSSL\n");
+#endif
+#if defined(INLA_WITHOUT_FAST_LGAMMA)
+		printf("\t\tCompiled with -DINLA_WITHOUT_FAST_LGAMMA\n");
+#endif
+#if defined(INLA_WITH_COLOR)
+		printf("\t\tCompiled with -DINLA_WITH_COLOR\n");
+#endif
+		
 #if defined(__x86_64__)
 		printf("\t\tCPU feature SSE     availble? %s\n", __builtin_cpu_supports("sse") ? "YES" : "NO");
 		printf("\t\tCPU feature SSE2    availble? %s\n", __builtin_cpu_supports("sse2") ? "YES" : "NO");
