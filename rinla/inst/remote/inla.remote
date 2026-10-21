@@ -19,8 +19,6 @@ RemoteHost=inla.kaust.edu.sa
 RemoteUser=$USER
 Port=$SSHDefaultPort
 sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
-COMPRESS="zstd -T0 -z"
-UNCOMPRESS="zstd -T0 -d"
 
 if [ -r "$INIFILE" ]; then
     source "$INIFILE"
@@ -43,6 +41,24 @@ if $(echo $args | awk '$0 ~ /(^|[ \t])-v($|[ \t])/{exit 0};{exit 1}'); then
 	echo " *** Run $RemoteINLA at $RemoteUser@$RemoteHost" 
     } 1>&2
 fi
+
+comp=$(ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "if type --path zstd >/dev/null 2>&1; then echo COMPRESS zstd; elif type --path pigz >/dev/null 2>&1; then echo COMPRESS pigz; elif type --path gzip >/dev/null 2>&1; then echo COMPRESS gzip; else echo COMPRESS compress; fi" | grep ^COMPRESS | awk '{print $2}')
+## if '$comp' does not exists locally, fallback to default = gzip
+type --path $comp >/dev/null 2>&1 || comp=gzip
+case "$comp" in
+     zstd)
+        COMPRESS="zstd -T0 -z"
+     	UNCOMPRESS="zstd -T0 -d";;
+     pigz)
+	COMPRESS="pigz -p 0 -c";
+	UNCOMPRESS="pigz -d -c";;
+     gzip)
+	COMPRESS="gzip -c"
+	UNCOMPRESS="gzip -d -c";;
+     *)
+	COMPRESS="compress -c"
+	UNCOMPRESS="uncompress -c";;
+esac
 
 TMP=$(maketemp)
 {
