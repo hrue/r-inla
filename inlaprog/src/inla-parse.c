@@ -458,7 +458,13 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tCompiled with -DINLA_WITH_SIMDE\n");
 #endif
 #if defined(INLA_WITH_CLONE_TARGETS)
-		printf("\t\tCompiled with -DINLA_WITH_CLONE_TARGETS\n");
+		printf("\t\tCompiled with -DINLA_WITH_CLONE_TARGETS");
+		const char *aa[] = { INLA_CLONE_TARGETS };
+		size_t count = sizeof(aa) / sizeof(aa[0]);
+		for (size_t k = 0; k < count; k++) {
+			printf(" %s", aa[k]);
+		}
+		printf("\n");
 #endif
 #if defined(INLA_WITH_EXTERNAL_PACKAGE)
 		printf("\t\tCompiled with -DINLA_WITH_EXTERNAL_PACKAGES\n");
