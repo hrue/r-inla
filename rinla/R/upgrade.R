@@ -2,22 +2,22 @@
 
 #' Upgrade the INLA-package
 #'
-#' Upgrades the `INLA` R package and then the matching inla-program.
+#' Upgrades the `INLA` R package and then the inla-program.
 #'
 #' @aliases inla.upgrade inla.update
-#' @param ... `testing=TRUE` installs from the `testing` branch of the install
-#'   repository instead of `master`.
+#' @param ... `testing=TRUE` installs the newest inla-program release,
+#'   pre-releases included; the default installs the one marked Latest on
+#'   GitHub. The R package is the latest from the install repository either
+#'   way.
 #' @return `inla.upgrade` returns nothing
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @seealso `update.packages`
 #' @rdname upgrade
 #' @export
 `inla.update` <- function(...) {
-    ## Same two channels as inla.stiles.install(), so the R package and the
-    ## binary can be kept on the same one. They are separate downloads: this
-    ## chooses which RELEASE's R tarball to install, the tag there chooses
-    ## which release's binary. Mixing them is allowed (the version check then
-    ## reports the mismatch) but rarely wanted.
+    ## The R package is always the latest from the install repository. The
+    ## binary follows the channel: the release marked Latest on GitHub, or
+    ## with testing = TRUE the newest one, pre-releases included.
     args <- list(...)
     ## Reject unknown names rather than drop them. A value read out of `...`
     ## is invisible when misspelled, so inla.update(testng = TRUE) would
@@ -39,11 +39,11 @@
     }
     ## The R package comes from the install repository, whose root IS the
     ## package: no subdir, and none of the symlinks that make Windows tar.exe
-    ## abort. `testing` selects the branch there.
+    ## abort.
     repo <- inla.install.repo()
     ## "HEAD" is the repository's default branch (main); "master" does not
     ## exist there and gave a 404.
-    ref  <- if (testing) "testing" else "HEAD"
+    ref  <- "HEAD"
 
     if (!requireNamespace("remotes", quietly = TRUE)) {
         stop("package 'remotes' is needed here. install.packages(\"remotes\")",
@@ -57,10 +57,15 @@
     ## The binary belongs to the R package version, so it is refreshed here too.
     ## In a separate R process: this session still holds the namespace that was
     ## loaded before the upgrade, and would install the binary for that version.
-    cat("\nInstalling the matching inla-program:\n\n")
+    ## channel= only if the package just installed knows the argument: until
+    ## a release carries it, the subprocess runs the older function.
+    ch <- if (testing) "testing" else "stable"
+    call <- paste0("f <- INLA::inla.stiles.install; ",
+                   "if ('channel' %in% names(formals(f))) f(channel = '", ch, "') else f()")
+    cat("\nInstalling the inla-program (", ch, "):\n\n", sep = "")
     rbin <- file.path(R.home("bin"), if (.Platform$OS.type == "windows") "R.exe" else "R")
     st <- tryCatch(
-        system2(rbin, c("--vanilla", "-q", "-e", shQuote("INLA::inla.stiles.install()")),
+        system2(rbin, c("--vanilla", "-q", "-e", shQuote(call)),
                 env = paste0("R_LIBS=",
                              paste(.libPaths(), collapse = .Platform$path.sep))),
         error = function(e) 1L)
