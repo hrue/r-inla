@@ -41,7 +41,9 @@
     ## package: no subdir, and none of the symlinks that make Windows tar.exe
     ## abort. `testing` selects the branch there.
     repo <- inla.install.repo()
-    ref  <- if (testing) "testing" else "master"
+    ## "HEAD" is the repository's default branch (main); "master" does not
+    ## exist there and gave a 404.
+    ref  <- if (testing) "testing" else "HEAD"
 
     if (!requireNamespace("remotes", quietly = TRUE)) {
         stop("package 'remotes' is needed here. install.packages(\"remotes\")",
