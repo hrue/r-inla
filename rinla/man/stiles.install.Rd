@@ -9,6 +9,7 @@
 inla.stiles.install(
   dir = NULL,
   force = FALSE,
+  channel = NULL,
   smtp = TRUE,
   verbose = TRUE
 )
@@ -23,6 +24,11 @@ anywhere else has to be named with \code{inla.setOption(inla.call = ...)}
 before anything uses it; the function prints that line.}
 
 \item{force}{Re-download even when the binary is already installed.}
+
+\item{channel}{\code{NULL} (default) for the release this package version names
+(\code{Config/INLA/BinaryVersion}); \code{"stable"} for the release
+marked Latest on GitHub; \code{"testing"} for the newest release,
+pre-releases included.}
 
 \item{smtp}{Also select the sTiles sparse-matrix backend (default \code{TRUE}).}
 

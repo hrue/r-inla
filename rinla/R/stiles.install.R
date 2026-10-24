@@ -91,6 +91,10 @@
 #'                `inla.setOption(inla.call = ...)` before anything uses it;
 #'                the function prints that line.
 #' @param force   Re-download even when the binary is already installed.
+#' @param channel `NULL` (default) for the release this package version names
+#'                (`Config/INLA/BinaryVersion`); `"stable"` for the release
+#'                marked Latest on GitHub; `"testing"` for the newest release,
+#'                pre-releases included.
 #' @param smtp    Also select the sTiles sparse-matrix backend (default `TRUE`).
 #' @param verbose Report each step.
 #'
@@ -109,6 +113,7 @@
 
 `inla.stiles.install` <- function(dir = NULL,
                                   force = FALSE,
+                                  channel = NULL,
                                   smtp = TRUE,
                                   verbose = TRUE) {
     say <- function(...) if (verbose) cat("*", paste0(..., collapse = ""), "\n")
@@ -215,7 +220,16 @@
     }
 
     resolved <- NULL
-    {
+    if (!is.null(channel)) {
+        channel <- match.arg(channel, c("stable", "testing"))
+        ## stable: the release marked Latest, which the maintainer sets on the
+        ## release page. testing: the newest one, pre-releases included; the
+        ## list comes newest first.
+        resolved <- tag_name_of(paste0("https://api.github.com/repos/", repo,
+                                       if (channel == "stable") "/releases/latest"
+                                       else "/releases?per_page=1"))
+        if (!is.null(resolved)) say("release:  ", resolved, "  (", channel, ")")
+    } else {
         ## Default to the release that MATCHES THIS R PACKAGE, not merely the
         ## newest one. The binary and the package are two halves of one
         ## release: pairing 26.09.03 with a binary from a later release is how
