@@ -122,9 +122,14 @@
         ## Newest first: taking the first hit gave the OLDEST. Tags are
         ## zero-padded, so decreasing name order is version order.
         other <- sort(unlist(lapply(bases, inla.binary.dirs)), decreasing = TRUE)
+        ## Then "latest", where the release build unpacks the binary it renders
+        ## the vignettes with, and where older installs put it.
+        other <- c(other, file.path(bases, "latest"))
         pick <- function(dirs) {
-            cand <- unlist(lapply(dirs, function(d)
-                c(Sys.glob(file.path(d, "bin", exe)), Sys.glob(file.path(d, exe)))))
+            ## as.character: with no dirs unlist() gives NULL, and
+            ## file.exists(NULL) is an error, not FALSE.
+            cand <- as.character(unlist(lapply(dirs, function(d)
+                c(Sys.glob(file.path(d, "bin", exe)), Sys.glob(file.path(d, exe))))))
             cand <- cand[file.exists(cand) & !dir.exists(cand)]
             if (length(cand)) cand[1] else NULL
         }
