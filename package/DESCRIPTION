@@ -73,8 +73,8 @@ VignetteBuilder: knitr
 BuildVignettes: true
 LazyData: true
 License: MIT + file LICENSE
-Version: 26.10.20
-Config/INLA/BinaryVersion: 26.10.20
+Version: 26.10.24
+Config/INLA/BinaryVersion: 26.10.24
 Encoding: UTF-8
 StagedInstall: no
 Collate: 
