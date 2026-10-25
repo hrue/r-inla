@@ -17,8 +17,6 @@ RemoteHost=inla.kaust.edu.sa
 RemoteUser=$USER
 Port=$SSHDefaultPort
 sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
-COMPRESS="zstd -T0 -z"
-UNCOMPRESS="zstd -T0 -d"
 
 if [ -r "$INIFILE" ]; then
     source "$INIFILE"
@@ -34,11 +32,47 @@ dir=${model%/*}
 rdir=tmp/.inla.remote/inla-remote-$(date|tr '[ :]' -)-$RANDOM$RANDOM
 args=$(echo "$@" | awk '{$NF="";print}')
 
+## find compression program, we list most wanted first, etc. 
+## first, find the ones available on the remote host
+alt=$(ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "
+	   if type --path zstd >/dev/null 2>&1; then echo COMPRESS zstd; fi;
+	   if type --path pigz >/dev/null 2>&1; then echo COMPRESS pigz; fi;
+	   if type --path gzip >/dev/null 2>&1; then echo COMPRESS gzip; fi;
+	   if type --path compress >/dev/null 2>&1; then echo COMPRESS compress; fi;" | \
+	   	grep ^COMPRESS | awk '{print $2}')
+
+## then we pick the first one of those, that is also available on the local host
+comp=$(for a in $alt; do if type --path $a >/dev/null 2>&1; then echo $a; break; fi; done)
+comp=${comp:=cat}
+
+## make the cmd's 
+case "$comp" in
+     zstd)
+        COMPRESS="zstd -T0 -z"
+     	UNCOMPRESS="zstd -T0 -d";;
+     pigz)
+	COMPRESS="pigz -p 0 -c";
+	UNCOMPRESS="pigz -d -c";;
+     gzip)
+	COMPRESS="gzip -c"
+	UNCOMPRESS="gzip -d -c";;
+     compress)
+	COMPRESS="compress -c"
+	UNCOMPRESS="uncompress -c";;
+     cat|*)
+	COMPRESS="cat"
+	UNCOMPRESS="cat";;
+esac
+
 verbose=0
 if $(echo $args | awk '$0 ~ /(^|[ \t])-v($|[ \t])/{exit 0};{exit 1}'); then
     {
 	verbose=1
-	echo " *** Run $RemoteINLA at $RemoteUser@$RemoteHost" 
+	echo ""
+	echo " *** $(date)"
+	echo " *** Run $RemoteINLA at $RemoteUser@$RemoteHost"
+	echo " *** Compression[$comp]" 
+	echo ""
     } 1>&2
 fi
 
@@ -70,7 +104,6 @@ envfile="environment"
 tar cfm - . 2>/dev/null | $COMPRESS | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
     mkdir -p $rdir; \
     cd $rdir; \
-    eval $PardisoLoad; \
     $UNCOMPRESS | tar xfm - 2>/dev/null ; \
     source $envfile; \
     $RemoteINLA $args Model.ini < /dev/null"
@@ -82,4 +115,9 @@ if [ $verbose == 1 ]; then
    } 1>&2
 fi
 
-ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "cd $rdir; tar cfm - results.files-* 2>/dev/null | $COMPRESS ; cd; rm -rf $rdir" | $UNCOMPRESS | tar xfm - 2>/dev/null 
+ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "
+    cd $rdir;
+    tar cfm - results.files-* 2>/dev/null | $COMPRESS ;
+    cd;
+    rm -rf $rdir" \
+    | $UNCOMPRESS | tar xfm - 2>/dev/null 

@@ -2225,6 +2225,7 @@
     }
 
     my.time.used[2] <- Sys.time()
+    Sys.setenv(INLA_VERSION = paste0("Version_", packageVersion("INLA")))
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (ownfun || nchar(inla.call) > 0) {
         try_catch_result <- tryCatch({
@@ -2911,6 +2912,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     mfiles <- shQuote(models)
     timeout.used <- Sys.time()
 
+    Sys.setenv(INLA_VERSION = paste0("Version_", packageVersion("INLA")))
     env <- inla.run.environment.set()
     try_catch_result <- tryCatch({
         if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
