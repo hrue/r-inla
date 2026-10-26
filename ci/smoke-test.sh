@@ -7,7 +7,7 @@
 ## Knobs: PREFIX (default: <repo>/local) -- must match ci/build.sh.
 set -e -o pipefail
 
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 PREFIX=${PREFIX:-$ROOT/local}
 INLA_BIN=$PREFIX/bin/inla
 

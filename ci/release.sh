@@ -1,33 +1,40 @@
 #!/usr/bin/env bash
 ## Cut a release from the current branch in one command.
 ##
-##   bash ci/release.sh             version + NEWS + commit + push, wait for
-##                                  r-package to go green, tag, wait for the
-##                                  release job, check the published assets
-##   bash ci/release.sh --dry-run   say what would happen, change nothing
-##   bash ci/release.sh -y          no confirmation prompt before the push
-##   bash ci/release.sh --news "Fixed X" --news "Faster Y"
-##                                  NEWS bullets; without it they are the commit
-##                                  subjects since the last release
-##   bash ci/release.sh --no-wait-release
-##                                  stop once the tag is pushed
-##   bash ci/release.sh --mirror-only
-##                                  only copy the newest release into the
-##                                  install repository (see below)
-##   bash ci/release.sh --no-mirror leave the install repository alone
+## Steps:
+##   git checkout feature/ci && git pull --rebase origin feature/ci
+##   bash ci/release.sh --dry-run          preview: version, NEWS, sTiles; changes nothing
+##   bash ci/release.sh --news "Fixed X"   release; answer y once, then it runs alone:
+##       commit version + NEWS, push, wait for r-package to go green, push the
+##       tag, wait for build-inla (it publishes the release), check the assets,
+##       copy the R package to r-inla/install. Ends with "done: <link>".
+##   If libstiles changed, release sTiles first.
+##   If devel has new commits: git merge origin/devel, then
+##   bash ci/sync-package.sh && git add -A package && git commit -m "resync package"
 ##
-## Last step: the released package goes to the install repository
-## (r-inla/install), whose root IS the package, so users install with
-## remotes::install_github("r-inla/install"). Skipped with a warning when
-## there is no push access to it, so it never blocks a release.
+## Options:
+##   --dry-run, -n        show what would happen, change nothing
+##   --news "text"        a NEWS line; repeat for more. Default: commit subjects
+##                        since the last release
+##   -y, --yes            no y/N prompt before the push
+##   --no-mirror          leave r-inla/install alone
+##   --mirror-only        only copy the newest release to r-inla/install
+##   --no-wait-release    stop once the tag is pushed
+##   -h, --help           this text
 ##
-## Safe to re-run after a failure or Ctrl-C: an untagged version is reused, a
-## NEWS section is never added twice, and a commit or tag already pushed is
-## not pushed again. A red r-package run stops before the tag; fix, commit,
-## push, and run this again.
+## If it stops:
+##   r-package red     fix, commit, push, run again (same version)
+##   build-inla red    gh run rerun <id> --failed (or fix and commit), run again
+##   Ctrl-C, closed    run again; it resumes and never pushes anything twice
 ##
-## Needs gh, logged in with push rights to the repository.
+## On the release page: "Latest" is what inla.update() installs, a
+## "Pre-release" reaches only inla.update(testing = TRUE).
+##
+## Needs gh (logged in, push rights) and rsync.
 set -euo pipefail
+## A CDPATH in the caller's shell makes cd print the directory, which corrupts
+## every ROOT=$(cd ... && pwd) in the scripts this one calls.
+unset CDPATH
 
 YES=0
 DRY=0
@@ -51,13 +58,18 @@ while [ $# -gt 0 ]; do
         --news)            shift; NEWS+=("${1:-}") ;;
         --no-mirror)       MIRROR=0 ;;
         --mirror-only)     MIRROR_ONLY=1 ;;
-        -h|--help)         sed -n '2,30p' "$0"; exit 0 ;;
+        -h|--help)         awk 'NR > 1 && /^##/ { sub(/^## ?/, ""); print; next } NR > 1 { exit }' "$0"; exit 0 ;;
         *) echo "unknown argument: $1" >&2; exit 2 ;;
     esac
     shift
 done
 
 say()  { printf '==> %s\n' "$*"; }
+## Release versions as pushed to origin. Local-only tags (a typo, a test) are
+## not releases and must not count as the newest one.
+release_versions() {
+    git ls-remote --tags --refs origin 'Version_*' | sed 's#.*refs/tags/Version_##'
+}
 die()  { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 version() { sed -n 's/^Version:[[:space:]]*//p' rinla/DESCRIPTION | head -1; }
 ## Exact match: a section for 26.10.24-1 is not one for 26.10.24.
@@ -95,7 +107,13 @@ mirror_push() {
     [ "$(sed -n 's/^Version:[[:space:]]*//p' "$tmp/src/package/DESCRIPTION")" = "$ver" ] \
         || die "package/DESCRIPTION at $tag is not version $ver"
 
-    url=${INLA_INSTALL_URL:-https://github.com/$MIRROR_REPO.git}
+    ## Same protocol as origin, so the credentials that push the release
+    ## also push here (an https URL prompts for a password over SSH setups).
+    case "$(git remote get-url origin)" in
+        git@*|ssh://*) url=git@github.com:$MIRROR_REPO.git ;;
+        *)             url=https://github.com/$MIRROR_REPO.git ;;
+    esac
+    url=${INLA_INSTALL_URL:-$url}
     def=${INLA_INSTALL_BRANCH:-$(gh repo view "$MIRROR_REPO" --json defaultBranchRef --jq .defaultBranchRef.name)}
     git clone -q --depth 1 --branch "$def" "$url" "$tmp/mirror"
     local ex=(--exclude=/.git)
@@ -137,7 +155,7 @@ git diff --quiet && git diff --cached --quiet \
 
 if [ "$MIRROR_ONLY" = 1 ]; then
     git fetch -q --tags origin
-    T=$(git tag -l 'Version_*' | sed 's/^Version_//' | sort -V | tail -1)
+    T=$(release_versions | sort -V | tail -1)
     [ -n "$T" ] || die "no release tag"
     gh release view "Version_$T" -R "$REPO" >/dev/null 2>&1 || die "Version_$T has no published release"
     mirror_ok || die "no push access to $MIRROR_REPO"
@@ -167,7 +185,7 @@ fi
 ## Tagged at the tip of the branch with no release yet: the tag build failed
 ## or is still running. Resume there instead of cutting another version.
 V=$(version)
-NEWEST=$(git tag -l 'Version_*' | sed 's/^Version_//' | sort -V | tail -1)
+NEWEST=$(release_versions | sort -V | tail -1)
 NEWEST_TAG=${NEWEST:+Version_$NEWEST}
 RESUME=0
 if [ "$(git rev-parse -q --verify "refs/tags/Version_$V^{commit}" || true)" = "$(git rev-parse HEAD)" ] \

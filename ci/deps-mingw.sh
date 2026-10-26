@@ -8,7 +8,7 @@
 set -e
 
 ## Versions are pinned in one file the maintainer owns.
-_ROOT=$(cd "$(dirname "$0")/.." && pwd)
+_ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 [ -f "$_ROOT/ci/toolchain.env" ] && . "$_ROOT/ci/toolchain.env"
 
 TRIPLET=${MINGW_TRIPLET:-x86_64-w64-mingw32ucrt}

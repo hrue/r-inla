@@ -121,7 +121,7 @@ echo "OK: macOS deps ready (brew + CRAN R + $DEPS)"
 ## INLA's nested parallelism; this build never threads itself. Same
 ## recipe as the sTiles Intel lane, so both sides of the pairing sit on
 ## the same BLAS behavior.
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 if [ "$(uname -m)" = x86_64 ] && [ ! -f "$ROOT/local/openblas/lib/libopenblas.dylib" ]; then
     for attempt in 1 2 3; do
         git clone --depth 1 --branch v0.3.29 \

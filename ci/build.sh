@@ -17,7 +17,7 @@
 ##   WITH_STILES 1 to link libstiles (see ci/fetch-stiles.sh)  default: 0
 set -e -o pipefail
 
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 
 ## Toolchain and dependency versions live in one file that the maintainer
 ## owns (ci/toolchain.env); the sTiles CI fetches the same file, so both

@@ -7,7 +7,7 @@
 ## into R's lib dir so the binary runs without environment setup.
 set -e -o pipefail
 
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 ## Shared versions (MIMALLOC_VERSION and friends); build.sh has sourced this
 ## from the start, this script never did, so any key used here was silently
 ## empty.

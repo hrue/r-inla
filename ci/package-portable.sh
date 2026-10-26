@@ -10,7 +10,7 @@
 ## first time an rgeneric model is used.
 set -e -o pipefail
 
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 PREFIX=${PREFIX:-$ROOT/local}
 OUT=$ROOT/dist
 BIN=$PREFIX/bin/inla
