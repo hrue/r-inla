@@ -14,9 +14,6 @@ __BEGIN_DECLS
 /* 
  *
  */
-#       include "GMRFLib/GMRFLib.h"
-#       include "inla.h"
-#       include "my.h"
 // ***
 void dtweedie_init_cache(void);
 void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens);

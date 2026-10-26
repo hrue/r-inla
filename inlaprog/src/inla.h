@@ -11,11 +11,22 @@
 #              define __END_DECLS			       /* empty */
 #       endif
 
+#       include <math.h>
+#       include <stddef.h>
+#       include <stdint.h>
+#       include <stdio.h>
+#       include <stdlib.h>
+#       include <string.h>
+#       include <unistd.h>
+#       include <omp.h>
+
+
 __BEGIN_DECLS
 //
 #       if !defined(_GNU_SOURCE)
 #              define _GNU_SOURCE
 #       endif
+
 #       include "fast-math/special-functions.h"
 #       include "iniparser.h"
 #       include "dictionary.h"
@@ -29,12 +40,16 @@ __BEGIN_DECLS
 #       include "cgeneric-mapper.h"
 #       include "rmath.h"
 #       include "bessel.h"
+#       include "my-fix.h"
 #       include "my.h"
 #       include "eval.h"
 #       include "R-interface.h"
 #       include "spde.h"
 #       include "spde2.h"
 #       include "spde3.h"
+#       include "tweedie.h"
+#       include "tweedie2.h"
+
 #       define ONE_mexp(_x) (-expm1(_x))		       /* 1-exp(_x) */
 #       define LOG_1mp(_x) log1p(-(_x))			       /* log(1-(_x)) */
 #       define LOG_p(_x) log1p((_x) - 1.0)

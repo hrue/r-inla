@@ -1,4 +1,3 @@
-#include "GMRFLib/GMRFLib.h"
 #include "inla.h"
 
 int my_file_exists(const char *filename)

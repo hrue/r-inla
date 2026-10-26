@@ -24,10 +24,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#if defined(__cplusplus)
+extern "C" {
+#endif	
 #include "iniparser.h"
 #include "my-fix.h"
 #include "strlib.h"
-
+#if defined(__cplusplus)
+}
+#endif
+	
 #define INI_INVALID_KEY     ((char*)-1)
 #define MY_STRING_LOWERCASE(a) my_strlwc(a)
 

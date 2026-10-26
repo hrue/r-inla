@@ -6,18 +6,14 @@
 #       define _GNU_SOURCE 1
 #endif
 
-#include "GMRFLib/GMRFLib.h"
-
-#if !defined(ISNAN)
-#       define ISNAN(x) (isnan(x)!=0)
-#endif
+//#if !defined(ISNAN)
+//#       define ISNAN(x) (isnan(x)!=0)
+//#endif
 
 #if !defined(INLA_TAG)
 #       define INLA_TAG "devel"
 #endif
 
-#include <unistd.h>
-#include <stdlib.h>
 #if defined(_WIN32)
 #       include <windows.h>
 #       include <direct.h>
