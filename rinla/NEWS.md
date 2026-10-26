@@ -1,3 +1,6 @@
+# INLA 26.10.26
+* Minor code edits
+
 # INLA 26.10.24-1
 * Some code improvements
 
