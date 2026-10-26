@@ -1,3 +1,4 @@
+#include <math.h>
 #include <omp.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -14,8 +15,8 @@
 extern "C" {
 #       endif
 
-#       define EMPTY_FUNCTION_ERROR {						\
-		fprintf(stderr, "\n\n\n *** [%s] sTiles is not available in this build, abort()\n\n\n", __GMRFLib_FuncName); \
+#       define EMPTY_FUNCTION_ERROR {					\
+		LOG_ERROR("sTiles is not available in this build, abort()"); \
 		abort();						\
 	}
 

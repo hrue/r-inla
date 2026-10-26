@@ -1,15 +1,4 @@
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/hashP.h"
 
 #define GED_INIT 64
 #define GED_GROW 1024
@@ -78,16 +67,15 @@ int GMRFLib_ged_insert_graph(GMRFLib_ged_tp *ged, GMRFLib_graph_tp *graph, int a
 int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp *ged, GMRFLib_graph_tp *graph, int at_i_node, int at_j_node)
 {
 	if (graph) {
-		assert(at_i_node <= at_j_node);
+		Assert(at_i_node <= at_j_node);
 		// place this node first, so we get the memory set. otherwise, we cannot do the parallel loop.
 		// note that parallel loop only work in _ged_add(..,i,j) and i <= j
 		GMRFLib_ged_add(ged, graph->n - 1 + at_i_node, graph->n - 1 + at_j_node);
-		int nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
+		int nt = GMRFLib_openmp->max_threads_inner;
 
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < graph->n; i++) {
 			int ii = i + at_i_node;
-
 			GMRFLib_ged_add(ged, ii, i + at_j_node);
 			for (int jj = 0; jj < graph->nnbs[i]; jj++) {
 				int j = graph->nbs[i][jj];
@@ -106,14 +94,10 @@ int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp *ged, GMRFLib_graph_tp *graph, int 
 int GMRFLib_ged_build(GMRFLib_graph_tp **graph, GMRFLib_ged_tp *ged)
 {
 	GMRFLib_graph_tp *g = NULL;
-	int n, *nnbs = NULL, **nbs = NULL;
-
-	n = ged->n;
-	nbs = Calloc(n, int *);
-	nnbs = Calloc(n, int);
-
-	int nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
-
+	int n = ged->n;
+	int nt = GMRFLib_openmp->max_threads_inner;
+	int **nbs = Calloc(n, int *);
+	int *nnbs = Calloc(n, int);
 	for (int i = 0; i < n; i++) {
 		for (map_ii_storage * p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL;) {
 			if (p->key > i) {
@@ -136,7 +120,7 @@ int GMRFLib_ged_build(GMRFLib_graph_tp **graph, GMRFLib_ged_tp *ged)
 			for (j = 0, p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL; j++) { \
 				nbs[i][j] = p->key;			\
 			}						\
-			assert(j == nnbs[i]);				\
+			Assert(j == nnbs[i]);				\
 		} else {						\
 			nbs[i] = NULL;					\
 		}							\

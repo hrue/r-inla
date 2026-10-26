@@ -51,8 +51,8 @@ int test_ddot2(int n, double *x, double *y, double *z)
 		b_ref += x[i] * z[i];
 	}
 
-	assert(*a == a_ref);
-	assert(*b == b_ref);
+	Assert(*a == a_ref);
+	Assert(*b == b_ref);
 	printf("ddot2 pass\n");
 	return 1;
 }
@@ -102,7 +102,7 @@ int test_dsum(int n, double *x)
 		sum_ref += x[i];
 	}
 
-	assert(sum == sum_ref);
+	Assert(sum == sum_ref);
 	printf("dsum pass\n");
 	return 1;
 }
@@ -128,7 +128,7 @@ int test_dscale2(int n, double a, double *x, double *y)
 	for (int i = 0; i < n; i++) {
 		ok = ok && (y[i] == yy[i]);
 	}
-	assert(ok == 1 && "dscale2 does not pass");
+	Assert(ok == 1 && "dscale2 does not pass");
 	printf("dscale2 pass\n");
 	return 0;
 }
@@ -180,7 +180,7 @@ int test_is_sorted_double(int n, double *x)
 		for (int i = 0; i < n; i++)
 			printf("x[%1d] =  %g\n", i, x[i]);
 	}
-	assert(value == ref_value);
+	Assert(value == ref_value);
 	printf("is_sorted_double pass\n");
 	return 1;
 }
@@ -227,7 +227,7 @@ int test_is_sorted_int(int n, int *x)
 		ref_value = ref_value && (x[i + 1] >= x[i]);
 	}
 
-	assert(value == ref_value);
+	Assert(value == ref_value);
 	printf("is_sorted_int pass\n");
 	return 1;
 }
@@ -263,7 +263,7 @@ int test_zero_small(int n, double eps, double *x)
 			printf("x[%1d] = %g xx =  %g\n", i, x[i], xx[i]);
 		}
 	}
-	assert(ok && "zero_small test");
+	Assert(ok && "zero_small test");
 	printf("test_zero_test pass\n");
 	return 1;
 }
@@ -287,7 +287,7 @@ int test_isum(int n, int *x)
 	if (sum != ref_sum) {
 		printf("sum %d ref_sum %d\n", sum, ref_sum);
 	}
-	assert(sum == ref_sum && "isum failed");
+	Assert(sum == ref_sum && "isum failed");
 	printf("test_isum pass\n");
 #endif
 	return 0;
@@ -296,7 +296,7 @@ int test_isum(int n, int *x)
 
 int main(int argc, char **argv)
 {
-	assert(argc > 1 && "argc > 1");
+	Assert(argc > 1 && "argc > 1");
 	
 	int n = atoi(argv[1]);
 	int nn = (n < 16 ? 16 : n);

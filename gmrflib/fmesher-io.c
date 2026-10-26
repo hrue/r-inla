@@ -1,9 +1,3 @@
-#include <assert.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 #define VALID_WHENCE(whence) ((whence) == SEEK_SET || (whence) == SEEK_CUR || (whence) == SEEK_END)
@@ -13,7 +7,7 @@ int GMRFLib_is_fmesher_file(const char *filename, long int offset, int whence)
 	FILE *fp = NULL;
 
 	fp = fopen(filename, "rb");
-	assert(fp);
+	Assert(fp);
 	if (!fp) {
 		return !GMRFLib_SUCCESS;
 	}
@@ -43,10 +37,10 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	 * read a fmesher_file, starting from (offset,whence)
 	 */
 
-#define ERROR(msg)							\
+#define MY_ERROR(msg)							\
 	{								\
 		if (fp) fclose(fp);					\
-		fprintf(stderr, "\n\n%s:%1d: *** ERROR *** \n\t%s\n\n", __FILE__,  __LINE__,  msg); \
+		LOG_ERROR("%s", msg);					\
 		GMRFLib_ASSERT_RETVAL(1==0,  GMRFLib_EMISC, (GMRFLib_matrix_tp *)NULL);	\
 		exit(EXIT_FAILURE);					\
 		return (GMRFLib_matrix_tp *)NULL;			\
@@ -63,7 +57,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 			char *m = NULL;					\
 			GMRFLib_sprintf(&m, "Failed to read [%1u] elems of size [%1u] from file [%s], at position %ld\n", \
 					n, sizeof(type), filename, position); \
-			ERROR(m);					\
+			MY_ERROR(m);					\
 		}							\
 	}
 
@@ -80,13 +74,13 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	}
 
 	fp = fopen(filename, "rb");
-	assert(fp);
+	Assert(fp);
 	if (VALID_WHENCE(whence)) {
 		fseek(fp, offset, whence);
 	}
 	if (!fp) {
 		GMRFLib_sprintf(&msg, "Failed to open file [%s]", filename);
-		ERROR(msg);
+		MY_ERROR(msg);
 	}
 	if (verbose) {
 		printf("Open file to read [%s]\n", filename);
@@ -96,7 +90,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 
 	if (len_header < 8) {
 		GMRFLib_sprintf(&msg, "Header in file [%s] is only %1d (< 8) ints long.", filename, len_header);
-		ERROR(msg);
+		MY_ERROR(msg);
 	}
 
 	header = Calloc(len_header, int);
@@ -139,10 +133,10 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 
 	if (dense) {
 		if (symmetric || diagonal) {
-			ERROR(" (dense && (symmetric || diagonal)) is not yet implemented.");
+			MY_ERROR(" (dense && (symmetric || diagonal)) is not yet implemented.");
 		}
-		assert(general);
-		assert(elems == nrow * ncol);
+		Assert(general);
+		Assert(elems == nrow * ncol);
 
 		M->A = Calloc(elems, double);
 
@@ -255,7 +249,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 				M->j[k] = IMAX(ij[0], ij[1]);
 			}
 			if ((all_i_st_j && all_j_st_i) || (!all_i_st_j && !all_j_st_i)) {
-				ERROR("Not all entries satisfy all i >= j, or all j <= i, in the symmetric case. Do not know what to do...");
+				MY_ERROR("Not all entries satisfy all i >= j, or all j <= i, in the symmetric case. Do not know what to do...");
 			}
 
 			int nneq = 0;
@@ -287,13 +281,12 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 						kk++;
 					}
 				}
-				assert(kk == elems + nneq);
+				Assert(kk == elems + nneq);
 				M->elems += nneq;
 			}
 		}
 
-		GMRFLib_matrix_add_graph_and_hash(M, GMRFLib_OPENMP_NUM_THREADS_LEVEL());
-
+		GMRFLib_matrix_add_graph_and_hash(M, GMRFLib_openmp->max_threads_inner);
 		if (debug) {
 			double *A = Calloc(M->nrow * M->nrow, double);
 			int *iA = Calloc(M->nrow * M->nrow, int);
@@ -346,7 +339,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 		}
 	}
 #undef READ
-#undef ERROR
+#undef MY_ERROR
 
 	/*
 	 * add fileinfo 
@@ -368,10 +361,10 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 	 * write fmesher-file at (offset,whence).
 	 */
 
-#define ERROR(msg)							\
+#define MY_ERROR(msg)							\
 	{								\
 		if (fp) fclose(fp);					\
-		fprintf(stderr, "\n\n%s:%1d: *** ERROR *** \n\t%s\n\n", __FILE__,  __LINE__,  msg); \
+		LOG_ERROR("%s", msg);					\
 		GMRFLib_ASSERT_RETVAL(1==0,  GMRFLib_EMISC, !GMRFLib_SUCCESS);	\
 		exit(EXIT_FAILURE);					\
 		return 1;						\
@@ -386,7 +379,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 			char *m = NULL;					\
 			GMRFLib_sprintf(&m, "Failed to write [%1u] elems of size [%1u] to file [%s], at position %ld\n", \
 					n, sizeof(type), filename, ftell(fp)); \
-			ERROR(m);					\
+			MY_ERROR(m);					\
 		}							\
 	}
 
@@ -403,16 +396,16 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 
 	if (VALID_WHENCE(whence)) {
 		fp = fopen(filename, "ab");
-		assert(fp);
+		Assert(fp);
 		rewind(fp);
 		fseek(fp, offset, whence);
 	} else {
 		fp = fopen(filename, "wb");
-		assert(fp);
+		Assert(fp);
 	}
 	if (!fp) {
 		GMRFLib_sprintf(&msg, "Failed to open file [%s]", filename);
-		ERROR(msg);
+		MY_ERROR(msg);
 	}
 	if (verbose) {
 		printf("Open file to write[%s]\n", filename);
@@ -467,7 +460,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long 
 	fclose(fp);
 	Free(header);
 
-#undef ERROR
+#undef MY_ERROR
 #undef WRITE
 	return (0);
 }
@@ -483,7 +476,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 	}
 
 	if (nt <= 0) {
-		nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
+		nt = GMRFLib_openmp->max_threads_inner;
 	}
 
 	int nhold = 0, *hold = NULL, offset = 0;
@@ -511,7 +504,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 			offset += g->nnbs[k];
 		}
 	}
-	assert(offset <= nhold);
+	Assert(offset <= nhold);
 
 	GMRFLib_ifill(M->nrow, 0, g->nnbs);		       // will use this array for counting and build it again 
 	for (int k = 0; k < M->elems; k++) {
@@ -540,7 +533,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M, int nt)
 	if (M->htable_column_order) {
 
 		FIXME("THIS CODE NEEDS TO BE VERIFIED. The serial version is ok,  but the OMP one needs to be checked.");
-		assert(0 == 1);
+		Assert(0 == 1);
 
 		// need to count, as we cannot use g->nnbs
 		int *nnbs_r = Calloc(M->ncol, int);
@@ -624,28 +617,23 @@ double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp *M)
 	 * return the diagonal of the matrix as a new and alloced double vector. 
 	 */
 
-	double *diag = NULL;
-	int i, k;
+	if (!M || (M && M->nrow == 0))
+		return NULL;
 
-	if (M) {
-		if (M->nrow != M->ncol) {
-			fprintf(stderr, "*** %s:%1d ***  Not a diagonal matrix: %1d != %1d\n", __FILE__, __LINE__, M->nrow, M->ncol);
-			exit(1);
+	if (M->nrow != M->ncol) {
+		LOG_ERROR("Not a diagonal matrix: %1d != %1d", M->nrow, M->ncol);
+		exit(1);
+	}
+
+	double *diag = Calloc(M->nrow, double);
+	if (M->A) {
+		for (int i = 0; i < M->nrow; i++) {
+			diag[i] = M->A[i + i * M->nrow];
 		}
-
-		if (M->nrow) {
-			diag = Calloc(M->nrow, double);
-
-			if (M->A) {
-				for (i = 0; i < M->nrow; i++) {
-					diag[i] = M->A[i + i * M->nrow];
-				}
-			} else {
-				for (k = 0; k < M->elems; k++) {
-					if (M->i[k] == M->j[k]) {
-						diag[M->i[k]] = M->values[k];
-					}
-				}
+	} else {
+		for (int k = 0; k < M->elems; k++) {
+			if (M->i[k] == M->j[k]) {
+				diag[M->i[k]] = M->values[k];
 			}
 		}
 	}
@@ -659,8 +647,8 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp *M)
 	 */
 
 	if (0) {
-		assert(LEGAL(i, M->nrow));
-		assert(LEGAL(j, M->ncol));
+		Assert(LEGAL(i, M->nrow));
+		Assert(LEGAL(j, M->ncol));
 	}
 	if (M->i) {
 		double *d = NULL;
@@ -699,7 +687,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp *M)
 		if (M->htable_column_order) {
 
 			FIXME("column order should not be used");
-			assert(0 == 1);
+			Assert(0 == 1);
 
 			for (j = 0; j < M->ncol; j++) {
 				d = map_id_ptr(M->htable[j], i);
@@ -754,7 +742,7 @@ int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix
 	if (M->i) {
 		if (M->htable_column_order) {
 			FIXME("column order should not be used");
-			assert(0 == 1);
+			Assert(0 == 1);
 		} else {
 			map_id_storage *ptr = NULL;
 
@@ -769,7 +757,7 @@ int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix
 		}
 	} else {
 		FIXME("NOT IMPLEMENTED");
-		assert(0 == 1);
+		Assert(0 == 1);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -908,7 +896,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
 		}
 	}
 
-	GMRFLib_matrix_add_graph_and_hash(N, GMRFLib_OPENMP_NUM_THREADS_LEVEL());
+	GMRFLib_matrix_add_graph_and_hash(N, GMRFLib_openmp->max_threads_inner);
 
 	N->filename = Strdup(M->filename);
 	N->offset = M->offset;
@@ -921,7 +909,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
 int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, int nrow, int ncol, int nt)
 {
 	if (nt <= 0) {
-		nt = GMRFLib_OPENMP_NUM_THREADS_LEVEL();
+		nt = GMRFLib_openmp->max_threads_inner;
 	}
 
 	int nelm = 0;

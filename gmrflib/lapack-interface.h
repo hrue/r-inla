@@ -44,12 +44,15 @@ typedef struct {
 #       define BLAS_LEVEL2 2
 #       define BLAS_LEVEL3 3
 
+extern int GMRFLib_daxpy_cutoff;
+extern int GMRFLib_ddot_cutoff;
+extern int GMRFLib_dscale_cutoff;
+
 GMRFLib_gsl_ensure_spd_store_tp *GMRFLib_gsl_ensure_spd_store_alloc(int n);
 GMRFLib_gsl_ldnorm_store_tp *GMRFLib_gsl_ldnorm_store_alloc(int n);
 GMRFLib_gsl_low_rank_store_tp *GMRFLib_gsl_low_rank_store_alloc(int n);
 GMRFLib_gsl_spd_solve_store_tp *GMRFLib_gsl_spd_solve_store_alloc(int n);
 double GMRFLib_ddot(int n, double *RESTRICT x, double *RESTRICT y);
-double GMRFLib_ddot_INLINE(int n, double *RESTRICT x, double *RESTRICT y);
 double GMRFLib_dssqr(int n, double *x);
 double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m, gsl_matrix * Q, double tol, int *rankdef);
 double GMRFLib_gsl_ldnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity);
@@ -98,6 +101,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix * A);
 int GMRFLib_gsl_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x);
 int GMRFLib_gsl_spd_solve_store_free(GMRFLib_gsl_spd_solve_store_tp * store);
 int GMRFLib_gsl_spd_solve_x(gsl_matrix * A, gsl_vector * b, gsl_vector * x, GMRFLib_gsl_spd_solve_store_tp * store);
+int GMRFLib_safe_spd_inv(double *A, int dim, double tol, int *try_first);
 int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int nrhs);
 int gsl_blas_dgemm_omp(CBLAS_TRANSPOSE_t TransA, CBLAS_TRANSPOSE_t TransB, double alpha, gsl_matrix * A, gsl_matrix * B, double beta,
 		       gsl_matrix * C, int nt);
@@ -108,14 +112,13 @@ void GMRFLib_daxpby(int n, double a, double *x, double b, double *y);
 void GMRFLib_daxpbypcz(int n, double a, double *x, double b, double *y, double c, double *z);
 void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z);
 void GMRFLib_daxpy(int n, double a, double *x, double *y);
-void GMRFLib_daxpy_INLINE(int n, double a, double *x, double *y);
 void GMRFLib_ddot2(double *RESTRICT a, double *RESTRICT b, int n, double *RESTRICT x, double *RESTRICT y, double *RESTRICT z);
 void GMRFLib_dfill(int n, double a, double *x);
 void GMRFLib_dscale(int n, double a, double *x);
 void GMRFLib_dscale2(int n, double a, double *RESTRICT x, double *RESTRICT y);
 void GMRFLib_gsl_dgemm_sym(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C, int num_threads);
 void GMRFLib_ifill(int n, int ia, int *ix);
-void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, double *RESTRICT y);
+void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, int *RESTRICT iainv, double *RESTRICT y);
 void GMRFLib_powx(int n, double *x, double a, double *y);
 void GMRFLib_unpack(int n, double *RESTRICT a, double *RESTRICT y, int *RESTRICT iy);
 void cblas_dgemm_omp(enum CBLAS_ORDER Order, enum CBLAS_TRANSPOSE TransA, enum CBLAS_TRANSPOSE TransB, int M, int N, int K, double alpha, double *A,
@@ -142,6 +145,56 @@ void dtbsv_(const char *, const char *, const char *, int *, int *, double *, in
 void dtrmv_(const char *, const char *, const char *, int *, double *, int *, double *, int *, FORTRAN_CHARLEN_T, FORTRAN_CHARLEN_T,
 	    FORTRAN_CHARLEN_T);
 void dwaxpby_(int *, double *, double *, int *, double *, double *, int *, double *, int *);
+
+//
+
+static FORCEINLINE void GMRFLib_dscale_INLINE(int n, double a, double *x)
+{
+	// x[i] *= a
+	if (n <= GMRFLib_dscale_cutoff) {
+#       pragma omp simd
+		for (int i = 0; i < n; i++) {
+			x[i] *= a;
+		}
+	} else {
+		int one = 1;
+		dscal_(&n, &a, x, &one);
+	}
+}
+
+#       define DAXPY_CORE()					\
+	if (n <= GMRFLib_daxpy_cutoff) {		\
+		_Pragma("omp simd")			\
+			for (int i = 0; i < n; i++) {	\
+				y[i] += a * x[i];	\
+			}				\
+	} else {					\
+		int inc = 1;				\
+		daxpy_(&n, &a, x, &inc, y, &inc);	\
+	}
+
+static FORCEINLINE void GMRFLib_daxpy_INLINE(int n, double a, double *x, double *y)
+{
+	DAXPY_CORE();
+}
+
+#       define DDOT_CORE(cutoff_)						\
+	if (n <= GMRFLib_ddot_cutoff) {					\
+		double res = 0.0;					\
+		_Pragma("omp simd reduction(+: res)")			\
+			for (int i = 0; i < n; i++) {			\
+				res += x[i] * y[i];			\
+			}						\
+		return res;						\
+	} else {							\
+		int one = 1;						\
+		return ddot_(&n, x, &one, y, &one);			\
+	}
+
+static FORCEINLINE double GMRFLib_ddot_INLINE(int n, double *RESTRICT x, double *RESTRICT y)
+{
+	DDOT_CORE();
+}
 
 __END_DECLS
 #endif

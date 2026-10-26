@@ -1,12 +1,3 @@
-#include <stddef.h>
-#include <float.h>
-#include <math.h>
-#include <strings.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 #define CONST_1 0.6266570686577500604			       // sqrt(M_PI/8.0);
@@ -607,7 +598,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 		}
 		xpm[3 * (np - 2) + 3] = xp[np - 1];
 		ldm[3 * (np - 2) + 3] = ld[np - 1];
-		assert(3 * (np - 2) + 3 == npm - 1);
+		Assert(3 * (np - 2) + 3 == npm - 1);
 	} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
 		const double div2 = 0.5;
 
@@ -623,9 +614,9 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 		}
 		xpm[2 * (np - 2) + 2] = xp[np - 1];
 		ldm[2 * (np - 2) + 2] = ld[np - 1];
-		assert(2 * (np - 2) + 2 == npm - 1);
+		Assert(2 * (np - 2) + 2 == npm - 1);
 	} else {
-		assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
+		Assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
 	}
 	GMRFLib_exp(npm, ldm, ldm2);
 	Memcpy(ldm, ldm2, npm * sizeof(double));	       /* to avoid changing code below */
@@ -726,7 +717,7 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 	/*
 	 * evaluate the log-density-object. Note that x is in *standardised scale* . 
 	 */
-	assert(density);
+	Assert(density);
 
 	switch (density->type) {
 	case GMRFLib_DENSITY_TYPE_GAUSSIAN:
@@ -834,13 +825,14 @@ int GMRFLib_evaluate_density(double *dens, double x, GMRFLib_density_tp *density
 
 int GMRFLib_evaluate_ndensity(double *dens, double *x, int n, GMRFLib_density_tp *density)
 {
-	assert(dens);
+	Assert(dens);
 	if (n > 0) {
-		double dtmp[n];
-
+		double *dtmp = Malloc(n, double);
+		Assert(dtmp);
 		GMRFLib_evaluate_nlogdensity(dens, x, n, density);
 		GMRFLib_exp(n, dens, dtmp);
 		Memcpy(dens, dtmp, n * sizeof(double));
+		Free(dtmp);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -988,7 +980,7 @@ int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp *density)
 #define PROB2INTERN(p_) log((p_)/(1.0-(p_)))
 #define INTERN2PROB(x_) (1.0/(1.0 + exp(-(x_))))
 
-			assert(density->Pinv);
+			Assert(density->Pinv);
 			double uu = (x - density->mean) / density->stdev;
 			double pp = GMRFLib_cdfnorm(uu), p = pp;
 			const int verbose = 0;
@@ -1171,7 +1163,7 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 			break;
 
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 		return GMRFLib_SUCCESS;
 	}
@@ -1254,7 +1246,7 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 		double ww[] = { 1.0, 0.75, 0.5, 0.5, 0.5, 0.5, 0.375, 0.25, 0.25, 0.25, 0.25, 0.1875, 0.125, 0.125,
 			0.125, 0.1875, 0.25, 0.25, 0.25, 0.25, 0.375, 0.5, 0.5, 0.5, 0.5, 0.75, 1.0
 		};
-		assert(sizeof(xx) == sizeof(ww));
+		Assert(sizeof(xx) == sizeof(ww));
 
 		double mom0 = 0.0, mom1 = 0.0, mom2 = 0.0, mom3 = 0.0;
 
@@ -1297,7 +1289,7 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 		break;
 
 	default:
-		assert(0 == 1);
+		Assert(0 == 1);
 	}
 
 	Calloc_free();
@@ -1518,7 +1510,7 @@ int GMRFLib_density_new_user_mean(GMRFLib_density_tp *density, double new_user_m
 
 int GMRFLib_density_new_user_stdev(GMRFLib_density_tp *density, double new_user_stdev)
 {
-	assert(density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN);
+	Assert(density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN);
 	if (density) {
 		double diff = new_user_stdev / density->user_stdev;
 

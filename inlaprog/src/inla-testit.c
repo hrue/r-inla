@@ -2,7 +2,7 @@
 
 int testit(int UNUSED(argc), char **UNUSED(argv))
 {
-	fprintf(stderr, "\n*** No testing-functions included in this build.\n\n");
+	LOG_ERROR("No testing-functions are included in this build");
 	return 0;
 }
 
@@ -111,8 +111,10 @@ double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values),
 	return (i == j ? 2 * g->n : -1.0);
 }
 
+#       if !defined(__cplusplus)
 // Force the compiler to keep this symbol even with aggressive LTO enabled
 __attribute__((used)) __attribute__((visibility("default")))
+#       endif
 #       if defined(__cplusplus)
 extern "C"
 #       endif
@@ -922,7 +924,7 @@ int testit(int argc, char **argv)
 		Link_param_tp *param = Calloc(1, Link_param_tp);
 		int thread_id = 0;
 
-		assert(omp_get_thread_num() == 0);
+		Assert(omp_get_thread_num() == 0);
 
 		for (df = 4.0; df <= 125; df += 60.0) {
 			printf("df = %.4g\n", df);
@@ -1208,7 +1210,7 @@ int testit(int argc, char **argv)
 		int n = 10, i, j;
 		int thread_id = 0;
 
-		assert(omp_get_thread_num() == 0);
+		Assert(omp_get_thread_num() == 0);
 
 		rw->n = n;
 		rw->order = 2;
@@ -1463,7 +1465,7 @@ int testit(int argc, char **argv)
 
 		lt_dlinit();
 		handle = lt_dlopen(NULL);
-		fun = (fun_tp *) lt_dlsym(handle, "sin_intern");
+		fun = (fun_tp *) (intptr_t) lt_dlsym(handle, "sin_intern");
 		if (!fun)
 			FIXME("sin_intern not found using ltdl");
 #       if defined(_WIN32)
@@ -1484,7 +1486,7 @@ int testit(int argc, char **argv)
 		printf("Using sin_intern()\n");
 		P(fun(x));
 
-		fun = (fun_tp *) lt_dlsym(handle, "sin");
+		fun = (fun_tp *) (intptr_t) lt_dlsym(handle, "sin");
 		if (!fun)
 			FIXME("sin not found using ltdl");
 #       if defined(_WIN32)
@@ -1536,7 +1538,7 @@ int testit(int argc, char **argv)
 		lparam->quantile = 0.87;
 		int thread_id = 0;
 
-		assert(omp_get_thread_num() == 0);
+		Assert(omp_get_thread_num() == 0);
 
 		P(lparam->quantile);
 		for (eta = 1.0; eta < 10.0; eta += 0.5) {
@@ -1594,14 +1596,14 @@ int testit(int argc, char **argv)
 
 	case 61:
 	{
-		assert(GMRFLib_smtp != GMRFLib_SMTP_STILES);
+		Assert(GMRFLib_smtp != GMRFLib_SMTP_STILES);
 		GMRFLib_problem_tp *problem = NULL;
 		GMRFLib_graph_tp *g = NULL;
 
 		GMRFLib_graph_mk_linear(&g, 5, 5, 0);
 		int thread_id = 0;
 
-		assert(omp_get_thread_num() == 0);
+		Assert(omp_get_thread_num() == 0);
 		GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, g, testit_Qfunc, NULL, NULL, NULL, NULL);
 		GMRFLib_evaluate(problem);
 		GMRFLib_Qinv(problem);
@@ -1760,7 +1762,7 @@ int testit(int argc, char **argv)
 
 	case 68:
 	{
-		assert(nargs == 3);
+		Assert(nargs == 3);
 		printf("Call 'double (*fun)(double)' function [%s] in [%s] with argument [%s]\n", args[0], args[1], args[2]);
 		lt_dlhandle handle;
 		typedef double fun_tp(double);
@@ -1775,7 +1777,7 @@ int testit(int argc, char **argv)
 		}
 		lt_dlerror();
 
-		fun = (fun_tp *) lt_dlsym(handle, args[0]);
+		fun = (fun_tp *) (intptr_t) lt_dlsym(handle, args[0]);
 		if ((error = lt_dlerror()) != NULL) {
 			fprintf(stderr, "%s\n", error);
 			exit(1);
@@ -2460,7 +2462,7 @@ int testit(int argc, char **argv)
 		GMRFLib_idxval_info_printf(stdout, h, "INFO");
 		GMRFLib_idxval_printf(stdout, h, "INFO");
 
-		assert(h);
+		Assert(h);
 		P(n);
 		P(h->g_n);
 
@@ -2694,7 +2696,7 @@ int testit(int argc, char **argv)
 				ss += xx[i];
 			}
 			tref2 += GMRFLib_timer();
-			assert(ABS(s - ss) < FLT_EPSILON);
+			Assert(ABS(s - ss) < FLT_EPSILON);
 		}
 		printf("simd %.3f opt %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 		Free(xx);
@@ -2860,7 +2862,7 @@ int testit(int argc, char **argv)
 			for (int j = 1; j < n; j++) {
 				errors += (ix[j] < ix[j - 1]);
 			}
-			assert(errors == 0);
+			Assert(errors == 0);
 		}
 
 		double tref2 = 0.0;
@@ -2880,7 +2882,7 @@ int testit(int argc, char **argv)
 			for (int j = 1; j < n; j++) {
 				errors += (ix[j] < ix[j - 1]);
 			}
-			assert(errors == 0);
+			Assert(errors == 0);
 		}
 
 		printf("insert %g sort2 %g  insert/sort2 =  %g\n", tref, tref2, tref / tref2);
@@ -2914,7 +2916,7 @@ int testit(int argc, char **argv)
 			for (int j = 1; j < n; j++) {
 				errors += (xx[j] < xx[j - 1]);
 			}
-			assert(errors == 0);
+			Assert(errors == 0);
 		}
 
 		double tref2 = 0.0;
@@ -2934,7 +2936,7 @@ int testit(int argc, char **argv)
 			for (int j = 1; j < n; j++) {
 				errors += (xx[j] < xx[j - 1]);
 			}
-			assert(errors == 0);
+			Assert(errors == 0);
 		}
 
 		printf("insert %g sort2 %g  insert/sort2 =  %g\n", tref, tref2, tref / tref2);
@@ -3276,7 +3278,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 			if (i == 0) {
 				for (int j = 0; j < n - 1; j++) {
-					assert(x[i] <= x[i + 1]);
+					Assert(x[i] <= x[i + 1]);
 				}
 			}
 
@@ -3285,7 +3287,7 @@ int testit(int argc, char **argv)
 			tref[1] += GMRFLib_timer();
 			if (i == 0) {
 				for (int j = 0; j < n - 1; j++) {
-					assert(xx[i] <= xx[i + 1]);
+					Assert(xx[i] <= xx[i + 1]);
 				}
 			}
 		}
@@ -3305,7 +3307,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_timer();
 			if (i == 0) {
 				for (int j = 0; j < n - 1; j++) {
-					assert(ix[i] <= ix[i + 1]);
+					Assert(ix[i] <= ix[i + 1]);
 				}
 			}
 
@@ -3314,7 +3316,7 @@ int testit(int argc, char **argv)
 			tref[1] += GMRFLib_timer();
 			if (i == 0) {
 				for (int j = 0; j < n - 1; j++) {
-					assert(ixx[i] <= ixx[i + 1]);
+					Assert(ixx[i] <= ixx[i + 1]);
 				}
 			}
 		}
@@ -3404,7 +3406,7 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - yy[j]));
 			}
-			assert(err < FLT_EPSILON);
+			Assert(err < FLT_EPSILON);
 		}
 		printf("mod:  %.4f  plain:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
@@ -3609,7 +3611,7 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - yy[j]));
 			}
-			assert(err < FLT_EPSILON);
+			Assert(err < FLT_EPSILON);
 		}
 		printf("mod:  %.4f  plain:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
@@ -3668,7 +3670,7 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - yy[j]));
 			}
-			assert(err < FLT_EPSILON);
+			Assert(err < FLT_EPSILON);
 		}
 		printf("mod:  %.4f  plain:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
@@ -3710,7 +3712,7 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - yy[j]));
 			}
-			assert(err < FLT_EPSILON);
+			Assert(err < FLT_EPSILON);
 		}
 		printf("plain:  %.4f  MKL:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
@@ -3757,7 +3759,7 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - yy[j]));
 			}
-			assert(err < FLT_EPSILON);
+			Assert(err < FLT_EPSILON);
 		}
 		printf("plain:  %.4f  MKL:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
@@ -3804,7 +3806,7 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - yy[j]));
 			}
-			assert(err < FLT_EPSILON);
+			Assert(err < FLT_EPSILON);
 		}
 		printf("plain:  %.4f  MKL:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
@@ -3847,7 +3849,7 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - yy[j]));
 			}
-			assert(err < FLT_EPSILON);
+			Assert(err < FLT_EPSILON);
 		}
 		printf("plain:  %.4f  Unroll:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
@@ -3890,7 +3892,7 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - yy[j]));
 			}
-			assert(err < FLT_EPSILON);
+			Assert(err < FLT_EPSILON);
 		}
 		printf("plain:  %.4f  Unroll:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
@@ -3933,7 +3935,7 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - yy[j]));
 			}
-			assert(ISZERO(err));
+			Assert(ISZERO(err));
 		}
 		printf("plain:  %.4f  _fill:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 
@@ -3963,7 +3965,7 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = IMAX(err, IABS(iy[j] - iyy[j]));
 			}
-			assert(err == 0);
+			Assert(err == 0);
 		}
 		printf("plain:  %.4f  _ifill:  %.4f\n", treff[0] / (treff[0] + treff[1]), treff[1] / (treff[0] + treff[1]));
 
@@ -3993,7 +3995,7 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = IMAX(err, (by[j] != byy[j]));
 			}
-			assert(err == 0);
+			Assert(err == 0);
 		}
 		printf("plain:  %.4f  _bfill:  %.4f\n", trefff[0] / (trefff[0] + trefff[1]), trefff[1] / (trefff[0] + trefff[1]));
 	}
@@ -4006,7 +4008,7 @@ int testit(int argc, char **argv)
 			double *d = Calloc_get(i + 1);
 
 			printf("i = %d offset %zu check %d\n", i, calloc_offset_, GMRFLib_is_aligned(d));
-			assert(d);
+			Assert(d);
 		}
 		printf("\n");
 
@@ -4015,7 +4017,7 @@ int testit(int argc, char **argv)
 			int *d = iCalloc_get(i + 1);
 
 			printf("i = %d offset %zu check %d\n", i, icalloc_offset_, GMRFLib_is_aligned(d));
-			assert(d);
+			Assert(d);
 		}
 	}
 		break;
@@ -4117,11 +4119,16 @@ int testit(int argc, char **argv)
 		double y[] = { 1, 2, 3, 4, 5 };
 		double a[] = { 0, 1, 0, 0, 2, 3, 0, 0, 4, 0, 5, 0 };
 		int ia[] = { 1, 4, 5, 8, 10 };
+		int iainv[] = { 1, 4, 5, 8, 10 };
 
 		const int m = sizeof(a) / sizeof(double);
 		double yy[n], aa[m];
 
-		GMRFLib_pack(n, a, ia, yy);
+		for (int i = 0; i < n; i++) {
+			iainv[ia[i]] = i;
+		}
+
+		GMRFLib_pack(n, a, ia, iainv, yy);
 		for (int i = 0; i < n; i++) {
 			printf("pack: i %d y %g yy %g\n", i, y[i], yy[i]);
 		}
@@ -4183,7 +4190,7 @@ int testit(int argc, char **argv)
 				res += GMRFLib_is_sorted_iinc(n, iy);
 			}
 			tref[0] += GMRFLib_timer();
-			assert(res == M);
+			Assert(res == M);
 
 			res = 0;
 			tref[1] -= GMRFLib_timer();
@@ -4191,7 +4198,7 @@ int testit(int argc, char **argv)
 				res += GMRFLib_is_sorted_iinc_plain(n, iy);
 			}
 			tref[1] += GMRFLib_timer();
-			assert(res == M);
+			Assert(res == M);
 
 			res = 0;
 			tref[2] -= GMRFLib_timer();
@@ -4199,7 +4206,7 @@ int testit(int argc, char **argv)
 				res += GMRFLib_is_sorted_dinc(n, y);
 			}
 			tref[2] += GMRFLib_timer();
-			assert(res == M);
+			Assert(res == M);
 
 			res = 0;
 			tref[3] -= GMRFLib_timer();
@@ -4207,7 +4214,7 @@ int testit(int argc, char **argv)
 				res += GMRFLib_is_sorted_dinc_plain(n, y);
 			}
 			tref[3] += GMRFLib_timer();
-			assert(res == M);
+			Assert(res == M);
 
 			double ispeedup = tref[0] / tref[1];
 			double dspeedup = tref[2] / tref[3];
@@ -4256,14 +4263,14 @@ int testit(int argc, char **argv)
 			my_sort2_dd(y3, y4, n);
 			tref[3] += GMRFLib_timer();
 
-			assert(1 == GMRFLib_is_sorted_iinc(n, iy1));
-			assert(1 == GMRFLib_is_sorted_iinc(n, iy2));
-			assert(1 == GMRFLib_is_sorted_iinc(n, iy3));
-			assert(1 == GMRFLib_is_sorted_iinc(n, iy4));
-			assert(1 == GMRFLib_is_sorted_dinc(n, y1));
-			assert(1 == GMRFLib_is_sorted_dinc(n, y2));
-			assert(1 == GMRFLib_is_sorted_dinc(n, y3));
-			assert(1 == GMRFLib_is_sorted_dinc(n, y4));
+			Assert(1 == GMRFLib_is_sorted_iinc(n, iy1));
+			Assert(1 == GMRFLib_is_sorted_iinc(n, iy2));
+			Assert(1 == GMRFLib_is_sorted_iinc(n, iy3));
+			Assert(1 == GMRFLib_is_sorted_iinc(n, iy4));
+			Assert(1 == GMRFLib_is_sorted_dinc(n, y1));
+			Assert(1 == GMRFLib_is_sorted_dinc(n, y2));
+			Assert(1 == GMRFLib_is_sorted_dinc(n, y3));
+			Assert(1 == GMRFLib_is_sorted_dinc(n, y4));
 		}
 		printf("ii qsort2=%.4f sort2=%.4f dd qsorts=%.4f sort2=%.4f\n", tref[0], tref[1], tref[2], tref[3]);
 	}
@@ -4323,7 +4330,7 @@ int testit(int argc, char **argv)
 	{
 		int n = atoi(args[0]);
 
-		assert(n > 0);
+		Assert(n > 0);
 		double *x = Calloc(n, double);
 
 		for (int i = 0; i < n; i++) {
@@ -4341,7 +4348,7 @@ int testit(int argc, char **argv)
 	{
 		int n = atoi(args[0]);
 
-		assert(n > 0);
+		Assert(n > 0);
 		double *x = Calloc(n, double);
 
 		x[n - 1] = 1;
@@ -4354,7 +4361,7 @@ int testit(int argc, char **argv)
 			nz += GMRFLib_is_zero(x, n);
 		}
 		tref[0] += GMRFLib_timer();
-		assert(nz == nz_true);
+		Assert(nz == nz_true);
 		nz = 0;
 		tref[1] -= GMRFLib_timer();
 		for (int k = 0; k < n; k++) {
@@ -4369,7 +4376,7 @@ int testit(int argc, char **argv)
 			nz += iszero;
 		}
 		tref[1] += GMRFLib_timer();
-		assert(nz == nz_true);
+		Assert(nz == nz_true);
 		P(tref[0] / (tref[0] + tref[1]));
 		P(tref[1] / (tref[0] + tref[1]));
 	}
@@ -4380,7 +4387,7 @@ int testit(int argc, char **argv)
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 
-		assert(n > 0);
+		Assert(n > 0);
 		double *A = Calloc(ISQR(n), double);
 		double *b = Calloc(n, double);
 		double *x = Calloc(n, double);
@@ -4411,7 +4418,7 @@ int testit(int argc, char **argv)
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 
-		assert(n > 0);
+		Assert(n > 0);
 		double *x = Calloc(n + 1, double);
 		double *y = Calloc(n + 1, double);
 
@@ -4474,7 +4481,7 @@ int testit(int argc, char **argv)
 		}
 		lt_dlerror();				       /* Clear any existing error */
 
-		fun = (double (*)(double)) lt_dlsym(handle, "fun");
+		fun = (double (*)(double)) (intptr_t) lt_dlsym(handle, "fun");
 		if ((error = lt_dlerror()) != NULL) {
 			fprintf(stderr, "%s\n", error);
 			exit(1);
@@ -4497,7 +4504,7 @@ int testit(int argc, char **argv)
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 
-		assert(n > 0);
+		Assert(n > 0);
 		double *x = Calloc(n + 1, double);
 		double *y = Calloc(n + 1, double);
 
@@ -4531,7 +4538,7 @@ int testit(int argc, char **argv)
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 
-		assert(n > 0);
+		Assert(n > 0);
 		double *x = Calloc(n + 1, double);
 		double *y = Calloc(n + 1, double);
 
@@ -4565,7 +4572,7 @@ int testit(int argc, char **argv)
 	{
 		int n = atoi(args[0]);
 
-		assert(n > 0);
+		Assert(n > 0);
 		double *x = Calloc(n + 1, double);
 		double *y = Calloc(n + 1, double);
 		double *yy = Calloc(n + 1, double);
@@ -4697,7 +4704,7 @@ int testit(int argc, char **argv)
 		int m = atoi(args[1]);
 		int mkl = (nargs >= 3 ? atoi(args[2]) : 1);
 
-		assert(n > 0);
+		Assert(n > 0);
 		double *x = Calloc(n + 1, double);
 		double *y = Calloc(n + 1, double);
 
@@ -4800,7 +4807,7 @@ int testit(int argc, char **argv)
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 
-		assert(n > 0);
+		Assert(n > 0);
 		double *x = Calloc(n + 1, double);
 		double *y = Calloc(n + 1, double);
 
@@ -4943,7 +4950,7 @@ int testit(int argc, char **argv)
 			double xxm = GMRFLib_min_value(xx, n, NULL);
 
 			tref2 += GMRFLib_timer();
-			assert(xm == xxm);
+			Assert(xm == xxm);
 		}
 		printf("DBL MAX plain %.3f opt %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 
@@ -4966,7 +4973,7 @@ int testit(int argc, char **argv)
 			double xxm = GMRFLib_max_value(xx, n, NULL);
 
 			tref2 += GMRFLib_timer();
-			assert(xm == xxm);
+			Assert(xm == xxm);
 		}
 		printf("DBL MIN plain %.3f opt %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 
@@ -4989,7 +4996,7 @@ int testit(int argc, char **argv)
 			int xxm = GMRFLib_imin_value(ixx, n, NULL);
 
 			tref2 += GMRFLib_timer();
-			assert(xm == xxm);
+			Assert(xm == xxm);
 		}
 		printf("INT MAX int plain %.3f opt %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 
@@ -5012,7 +5019,7 @@ int testit(int argc, char **argv)
 			int xxm = GMRFLib_imax_value(ixx, n, NULL);
 
 			tref2 += GMRFLib_timer();
-			assert(xm == xxm);
+			Assert(xm == xxm);
 		}
 		printf("INT MIN plain %.3f opt %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 	}
@@ -5205,7 +5212,7 @@ int testit(int argc, char **argv)
 			for (int j = 1; j < n; j++) {
 				errors += (ix[j] < ix[j - 1]);
 			}
-			assert(errors == 0);
+			Assert(errors == 0);
 
 			tref2 -= GMRFLib_timer();
 			QSORT_FUN(ix, (size_t) n, sizeof(int), GMRFLib_icmp);
@@ -5233,7 +5240,7 @@ int testit(int argc, char **argv)
 			for (int j = 1; j < n; j++) {
 				errors += (x[j] < x[j - 1]);
 			}
-			assert(errors == 0);
+			Assert(errors == 0);
 
 			tref2 -= GMRFLib_timer();
 			QSORT_FUN(x, (size_t) n, sizeof(int), GMRFLib_dcmp);
@@ -5272,7 +5279,7 @@ int testit(int argc, char **argv)
 			for (int j = 1; j < n; j++) {
 				errors += (ix[j] < ix[j - 1]);
 			}
-			assert(errors == 0);
+			Assert(errors == 0);
 		}
 
 		double tref2 = 0.0;
@@ -5293,7 +5300,7 @@ int testit(int argc, char **argv)
 			for (int j = 1; j < n; j++) {
 				errors += (ix[j] < ix[j - 1]);
 			}
-			assert(errors == 0);
+			Assert(errors == 0);
 		}
 
 		printf("sort2 %g sort2_work %g\n", tref / (tref + tref2), tref2 / (tref + tref2));
@@ -5592,7 +5599,7 @@ int testit(int argc, char **argv)
 			       cpu, numa, numa_ptr);			\
 		}
 
-		RUN_CODE_BLOCK_STATIC(GMRFLib_MAX_THREADS(), 1, 8);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, 8);
 #       undef CODE_BLOCK
 	}
 		break;
@@ -5847,7 +5854,7 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - x[j]));
 			}
-			assert(err < FLT_EPSILON);
+			Assert(err < FLT_EPSILON);
 		}
 		printf("dscale:  %.4f  simd:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
@@ -5892,8 +5899,8 @@ int testit(int argc, char **argv)
 			sum2 = ddot_(&n, x, &one, y, &one);
 			tref[2] += GMRFLib_timer();
 
-			assert(ABS(sum - sum1) / sqrt(n) < FLT_EPSILON);
-			assert(ABS(sum - sum2) / sqrt(n) < FLT_EPSILON);
+			Assert(ABS(sum - sum1) / sqrt(n) < FLT_EPSILON);
+			Assert(ABS(sum - sum2) / sqrt(n) < FLT_EPSILON);
 		}
 		printf(" %f %f %f\n",
 		       tref[0] / (tref[0] + tref[1] + tref[2]), tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
@@ -5909,42 +5916,47 @@ int testit(int argc, char **argv)
 		P(n);
 		P(m);
 		double *x = Calloc(n + 1, double);
-		int *ix = Calloc(n + 1, int);
-
-		double tref[3];
+		double tref[5] = { 0 };
 
 		GMRFLib_dfill(3, 0.0, tref);
 		double err = 0, ierr = 0;
 
 		for (int i = 0; i < m; i++) {
 			double ref = 0.0;
-			double iref = 0.0;
-
 			for (int j = 0; j < n; j++) {
 				x[j] = GMRFLib_uniform();
-				ix[j] = (int) (1000 * GMRFLib_uniform());
 				ref += x[j];
-				iref += ix[j];
 			}
 
 			tref[0] -= GMRFLib_timer();
-			GMRFLib_dsum(n, x);
+			GMRFLib_dsum_plain(n, x);
 			tref[0] += GMRFLib_timer();
 
 			tref[1] -= GMRFLib_timer();
-			GMRFLib_dsum_ext(n, x);
+			GMRFLib_dsum_plain_simd(n, x);
 			tref[1] += GMRFLib_timer();
 
 			tref[2] -= GMRFLib_timer();
-			GMRFLib_isum(n, ix);
+			GMRFLib_dsum_unroll(n, x);
 			tref[2] += GMRFLib_timer();
 
+			tref[3] -= GMRFLib_timer();
+			GMRFLib_dsum_unroll_simd(n, x);
+			tref[3] += GMRFLib_timer();
+
+			tref[4] -= GMRFLib_timer();
+			GMRFLib_dsum_simde(n, x);
+			tref[4] += GMRFLib_timer();
+
 			err += ABS(GMRFLib_dsum(n, x) - ref);
-			ierr += ABS(GMRFLib_isum(n, ix) - iref);
 		}
 		P(err / n);
 		P(ierr / n);
-		printf("dsum %f dsum_ext %f isum %f\n", tref[0], tref[1], tref[2]);
+		printf("dsum plain %f plain.simd %f unroll %f unroll.simd %f simde %f\n",
+		       tref[0] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]),
+		       tref[1] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]),
+		       tref[2] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]),
+		       tref[3] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]), tref[4] / (tref[0] + tref[1] + tref[2] + tref[3] + tref[4]));
 	}
 		break;
 
@@ -6042,7 +6054,7 @@ int testit(int argc, char **argv)
 			for (int k = 0; k < n; k++)
 				e += x[k] * y[k];
 			tref_native[9] += GMRFLib_timer();
-			assert(ABS(e - a) < FLT_EPSILON);
+			Assert(ABS(e - a) < FLT_EPSILON);
 
 			tref[0] -= GMRFLib_timer();
 			a = GMRFLib_sparse_ddot(n, x, ys, idx);
@@ -6054,7 +6066,7 @@ int testit(int argc, char **argv)
 			for (int k = 0; k < n; k++)
 				e += x[k] * ys[idx[k]];
 			tref_native[0] += GMRFLib_timer();
-			assert(ABS(e - a) < FLT_EPSILON);
+			Assert(ABS(e - a) < FLT_EPSILON);
 
 			tref[1] -= GMRFLib_timer();
 			a = GMRFLib_dsum(n, x);
@@ -6066,7 +6078,7 @@ int testit(int argc, char **argv)
 			for (int k = 0; k < n; k++)
 				e += x[k];
 			tref_native[1] += GMRFLib_timer();
-			assert(ABS(e - a) < FLT_EPSILON);
+			Assert(ABS(e - a) < FLT_EPSILON);
 
 #       if defined(INLA_WITH_OPENBLAS)
 			double cblas_dsum(int, double *, int incx);
@@ -6086,7 +6098,7 @@ int testit(int argc, char **argv)
 			for (int k = 0; k < n; k++)
 				e += ix[k];
 			tref_native[2] += GMRFLib_timer();
-			assert(ABS(e - a) < FLT_EPSILON);
+			Assert(ABS(e - a) < FLT_EPSILON);
 
 			tref[3] -= GMRFLib_timer();
 			GMRFLib_dscale(n, GMRFLib_uniform(), x);
@@ -6106,22 +6118,22 @@ int testit(int argc, char **argv)
 			for (int k = 0; k < n; k++)
 				e += ys[idx[k]];
 			tref_native[8] += GMRFLib_timer();
-			assert(ABS(e - a) < FLT_EPSILON);
+			Assert(ABS(e - a) < FLT_EPSILON);
 
 			tref[5] -= GMRFLib_timer();
 			GMRFLib_dfill(n, GMRFLib_uniform(), x);
 			tref[5] += GMRFLib_timer();
-			assert(x[0] == x[n - 1]);
+			Assert(x[0] == x[n - 1]);
 
 			tref[6] -= GMRFLib_timer();
 			GMRFLib_ifill(n, (int) (GMRFLib_uniform() * 10000), ix);
 			tref[6] += GMRFLib_timer();
-			assert(ix[0] == ix[n - 1]);
+			Assert(ix[0] == ix[n - 1]);
 
 			tref[7] -= GMRFLib_timer();
 			GMRFLib_bfill(n, (bool) 1, bx);
 			tref[7] += GMRFLib_timer();
-			assert(bx[0] == bx[n - 1]);
+			Assert(bx[0] == bx[n - 1]);
 
 			tref[10] -= GMRFLib_timer();
 			double f = GMRFLib_uniform();
@@ -6140,7 +6152,7 @@ int testit(int argc, char **argv)
 			for (int k = 0; k < n; k++) {
 				err = DMAX(err, ABS(y[k] - yy[k]));
 			}
-			assert(err < FLT_EPSILON);
+			Assert(err < FLT_EPSILON);
 		}
 		printf("aligned %s\n", (GMRFLib_is_aligned(x)) ? "YES" : "NO");
 		printf("ddot               %.8f\n", tref[9]);
@@ -6252,7 +6264,7 @@ int testit(int argc, char **argv)
 			e = 0.0;
 			for (int k = 0; k < n; k++)
 				e += x[this_node][k] * y[this_node][k];
-			assert(ABS(e - a) < FLT_EPSILON);
+			Assert(ABS(e - a) < FLT_EPSILON);
 
 			tref_diff[9] -= GMRFLib_timer();
 			a = GMRFLib_ddot(n, xx[this_node], yy[other_node]);
@@ -6261,7 +6273,7 @@ int testit(int argc, char **argv)
 			e = 0.0;
 			for (int k = 0; k < n; k++)
 				e += xx[this_node][k] * yy[other_node][k];
-			assert(ABS(e - a) < FLT_EPSILON);
+			Assert(ABS(e - a) < FLT_EPSILON);
 
 			tref_same[0] -= GMRFLib_timer();
 			a = GMRFLib_sparse_ddot(n, x[this_node], y[this_node], idx[this_node]);
@@ -6270,7 +6282,7 @@ int testit(int argc, char **argv)
 			e = 0.0;
 			for (int k = 0; k < n; k++)
 				e += x[this_node][k] * y[this_node][idx[this_node][k]];
-			assert(ABS(e - a) < FLT_EPSILON);
+			Assert(ABS(e - a) < FLT_EPSILON);
 
 			tref_diff[0] -= GMRFLib_timer();
 			a = GMRFLib_sparse_ddot(n, xx[this_node], yy[other_node], idxx[other_node]);
@@ -6279,7 +6291,7 @@ int testit(int argc, char **argv)
 			e = 0.0;
 			for (int k = 0; k < n; k++)
 				e += xx[this_node][k] * yy[other_node][idxx[other_node][k]];
-			assert(ABS(e - a) < FLT_EPSILON);
+			Assert(ABS(e - a) < FLT_EPSILON);
 		}
 		printf("numa nodes       %8d\n", GMRFLib_numa_nodes());
 		printf("ddot same        %.8f\n", tref_same[9]);
@@ -6325,10 +6337,10 @@ int testit(int argc, char **argv)
 				map[i] = (int) dmap[i];
 			}
 
-			GMRFLib_pack(n, x, map, y);
+			GMRFLib_pack(n, x, map, NULL, y);
 
 			tref[0] -= GMRFLib_timer();
-			GMRFLib_pack(n, x, map, y);
+			GMRFLib_pack(n, x, map, NULL, y);
 			tref[0] += GMRFLib_timer();
 
 			tref_simple[0] -= GMRFLib_timer();
@@ -6337,7 +6349,7 @@ int testit(int argc, char **argv)
 			}
 			tref_simple[0] += GMRFLib_timer();
 			for (int i = 0; i < n; i++) {
-				assert(y[i] == yy[i]);
+				Assert(y[i] == yy[i]);
 			}
 
 			tref[1] -= GMRFLib_timer();
@@ -6350,7 +6362,7 @@ int testit(int argc, char **argv)
 			}
 			tref_simple[1] += GMRFLib_timer();
 			for (int i = 0; i < n; i++) {
-				assert(y[i] == yy[i]);
+				Assert(y[i] == yy[i]);
 			}
 		}
 		printf("pack             %.6f\n", tref[0]);
@@ -6364,6 +6376,7 @@ int testit(int argc, char **argv)
 		break;
 
 	case 192:
+	{
 		int cutoff1 = GMRFLib_daxpy_tune(stdout);
 
 		P(cutoff1);
@@ -6373,6 +6386,7 @@ int testit(int argc, char **argv)
 		int cutoff3 = GMRFLib_dscale_tune(stdout);
 
 		P(cutoff3);
+	}
 		break;
 
 	case 193:
@@ -6446,7 +6460,7 @@ int testit(int argc, char **argv)
 			int k = (int) (N * GMRFLib_uniform());
 			int *ptr = GMRFLib_bsearch_timing(k, N, ix);
 
-			assert(*ptr == k);
+			Assert(*ptr == k);
 		}
 		Free(ix);
 	}
@@ -6614,7 +6628,7 @@ int testit(int argc, char **argv)
 					P(x[k]);
 					P(y[k]);
 					P(x[k] - y[k]);
-					assert(x[k] == y[k]);
+					Assert(x[k] == y[k]);
 				}
 		}
 		printf("Time intrinsic  %.6g\n", tref[0]);
@@ -6655,9 +6669,9 @@ int testit(int argc, char **argv)
 			printf(" n2.bool = %1d", nn);
 			printf("\n");
 
-			assert(GMRFLib_align_len(n, sizeof(double)) == GMRFLib_align_len_OLD(n, sizeof(double)));
-			assert(GMRFLib_align_len(n, sizeof(int)) == GMRFLib_align_len_OLD(n, sizeof(int)));
-			assert(GMRFLib_align_len(n, sizeof(bool)) == GMRFLib_align_len_OLD(n, sizeof(bool)));
+			Assert(GMRFLib_align_len(n, sizeof(double)) == GMRFLib_align_len_OLD(n, sizeof(double)));
+			Assert(GMRFLib_align_len(n, sizeof(int)) == GMRFLib_align_len_OLD(n, sizeof(int)));
+			Assert(GMRFLib_align_len(n, sizeof(bool)) == GMRFLib_align_len_OLD(n, sizeof(bool)));
 		}
 	}
 		break;
@@ -6726,8 +6740,8 @@ int testit(int argc, char **argv)
 			}
 			tref[3] += GMRFLib_timer();
 
-			assert(ABS(s0 - s1) < FLT_EPSILON);
-			assert(ABS(s2 - s3) < FLT_EPSILON);
+			Assert(ABS(s0 - s1) < FLT_EPSILON);
+			Assert(ABS(s2 - s3) < FLT_EPSILON);
 		}
 		P2(tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 		P2(tref[2] / (tref[2] + tref[3]), tref[3] / (tref[2] + tref[3]));
@@ -6759,7 +6773,7 @@ int testit(int argc, char **argv)
 				xx += i;
 			}
 			tref[1] += GMRFLib_timer();
-			assert(ABS(x - xx) / sqrt(n) < FLT_EPSILON);
+			Assert(ABS(x - xx) / sqrt(n) < FLT_EPSILON);
 		}
 		double s = tref[0] + tref[1];
 
@@ -6798,8 +6812,8 @@ int testit(int argc, char **argv)
 				xx += i;
 			}
 			tref[1] += GMRFLib_timer();
-			assert(x > 0);
-			assert(xx > 0);
+			Assert(x > 0);
+			Assert(xx > 0);
 
 		}
 		double s = tref[0] + tref[1];
@@ -6833,8 +6847,8 @@ int testit(int argc, char **argv)
 				xx += i;
 			}
 			tref[1] += GMRFLib_timer();
-			assert(x > 0);
-			assert(xx > 0);
+			Assert(x > 0);
+			Assert(xx > 0);
 
 		}
 		double s = tref[0] + tref[1];
@@ -6924,6 +6938,329 @@ int testit(int argc, char **argv)
 		GMRFLib_idx_remove_duplicates(h);
 		GMRFLib_idx_printf(stdout, h, "AFTER DUPLICATES HAS BEEN REMOVED");
 		GMRFLib_idx_free(h);
+	}
+		break;
+
+	case 211:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double tref[3] = { 0.0 };
+		double *x = Malloc(n, double);
+		double *x1 = Malloc(n, double);
+		double *x2 = Malloc(n, double);
+		double *x3 = Malloc(n, double);
+		int *ix = Malloc(n, int);
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+			x2[i] = GMRFLib_uniform();
+			x3[i] = x2[i];
+			ix[i] = i;
+		}
+		GMRFLib_qsort2((void *) x, (size_t) n, sizeof(double), (void *) ix, sizeof(int), GMRFLib_dcmp);
+
+		int *perm = ix;
+		int *iperm = Malloc(n, int);
+
+		for (int i = 0; i < n; i++) {
+			iperm[perm[i]] = i;
+		}
+
+		for (int j = 0; j < m; j++) {
+			tref[0] += -GMRFLib_timer();
+#       pragma omp simd
+			for (int i = 0; i < n; i++) {
+				x1[perm[i]] = x[i];
+			}
+			tref[0] += GMRFLib_timer();
+
+			tref[1] += -GMRFLib_timer();
+#       pragma omp simd
+			for (int i = 0; i < n; i++) {
+				x2[i] = x[iperm[i]];
+			}
+			tref[1] += GMRFLib_timer();
+
+			tref[2] += -GMRFLib_timer();
+			GMRFLib_pack(n, x, iperm, NULL, x3);
+			tref[2] += GMRFLib_timer();
+			Assert(x2[0] == x1[0]);
+			Assert(x3[0] == x1[0]);
+		}
+
+		printf("perm %.3f iperm %.3f _pack %.3f\n",
+		       tref[0] / (tref[0] + tref[1] + tref[2]), tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
+	}
+		break;
+
+	case 212:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double tref[2] = { 0.0 };
+		double *x = Malloc(n, double);
+		double *y = Malloc(n, double);
+		double *yy = Malloc(n, double);
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		for (int j = 0; j < m; j++) {
+			double a = GMRFLib_uniform();
+
+			tref[0] -= GMRFLib_timer();
+#       pragma omp simd
+			for (int i = 0; i < n; i++) {
+				y[i] = a * x[i];
+			}
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+			GMRFLib_dscale2(n, a, x, yy);
+			tref[1] += GMRFLib_timer();
+			Assert(y[0] == yy[0]);
+		}
+
+		printf("simd %.3f dscale2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
+	case 213:
+	{
+		int n = 16;
+		int m = atoi(args[0]);
+
+		P(n);
+		P(m);
+
+		double tref[2] = { 0.0 };
+		double *x = Malloc(n, double);
+		double *y = Malloc(n, double);
+		double *z = Malloc(n, double);
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+			y[i] = GMRFLib_uniform();
+			z[i] = GMRFLib_uniform();
+		}
+
+		for (int j = 0; j < m; j++) {
+			tref[0] -= GMRFLib_timer();
+			double s1 = 0.0, s2 = 0.0;
+
+#       pragma omp simd reduction(+: s1, s2)
+			for (int i = 0; i < n; i++) {
+				s1 += x[i] * y[i];
+				s2 += x[i] * z[i];
+			}
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+			double ss1 = 0.0, ss2 = 0.0;
+
+			GMRFLib_ddot2(&ss1, &ss2, n, x, y, z);
+			tref[1] += GMRFLib_timer();
+			Assert(ABS(s1 - ss1) < FLT_EPSILON);
+			Assert(ABS(s2 - ss2) < FLT_EPSILON);
+		}
+		printf("simd %.3f ddot2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
+	case 214:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double tref[3] = { 0.0 };
+		double *x = Malloc(n, double);
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		for (int j = 0; j < m; j++) {
+			tref[0] -= GMRFLib_timer();
+			double s = 0.0;
+
+#       pragma omp simd reduction(+: s)
+			for (int i = 0; i < n; i++) {
+				s += x[i];
+			}
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+			double ss = 0.0;
+
+			ss = GMRFLib_dsum_simde(n, x);
+			tref[1] += GMRFLib_timer();
+
+			tref[2] -= GMRFLib_timer();
+			double sss = 0.0;
+
+			sss = GMRFLib_dsum(n, x);
+			tref[2] += GMRFLib_timer();
+
+			Assert(ABS(s - ss) < FLT_EPSILON);
+			Assert(ABS(s - sss) < FLT_EPSILON);
+		}
+		printf("simd %.3f dsum_ext %.3f dsum %.3f\n",
+		       tref[0] / (tref[0] + tref[1] + tref[2]), tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
+	}
+		break;
+
+	case 215:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double tref[4] = { 0.0 };
+		double *x = Malloc(n, double);
+		int *ix = Malloc(n, int);
+
+		for (int i = 0; i < n; i++) {
+			x[i] = i;
+			ix[i] = i;
+		}
+
+		for (int j = 0; j < m; j++) {
+			tref[0] -= GMRFLib_timer();
+			volatile int r0 = GMRFLib_is_sorted_iinc(n, ix);
+
+			tref[0] += GMRFLib_timer();
+
+			tref[1] -= GMRFLib_timer();
+			volatile int r1 = GMRFLib_is_sorted_iinc_plain(n, ix);
+
+			tref[1] += GMRFLib_timer();
+
+			tref[2] -= GMRFLib_timer();
+			volatile int r2 = GMRFLib_is_sorted_dinc(n, x);
+
+			tref[2] += GMRFLib_timer();
+
+			tref[3] -= GMRFLib_timer();
+			volatile int r3 = GMRFLib_is_sorted_dinc_plain(n, x);
+
+			tref[3] += GMRFLib_timer();
+
+			Assert(r1 == r0);
+			Assert(r2 == r0);
+			Assert(r3 == r0);
+		}
+		printf("int_simd %.3f int_plain %.3f d_simd %.3f d_plain %.3f\n",
+		       tref[0] / (tref[0] + tref[1] + tref[2] + tref[3]),
+		       tref[1] / (tref[0] + tref[1] + tref[2] + tref[3]),
+		       tref[2] / (tref[0] + tref[1] + tref[2] + tref[3]), tref[3] / (tref[0] + tref[1] + tref[2] + tref[3]));
+	}
+		break;
+
+	case 216:
+	{
+		printf("Number of   cores %d\n", GMRFLib_MAX_THREADS());
+		int p_cores = inla_num_p_cores();
+
+		printf("Number of P-cores %d\n", p_cores);
+
+		omp_set_num_threads(p_cores);
+		double *xx = Calloc(p_cores, double);
+
+#       pragma omp parallel for schedule(static)
+		for (int i = 0; i < p_cores; i++) {
+			int tid = omp_get_thread_num();
+
+			inla_lock_thread_to_p_core(tid);
+			for (int j = 0; j < 10000; j++) {
+				xx[tid] += i + j;
+			}
+		}
+		double sum = GMRFLib_dsum(p_cores, xx);
+
+		P(sum);
+	}
+		break;
+
+	case 217:
+	{
+		const char *text = "hello world";
+		uint8_t buf[GMRFLib_SHA_DIGEST_LEN];
+		GMRFLib_SHA_TP ctx;
+
+		GMRFLib_SHA_Init(&ctx);
+		GMRFLib_SHA_Update(&ctx, (const uint8_t *) text, strlen(text));
+		GMRFLib_SHA_Final(&ctx, buf);
+
+#       if defined(INLA_WITH_OPENSSL)
+		printf("Use openssl depreciated functions\n");
+#       else
+		printf("Use stand-alone implementation\n");
+#       endif
+		printf("Result is       SHA256: ");
+		for (int i = 0; i < GMRFLib_SHA_DIGEST_LEN; i++) {
+			printf("%02x", buf[i]);
+		}
+		printf("\n");
+		printf("SHOULD EQUAL TO SHA256: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9\n");
+		printf("\necho -n hello world | sha256sum' gives: \n");
+		int POSSIBLY_UNUSED(ret) = system("echo -n '                        '; echo -n hello world | sha256sum");
+	}
+		break;
+
+	case 218:
+	{
+		LOG_INFO("This is a info statement: %d", 1);
+		LOG_WARNING("This is a warning statement: %d", 2);
+		LOG_ERROR("This is an error statement: %d", 3);
+
+		LOG_INFO_WRAPPER(fprintf(stderr, "Wrap info line 1\n"); fprintf(stderr, "Wrap info line 2\n"););
+
+		LOG_WARNING_WRAPPER(fprintf(stderr, "Wrap warning line 1\n"); fprintf(stderr, "Wrap warning line 2\n"););
+
+		LOG_ERROR_WRAPPER(fprintf(stderr, "Wrap error line 1\n"); fprintf(stderr, "Wrap error line 2\n"););
+
+		FIXME("Assert should not trigger");
+		Assert(1 == 1);
+		FIXME("Assert should trigger");
+		Assert(1 == 0 && "1 == 0");
+	}
+		break;
+
+	case 219:
+	{
+		int nn = atoi(args[0]);
+		int mm = atoi(args[1]);
+
+		int m = IMIN(nn, mm);
+		int n = IMAX(nn, mm);
+
+		int i = 0;
+		for (; i < n - (m - 1); i += m) {
+			for (int j = 0; j < m; j++) {
+				int k = i + j;
+				P(k);
+			}
+		}
+		printf("int the last block %d terms\n", n - i);
+		for (; i < n; i++) {
+			int j = i;
+			P(j);
+		}
 	}
 		break;
 

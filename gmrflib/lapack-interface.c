@@ -1,15 +1,4 @@
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <assert.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
-
-// Use SIMD <=cutoff and BLAS above
-int GMRFLib_daxpy_cutoff = 192;
-int GMRFLib_ddot_cutoff = 96;
-int GMRFLib_dscale_cutoff = 1024;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -24,9 +13,9 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 	int n = (int) A->size1;
 	int m = (int) A->size2;
 
-	assert((int) A->tda == m);
-	assert((int) B->tda == n);
-	assert((int) C->tda == n);
+	Assert((int) A->tda == m);
+	Assert((int) B->tda == n);
+	Assert((int) C->tda == n);
 	gsl_matrix_set_zero(C);
 
 	int block_m;
@@ -64,7 +53,7 @@ void GMRFLib_gsl_dgemm_sym(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, int num_
 		}
 	}
 
-#pragma omp parallel for num_threads(num_threads) if (num_threads > 1) schedule(static)
+#pragma omp parallel for num_threads(num_threads) if (num_threads > 1)
 	for (int k = 0; k < num_k; k++) {
 		int ii = xx[k].ii;
 		int jj = xx[k].jj;
@@ -106,7 +95,7 @@ double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 {
 	size_t n = Q->size1;
 
-	assert(n == Q->size2);
+	Assert(n == Q->size2);
 	double sqr, sqr2;
 
 	sqr = 0.0;
@@ -171,7 +160,7 @@ double GMRFLib_gsl_ldnorm_x(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_
 		} else if (x) {
 			n = x->size;
 		} else {
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 		log_det_Q = 1.0;
 	} else {
@@ -281,7 +270,7 @@ int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix *S, 
 		gsl_matrix_set(M_, j_, i_, val_); \
 	}
 
-	assert(S->size1 == S->size2);
+	Assert(S->size1 == S->size2);
 	if (S->size1 == 0) {
 		return GMRFLib_SUCCESS;
 	}
@@ -563,7 +552,7 @@ double GMRFLib_gsl_rms(gsl_vector *a, gsl_vector *b)
 			rms += SQR(gsl_vector_get(a, i) - gsl_vector_get(b, i));
 		}
 	} else {
-		assert(0 == 1);
+		Assert(0 == 1);
 	}
 	return sqrt(rms / a->size);
 }
@@ -646,7 +635,7 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix *A)
 	size_t i;
 
 	L = GMRFLib_gsl_duplicate_matrix(A);
-	assert(L);
+	Assert(L);
 	gsl_linalg_cholesky_decomp(L);
 
 	for (i = 0; i < L->size1; i++) {
@@ -661,21 +650,24 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix *A)
 
 #pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_gsl_force_symmetric(gsl_matrix *A)
 {
 	// force symmetry A = (A + t(A))/2
 	for (size_t i = 0; i < A->size1; i++) {
 		for (size_t j = 0; j < i; j++) {
-			double a = gsl_matrix_get(A, i, j);
-			double aa = gsl_matrix_get(A, j, i);
-			double val = (a + aa) / 2.0;
-
+			double val = (gsl_matrix_get(A, i, j) + gsl_matrix_get(A, j, i)) / 2.0;
 			gsl_matrix_set(A, i, j, val);
 			gsl_matrix_set(A, j, i, val);
 		}
 	}
 	return GMRFLib_SUCCESS;
 }
+
+#pragma GCC diagnostic pop
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -684,10 +676,9 @@ __attribute__((optimize("O3")))
 int GMRFLib_gsl_add_diag(gsl_matrix *A, double value)
 {
 	// diag(A) = diag(A) + value
-	if (!ISZERO(value)) {
+	if (A && !ISZERO(value)) {
 		for (size_t i = 0; i < A->size1; i++) {
 			double a = gsl_matrix_get(A, i, i) + value;
-
 			gsl_matrix_set(A, i, i, a);
 		}
 	}
@@ -709,7 +700,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 	gsl_vector *x = NULL;
 	size_t i, n;
 
-	assert(A->size1 == A->size2);
+	Assert(A->size1 == A->size2);
 	n = A->size1;
 
 	L = GMRFLib_gsl_duplicate_matrix(A);
@@ -726,6 +717,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 		gsl_linalg_cholesky_svx(L, x);
 		gsl_matrix_set_col(A, i, x);
 	}
+	GMRFLib_gsl_force_symmetric(A);
 
 	gsl_vector_free(x);
 	gsl_matrix_free(L);
@@ -745,7 +737,7 @@ int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 	 * replace n x n matrix A with its generlized inverse.  if TOL > 0, use that tolerance. If rankdef is set, use that. If both are set, give an error.
 	 */
 
-	assert(A && (A->size1 == A->size2));
+	Assert(A && (A->size1 == A->size2));
 
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
 	gsl_matrix *V = gsl_matrix_alloc(A->size1, A->size2);
@@ -763,7 +755,7 @@ int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 	gsl_matrix_set_zero(M1);
 	gsl_matrix_set_zero(M2);
 
-	// assert(!(tol > 0.0 || (rankdef >= 0 && rankdef <= (int) A->size1)));
+	// Assert(!(tol > 0.0 || (rankdef >= 0 && rankdef <= (int) A->size1)));
 	if (tol > 0.0) {
 		for (i = 0; i < A->size1; i++) {
 			double s = gsl_vector_get(S, i);
@@ -775,8 +767,8 @@ int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 			}
 		}
 	} else {
-		assert(rankdef >= 0);
-		assert(rankdef <= (int) A->size1);
+		Assert(rankdef >= 0);
+		Assert(rankdef <= (int) A->size1);
 
 		double first = gsl_vector_get(S, 0);
 		double last = gsl_vector_get(S, A->size1 - 1);
@@ -838,21 +830,10 @@ int GMRFLib_ensure_spd_x(double *A, int dim, double tol, char **msg, GMRFLib_gsl
 	} else {
 		AA = gsl_matrix_alloc((size_t) dim, (size_t) dim);
 	}
-	size_t i, j;
 
-	for (i = 0; i < (size_t) dim; i++) {
-		for (j = 0; j <= i; j++) {
-			gsl_matrix_set(AA, i, j, A[i + j * dim]);
-			gsl_matrix_set(AA, j, i, A[i + j * dim]);
-		}
-	}
+	GMRFLib_gsl_plain2mat(AA, A);
 	GMRFLib_gsl_ensure_spd_x(AA, tol, msg, store);
-	for (i = 0; i < (size_t) dim; i++) {
-		for (j = 0; j <= i; j++) {
-			A[i + j * dim] = gsl_matrix_get(AA, i, j);
-			A[j + i * dim] = gsl_matrix_get(AA, i, j);
-		}
-	}
+	GMRFLib_gsl_mat2plain(NULL, A, AA);
 
 	if (!store) {
 		gsl_matrix_free(AA);
@@ -924,7 +905,7 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 	 * method=1: s=1/max(min,s)
 	 */
 
-	assert(A && (A->size1 == A->size2));
+	Assert(A && (A->size1 == A->size2));
 	gsl_matrix *U = NULL;
 	gsl_vector *S = NULL;
 	gsl_eigen_symmv_workspace *work = NULL;
@@ -954,14 +935,17 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 		s_max = 0.0;				       /* then the whole matrix is zero or INF, as all is wrong... */
 	}
 
-	if (tol < 0.0 && s_max > 0.0) {
+	if (s_max > 0.0) {
 		int n_neg = 0;
+		int n_small = 0;
 
 		s_min = s_max;
 		for (i = 0; i < A->size1; i++) {
 			s = gsl_vector_get(S, i);
 			if (s <= 0.0) {
 				n_neg++;
+			} else if (s <= tol * s_max) {
+				n_small++;
 			}
 			if (s > 0.0 && s < s_min) {
 				s_min = s;
@@ -969,7 +953,7 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 		}
 		tol = s_min / s_max;
 		if (msg) {
-			GMRFLib_sprintf(msg, "set tol=[%.4g]. number of negative eigenvalues=[%1d]", tol, n_neg);
+			GMRFLib_sprintf(msg, "max tol=[%.4g] eigenvalues: negative=[%1d]  small[%1d]", tol, n_neg, n_small);
 		}
 	}
 
@@ -1008,6 +992,7 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **ms
 	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U, zero, M1);
 	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, U, M1, zero, M2);
 	gsl_matrix_memcpy(A, M2);
+	GMRFLib_gsl_force_symmetric(A);
 
 	if (!store) {
 		gsl_matrix_free(U);
@@ -1052,7 +1037,7 @@ int GMRFLib_gsl_spd_solve_x(gsl_matrix *A, gsl_vector *b, gsl_vector *x, GMRFLib
 	gsl_vector *S = NULL;
 
 	if (store) {
-		assert(store->L);
+		Assert(store->L);
 		store->L->size1 = A->size1;
 		store->L->size2 = A->size2;
 		L = store->L;
@@ -1092,7 +1077,7 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 	 * try first a regular one, if fail, the try the svd one
 	 */
 
-	assert(A && (A->size1 == A->size2));
+	Assert(A && (A->size1 == A->size2));
 	if (try_first && *try_first) {
 		int ecode = GMRFLib_gsl_spd_solve_x(A, b, x, NULL);
 
@@ -1107,7 +1092,7 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 
 	const int debug = 0;
 
-	assert(tol >= 0.0);
+	Assert(tol >= 0.0);
 
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
 	gsl_vector *S = gsl_vector_alloc(A->size1);
@@ -1166,6 +1151,32 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, doub
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_safe_spd_inv(double *A, int dim, double tol, int *try_first)
+{
+	size_t n = (size_t) dim;
+	gsl_matrix *Am = gsl_matrix_alloc(n, n);
+	Assert(Am);
+
+	for (size_t j = 0; j < n; j++) {
+		for (size_t i = 0; i < n; i++) {
+			gsl_matrix_set(Am, i, j, A[i + j * dim]);
+		}
+	}
+
+	gsl_matrix_set(Am, 0, 0, 0.0);
+
+	int ecode = GMRFLib_gsl_spd_inv(Am, tol, try_first);
+
+	for (size_t j = 0; j < n; j++) {
+		for (size_t i = 0; i < n; i++) {
+			A[i + j * dim] = gsl_matrix_get(Am, i, j);
+		}
+	}
+	gsl_matrix_free(Am);
+
+	return ecode;
+}
+
 int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 {
 	/*
@@ -1174,10 +1185,9 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 	 * if FORCE, then do not try spd_inverse first
 	 */
 
-	assert(A && (A->size1 == A->size2));
+	Assert(A && (A->size1 == A->size2));
 	if (try_first && *try_first) {
 		int ecode = GMRFLib_gsl_spd_inverse(A);
-
 		if (ecode == GMRFLib_SUCCESS) {
 			return GMRFLib_SUCCESS;
 		}
@@ -1189,7 +1199,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 
 	const int debug = 0;
 
-	assert(tol >= 0.0);
+	Assert(tol >= 0.0);
 
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
 	gsl_vector *S = gsl_vector_alloc(A->size1);
@@ -1228,6 +1238,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol, int *try_first)
 
 	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U, zero, M1);
 	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, U, M1, zero, A);
+	GMRFLib_gsl_force_symmetric(A);
 
 	gsl_matrix_free(U);
 	gsl_matrix_free(M1);
@@ -1329,8 +1340,8 @@ gsl_matrix *GMRFLib_gsl_low_rank_x(gsl_matrix *Cov, double tol, gsl_matrix *B, G
 	// Compute the low-rank representation in terms of x=Bz, where Cov(z)=I, from a given possible singular covariance matrix. We ignore
 	// contributions from eigenvalue < tol*max(eigenval)
 
-	assert(Cov && (Cov->size1 == Cov->size2));
-	assert(tol >= 0.0 && tol <= 1.0);
+	Assert(Cov && (Cov->size1 == Cov->size2));
+	Assert(tol >= 0.0 && tol <= 1.0);
 
 	size_t n = Cov->size1;
 	gsl_matrix *U = NULL;
@@ -1364,8 +1375,8 @@ gsl_matrix *GMRFLib_gsl_low_rank_x(gsl_matrix *Cov, double tol, gsl_matrix *B, G
 
 	double s_max = gsl_vector_max(S);
 
-	assert(s_max > 0.0);
-	assert(s_max == gsl_vector_get(S, 0));
+	Assert(s_max > 0.0);
+	Assert(s_max == gsl_vector_get(S, 0));
 
 	size_t m = 0;
 	double s_min = tol * s_max;
@@ -1418,9 +1429,9 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 
 	size_t n = Q_base->size1;
 
-	assert(n == Q_base->size2);
-	assert(n == Q->size2);
-	assert(n == Q->size2);
+	Assert(n == Q_base->size2);
+	Assert(n == Q->size2);
+	Assert(n == Q->size2);
 
 	gsl_matrix *U_base = GMRFLib_gsl_duplicate_matrix(Q_base);
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(Q);
@@ -1604,21 +1615,6 @@ void GMRFLib_dscale(int n, double a, double *x)
 
 #pragma GCC diagnostic pop
 
-FORCEINLINE void GMRFLib_dscale_INLINE(int n, double a, double *x)
-{
-	// x[i] *= a
-	if (n <= GMRFLib_dscale_cutoff) {
-#pragma omp simd
-		for (int i = 0; i < n; i++) {
-			x[i] *= a;
-		}
-	} else {
-		int one = 1;
-
-		dscal_(&n, &a, x, &one);
-	}
-}
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
@@ -1767,22 +1763,6 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 #pragma GCC diagnostic pop
 
 // y = a * x + y
-#define DAXPY_CORE()					\
-	if (n <= GMRFLib_daxpy_cutoff) {		\
-		_Pragma("omp simd")			\
-			for (int i = 0; i < n; i++) {	\
-				y[i] += a * x[i];	\
-			}				\
-	} else {					\
-		int inc = 1;				\
-		daxpy_(&n, &a, x, &inc, y, &inc);	\
-	}
-
-FORCEINLINE void GMRFLib_daxpy_INLINE(int n, double a, double *x, double *y)
-{
-	DAXPY_CORE();
-}
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
@@ -1867,19 +1847,6 @@ int GMRFLib_daxpy_tune(FILE *fp)
 
 #pragma GCC diagnostic pop
 
-#define DDOT_CORE(cutoff_)						\
-	if (n <= GMRFLib_ddot_cutoff) {					\
-		double res = 0.0;					\
-		_Pragma("omp simd reduction(+: res)")			\
-			for (int i = 0; i < n; i++) {			\
-				res += x[i] * y[i];			\
-			}						\
-		return res;						\
-	} else {							\
-		int one = 1;						\
-		return ddot_(&n, x, &one, y, &one);			\
-	}
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
@@ -1890,11 +1857,6 @@ double GMRFLib_ddot(int n, double *RESTRICT x, double *RESTRICT y)
 }
 
 #pragma GCC diagnostic pop
-
-FORCEINLINE double GMRFLib_ddot_INLINE(int n, double *RESTRICT x, double *RESTRICT y)
-{
-	DDOT_CORE();
-}
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -1931,14 +1893,14 @@ int GMRFLib_ddot_tune(FILE *fp)
 			a = GMRFLib_ddot(n, x, y);
 			aa = GMRFLib_ddot(n, y, x);
 			tref[0] += GMRFLib_timer();
-			assert(ABS(a - aa) / sqrt(n) < FLT_EPSILON);
+			Assert(ABS(a - aa) / sqrt(n) < FLT_EPSILON);
 
 			GMRFLib_ddot_cutoff = 0;
 			tref[1] -= GMRFLib_timer();
 			a = GMRFLib_ddot(n, x, y);
 			aa = GMRFLib_ddot(n, y, x);
 			tref[1] += GMRFLib_timer();
-			assert(ABS(a - aa) / sqrt(n) < FLT_EPSILON);
+			Assert(ABS(a - aa) / sqrt(n) < FLT_EPSILON);
 		}
 
 		if (fp) {
@@ -1989,12 +1951,11 @@ void GMRFLib_ddot2(double *RESTRICT a, double *RESTRICT b, int n, double *RESTRI
 	// a = ddot(x,y); b = ddot(x,z)
 	// this is a very particular function, only used for n=16
 	if (n == 16) {
-#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+		// only enable for x86_64
+#if defined(INLA_WITH_SIMDE_AVX512F_) && (defined(__x86_64__) && defined(__AVX512F__))
 #       include "intrinsics/simde/ddot2-avx512f.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+#elif defined(INLA_WITH_SIMDE_AVX2_) && (defined(__x86_64__) && defined(__AVX2__))
 #       include "intrinsics/simde/ddot2-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-#       include "intrinsics/simde/ddot2-sse2.h"
 #else
 		DDOT2_CORE();
 #endif
@@ -2055,21 +2016,31 @@ void GMRFLib_bfill(int n, bool a, bool *x)
 #pragma GCC diagnostic ignored "-Wattributes"
 __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
-void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, double *RESTRICT y)
+void GMRFLib_pack(int n, double *RESTRICT a, int *RESTRICT ia, int *RESTRICT iainv, double *RESTRICT y)
 {
 	// y[] = a[ia[]]
-#if 0 && defined(INLA_WITH_MKL)
-	vdPackV(n, a, ia, y);
-#elif 0 && defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
-#       include "intrinsics/simde/pack-avx512f.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
-#       include "intrinsics/simde/pack-avx2.h"
-#else
-#       pragma omp simd
-	for (int i = 0; i < n; i++) {
-		y[i] = a[ia[i]];
+	const int lim = 1.5E6;
+
+	if (n > lim && !iainv) {
+		LOG_WARNING("n = %1d > lim = %1d, but 'iainv' is NULL", n, lim);
 	}
-#endif
+
+	GMRFLib_ENTER_FUNCTION;
+
+	if (n > lim && iainv) {
+#pragma GCC unroll 4
+		for (int i = 0; i < n; i++) {
+			y[iainv[i]] = a[i];
+		}
+	} else {
+#pragma GCC unroll 4
+		for (int i = 0; i < n; i++) {
+			y[i] = a[ia[i]];
+		}
+	}
+	GMRFLib_LEAVE_FUNCTION;
+
+	return;
 }
 
 #pragma GCC diagnostic pop
@@ -2081,14 +2052,11 @@ __attribute__((optimize("O3")))
 void GMRFLib_unpack(int n, double *RESTRICT a, double *RESTRICT y, int *RESTRICT iy)
 {
 	// y[iy[]] = a[]
-#if 0 && defined(INLA_WITH_MKL)
-	vdUnpackV(n, a, y, iy);
-#else
-#       pragma omp simd
+	// MKL does not work that well: vdUnpackV(n, a, y, iy);
+#pragma GCC unroll 4
 	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}
-#endif
 }
 
 #pragma GCC diagnostic pop

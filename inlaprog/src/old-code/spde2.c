@@ -1,6 +1,4 @@
-#include <stdlib.h>
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
 #include "inla.h"
 #include "spde2.h"
 
@@ -69,7 +67,7 @@ double inla_spde2_Qfunction_orig(int thread_id, int ii, int jj, double *UNUSED(v
 				break;
 
 			default:
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -122,7 +120,7 @@ double inla_spde2_Qfunction_orig(int thread_id, int ii, int jj, double *UNUSED(v
 				break;
 
 			default:
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -136,7 +134,7 @@ double inla_spde2_Qfunction_orig(int thread_id, int ii, int jj, double *UNUSED(v
 double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values, void *arg)
 {
 	// this one fails. do not know why. see ~/p/inla/problems/finn.lindgren@gmail.com/12/inla.model
-	assert(0 == 1);
+	Assert(0 == 1);
 
 	// use simple caching for this function. only cache calculations for one 'i', that can be used for all (i,j) with the same i. recall to
 	// enable init in 'build_model below' before enable this function.
@@ -147,7 +145,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 
 		int idx = -1;
 		GMRFLib_CACHE_SET_IDX(idx);
-		assert(idx >= 0);
+		Assert(idx >= 0);
 
 		int fake_values[2];
 		fake_values[0] = idx;			       /* transfer the cache-index */
@@ -259,7 +257,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 				break;
 
 			default:
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -372,7 +370,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 					break;
 
 				default:
-					assert(0 == 1);
+					Assert(0 == 1);
 				}
 			}
 
@@ -422,7 +420,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 					break;
 
 				default:
-					assert(0 == 1);
+					Assert(0 == 1);
 				}
 			}
 		}
@@ -525,7 +523,7 @@ double inla_spde2_Qfunction_ref(int thread_id, int ii, int jj, double *UNUSED(va
 				break;
 
 			default:
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -573,7 +571,7 @@ double inla_spde2_Qfunction_ref(int thread_id, int ii, int jj, double *UNUSED(va
 				break;
 
 			default:
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -630,7 +628,7 @@ double inla_spde2_Qfunction_another_try(int thread_id, int ii, int jj, double *v
 				break;
 
 			default:
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -694,7 +692,7 @@ double inla_spde2_Qfunction_another_try(int thread_id, int ii, int jj, double *v
 				break;
 
 			default:
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -766,7 +764,7 @@ double inla_spde2_Qfunction_another_try(int thread_id, int ii, int jj, double *v
 				break;
 
 			default:
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -810,7 +808,7 @@ double inla_spde2_Qfunction_another_try(int thread_id, int ii, int jj, double *v
 				break;
 
 			default:
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -844,7 +842,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 		double dij[(1+nb) * 3]; 
 		
 		// dij = V %*% theta
-		assert(V);
+		Assert(V);
 		dgemv_("T", &m, &n, &alpha, V, &lda, theta, &inc, &beta, dij, &inc, F_ONE);
 		
 		for (int kk = 0; kk < 1 + nb; kk++){
@@ -877,7 +875,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 			break;
 
 			default:
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -955,7 +953,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 				break;
 
 			default:
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -1003,7 +1001,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 				break;
 
 			default:
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -1030,7 +1028,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 	} else if (strcasecmp(transform, "identity") == 0) {
 		model->transform = SPDE2_TRANSFORM_IDENTITY;
 	} else {
-		assert(0 == 1);
+		Assert(0 == 1);
 	}
 
 	model->B = Calloc(3, GMRFLib_matrix_tp *);
@@ -1047,19 +1045,19 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 		/*
 		 * all need the same dimensions n x (p+1) 
 		 */
-		assert(model->B[0]->nrow == model->B[i]->nrow);
-		assert(model->B[0]->ncol == model->B[i]->ncol);
+		Assert(model->B[0]->nrow == model->B[i]->nrow);
+		Assert(model->B[0]->ncol == model->B[i]->ncol);
 
 		/*
 		 * all are square with the same dimension n x n 
 		 */
-		assert(model->M[i]->nrow == model->M[i]->ncol);
-		assert(model->M[0]->nrow == model->M[i]->nrow);
+		Assert(model->M[i]->nrow == model->M[i]->ncol);
+		Assert(model->M[0]->nrow == model->M[i]->nrow);
 
 		/*
 		 * and the number of rows must be the same 
 		 */
-		assert(model->B[i]->nrow == model->M[i]->nrow);
+		Assert(model->B[i]->nrow == model->M[i]->nrow);
 	}
 
 	model->n = model->M[0]->nrow;
@@ -1104,7 +1102,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 #undef ADD_GRAPH
 
 	GMRFLib_ged_build(&(model->graph), ged);
-	assert(model->n == model->graph->n);
+	Assert(model->n == model->graph->n);
 	GMRFLib_ged_free(ged);
 
 	model->Qfunc = inla_spde2_Qfunction;
@@ -1120,7 +1118,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 		int j = i;
 
 		double *v = Calloc(3 * nc + 4, double);
-		assert(v);
+		Assert(v);
 
 		GMRFLib_matrix_get_row(v + 0 * nc, i, model->B[0]);
 		GMRFLib_matrix_get_row(v + 1 * nc, i, model->B[1]);
@@ -1137,7 +1135,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 		for (int jj = 0; jj < model->graph->lnnbs[i]; jj++) {
 			j = model->graph->lnbs[i][jj];
 			v = Calloc(6 * nc + 4, double);
-			assert(v);
+			Assert(v);
 
 			// we dod not need to store 'i' for each (i,j)... FIX LATER MAYBE
 			
@@ -1239,7 +1237,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 		P(model->ntheta_used);
 	}
 
-	assert(ncol - 1 == model->ntheta);
+	Assert(ncol - 1 == model->ntheta);
 
 	/*
 	 * build new theta vector and covariance matrix by inserting fixed values
@@ -1413,7 +1411,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 		}
 	} else {
 		// Not yet modified to deal with the case there ntheta_used < ntheta. hrue 26/7/2016.
-		assert(model->ntheta == model->ntheta_used);
+		Assert(model->ntheta == model->ntheta_used);
 		for (i = 0; i < nrow; i++) {
 			double mean = 0.0, var = 0.0;
 

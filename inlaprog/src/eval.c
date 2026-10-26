@@ -1,20 +1,9 @@
-#include <assert.h>
-#include <math.h>
-#include <omp.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
+#include "GMRFLib/GMRFLib.h"
+#include "inla.h"
 
 #if defined(INLA_WITH_MUPARSER)
 #       include <muParserDLL.h>
 #endif
-
-#include "GMRFLib/GMRFLib.h"
-#include "inla.h"
-#include "R-interface.h"
-#include "eval.h"
 
 static const unsigned char debug = 0;
 
@@ -28,7 +17,7 @@ double inla_eval(char *expression, double *x, double *theta, int ntheta)
 #if defined(INLA_WITH_MUPARSER)
 		return (inla_eval_expression(expression + strlen("EXPRESSION:"), x, theta, ntheta));
 #else
-		fprintf(stderr, "\n\n *** ERROR *** EXPRESSION-priors are not supported in this build\n\n");
+		LOG_ERROR("EXPRESSION-priors are not supported in this build");
 		abort();
 #endif
 	} else if (strncasecmp(expression, "TABLE:", strlen("TABLE:")) == 0) {
@@ -38,14 +27,14 @@ double inla_eval(char *expression, double *x, double *theta, int ntheta)
 		double *x_out = NULL, ret = 0.0;
 
 		inla_R_funcall1(&n_out, &x_out, expression + strlen("RPRIOR:"), &one, x);
-		assert(n_out == 1);
+		Assert(n_out == 1);
 		ret = *x_out;
 		Free(x_out);
 
 		return (ret);
 	}
 
-	assert(0 == 1);
+	Assert(0 == 1);
 	return 0.0;
 }
 
@@ -59,11 +48,11 @@ double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), in
 		expression++;
 	}
 	if (debug) {
-		fprintf(stderr, "OPEN FILE[%s]\n", expression);
+		LOG_ERROR("OPEN FILE[%s]", expression);
 	}
 	M = GMRFLib_read_fmesher_file((const char *) expression, 0, -1);
-	assert(M->nrow >= 4);
-	assert(M->ncol == 2);
+	Assert(M->nrow >= 4);
+	Assert(M->ncol == 2);
 
 	s = GMRFLib_spline_create(M->A, M->A + M->nrow, M->nrow);
 	value = GMRFLib_spline_eval(*xval, s);
@@ -157,12 +146,14 @@ double inla_eval_Not(double v)
 
 void inla_eval_OnError(muParserHandle_t hParser)
 {
-	fprintf(stderr, "\n\n\nEval: Error while parsing expression:\n");
-	fprintf(stderr, "----------\n");
-	fprintf(stderr, "Message   :  \"%s\"\n", mupGetErrorMsg(hParser));
-	fprintf(stderr, "Token     :    \"%s\"\n", mupGetErrorToken(hParser));
-	fprintf(stderr, "Position  : %1d\n", mupGetErrorPos(hParser));
-	fprintf(stderr, "Error Code:     %1d\n", mupGetErrorCode(hParser));
+	LOG_ERROR_WRAPPER(
+		fprintf(stderr, "\n\n\nEval: Error while parsing expression:\n");
+		fprintf(stderr, "----------\n");
+		fprintf(stderr, "Message   :  \"%s\"\n", mupGetErrorMsg(hParser));
+		fprintf(stderr, "Token     :    \"%s\"\n", mupGetErrorToken(hParser));
+		fprintf(stderr, "Position  : %1d\n", mupGetErrorPos(hParser));
+		fprintf(stderr, "Error Code:     %1d\n", mupGetErrorCode(hParser));
+		);
 	exit(1);
 }
 
@@ -178,8 +169,8 @@ muFloat_t *inla_eval_AddVariable(const muChar_t *a_szName, void *pUserData)
 	if (a->n >= a->n_alloc) {
 		a->n_alloc += 16;
 		if (a->n_alloc == 0) {
-			assert(a->name == NULL);
-			assert(a->value == NULL);
+			Assert(a->name == NULL);
+			Assert(a->value == NULL);
 		}
 		a->name = Realloc(a->name, a->n_alloc, char *);
 

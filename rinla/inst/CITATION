@@ -85,13 +85,13 @@ citEntry(
     volume = "4",
     number = "March",
     pages = "395--421",
-    url = "http://arxiv.org/abs/1604.00860",
+    doi = "https://doi.org/10.1146/annurev-statistics-060116-054045", 
     textVersion = paste(
         "H. Rue, A. Riebler, S. H. Sorbye, J. B. Illian, D. P. Simpson, and F. K. Lindgren.",
         "Bayesian computing with INLA: A review.",
         "Annual Reviews of Statistics and Its Applications, 4(March):395-421, 2017.",
-        "URL http://arxiv.org/abs/1604.00860")
-)
+        "URL https://doi.org/10.1146/annurev-statistics-060116-054045")
+    )
 
 citEntry(
     entry = "Article",
@@ -107,74 +107,120 @@ citEntry(
                         as.person("Finn K. Lindgren")), 
     journal = "WIRES (Invited extended review)",
     year = "2018",
-    volume = "xx",
-    number = "Feb",
-    pages = "xx--xx",
-    url = "http://arxiv.org/abs/1802.06350",
+    volume = "10:e1443",
+    number = "6",
+    doi = "10.1002/wics.1443", 
     textVersion = paste(
         "H. Bakka, H. Rue, G. A. Fuglstad, A. Riebler, D. Bolin, ",
         "E. Krainski, D. Simpson, and F. Lindgren.",
         "Spatial modelling with R-INLA: A review.",
-        "Invited extended review,  arxiv:1802.06350,  2018.")
+        "WIRES (Invited extended review), 10.1002/wics.1443, 2018.")
 )
 
 citEntry(
-    entry = "Article", 
-    title = "Needles: Toward Large-Scale Genomic Prediction with Marker-by-Environment Interaction", 
-    author = personList(as.person("Arne De Coninck"),
-                        as.person("Bernard De Baets"),
-                        as.person("Drosos Kourounis"),
-                        as.person("Fabio Verbosio"),
-                        as.person("Olaf Schenk"),
-                        as.person("Steven Maenhout"),
-                        as.person("Jan Fostier")),
-    volume = "203", 
-    number = "1", 
-    pages = "543--555", 
-    year = "2016",
-    doi = "10.1534/genetics.115.179887",
-    journal = "Genetics",
-    url="http://dx.doi.org/10.1534/genetics.115.179887",
-    eprint = "http://www.genetics.org/content/203/1/543.full.pdf",
-    textVersion = paste(
-        "A. De Coninck, B. De Baets, D. Kourounis, F. Verbosio, O. Schenk, S. Maenhout, and J. Fostier, ",
-        "Needles: Toward large-scale genomic prediction with marker-by-environment interaction, ",
-        "Genetics, vol. 203, no. 1, pp. 543-555, 2016."))
+    entry = "Article",
+    author = personList(as.person("Janet van Niekerk"), 
+                        as.person("Elias Krainski"), 
+                        as.person("Denis Rustand"), 
+                        as.person("H{\\aa}vard Rue")), 
+    title = "A new avenue for Bayesian inference with INLA",
+    journal = "Computational Statistics and Data Analysis",
+    year =  2023,
+    volume = 181,
+    pages =  107692,
+    doi = "https://doi.org/10.1016/j.csda.2023.107692",
+    textVersion = paste("J. van Niekerk, E. Krainksi, D. Rustand, and H. Rue",
+                        "A new avenue for Bayesian inference with INLA",
+                        "Computational Statistics & Data Analysis",
+                        "181:107692, May 2023. doi: https://doi.org/10.1016/j.csda.2023.107692")
+)
 
 citEntry(
     entry = "Article",
-    title = "Enhancing the scalability of selected inversion factorization algorithms in genomic prediction",
-    author = personList(as.person("Fabio Verbosio"),
-                        as.person("Arne De Coninck"),
-                        as.person("Drosos Kourounis"),
-                        as.person("Olaf Schenk")), 
-    journal = "Journal of Computational Science",
-    volume = "22",
-    number = "Supplement C",
-    pages = "99-108",
-    year = "2017",
-    issn = "1877-7503",
-    url = "https://doi.org/10.1016/j.jocs.2017.08.013",
-    textVersion = paste(
-        "F. Verbosio, A. D. Coninck, D. Kourounis, and O. Schenk,",
-        "Enhancing the scalability of selected inversion factorization algorithms in genomic predictions,",
-        "Journal of Computational Science, vol. 22, no. Supplement C, pp. 99-108, 2017."))
-
+    author = personList(as.person("Janet van Niekerk"), 
+                        as.person("H{\\aa}vard Rue")), 
+    title = "Low-rank variational Bayes correction to the Laplace method", 
+    journal = "Journal of Machine Learning Research", 
+    year =  "2024",
+    volume  = "25",
+    number  = "62",
+    pages   = "1-25",
+    url     = "http://jmlr.org/papers/v25/21-1405.html", 
+    textVersion = paste("J. van Niekerk and H. Rue",
+                        "Low-rank variational Bayes correction to the Laplace method",
+                        "Journal of Machine Learning Research",
+                        "25(62):1–25, 2024",
+                        "https://jmlr.org/papers/v25/21-1405.html")
+)
 
 citEntry(
-    entry = "Article", 
-    title = "Towards the Next Generation of Multiperiod Optimal Power Flow Solvers", 
-    author = personList(as.person("D. Kourounis"),
-                       as.person("A. Fuchs"),
-                       as.person("O. Schenk")), 
-    journal = "IEEE Transactions on Power Systems", 
-    year = "2018", 
-    volume = "PP", 
-    number = "99", 
-    pages = "1-10", 
-    url = "https://doi.org/10.1109/TPWRS.2017.2789187", 
-    textVersion = paste(
-        "D. Kourounis, A. Fuchs, and O. Schenk,",
-        "Towards the next generation of multiperiod optimal power flow solvers,",
-        "IEEE Transactions on Power Systems, vol. PP, no. 99, pp. 1-10, 2018."))
+    entry = "Article",
+    author = personList(as.person("H{\\aa}vard Rue"),
+                        as.person("Sara Martino")),
+    title = "Approximate Bayesian inference for hierarchical Gaussian Markov random fields models",
+    journal = "Journal of Statistical Planning and Inference",
+    year =  "2007",
+    volume = "137",
+    number = "10",
+    pages = "3177-3192",
+    textVersion = paste("H. Rue and S. Martino",
+                        "Approximate Bayesian inference for hierarchical Gaussian Markov random fields models",
+                        "Journal of Statistical Planning and Inference",
+                        "137(10):3177–3192, 2007",
+                        "Special Issue: Bayesian Inference for Stochastic Processes.")
+)
 
+citEntry(
+    entry = "Article",
+    author = personList(as.person("Finn Lindgren"),
+                        as.person("David Bolin"),
+                        as.person("H{\\aa}vard Rue")),
+    title = "The SPDE approach for Gaussian and non-Gaussian fields: 10 years and still running",
+    journal = "Spatial Statistics",
+    volume = "50",
+    number =  "August",
+    year = "2022",
+    doi = "https://doi.org/10.1016/j.spasta.2022.100599",
+    textVersion = paste("F. Lindgren, D. Bolin, and H. Rue",
+                        "The SPDE approach for Gaussian and non-Gaussian fields: 10 years and still running",
+                        "Spatial Statistics",
+                        "50(August):100599, 2022",
+                        "doi: https://doi.org/10.1016/j.spasta.2022.100599")
+)
+
+citEntry(
+    entry = "Article",
+    author = personList(as.person("Esmail Abdul Fattah"),
+                        as.person("Janet van Niekerk"),
+                        as.person("H{\\aa}vard Rue")),
+    journal = "Foundations of Data Science",
+    title = "Smart gradient – an adaptive technique for improving gradient estimation",
+    volume = "4",
+    number = "1",
+    pages = "123–136",
+    year = "2022",
+    doi = "10.3934/fods.2021037",
+    textVersion = paste("E. A. Fattah, J. van Niekerk, and H. Rue",
+                        "Smart gradient – an adaptive technique for improving gradient estimation",
+                        "Foundations of Data Science",
+                        "4(1):123–136, March 2022",
+                        "10.3934/fods.2021037")
+)
+
+citEntry(
+    entry = "Article",
+    author = personList(as.person("Esmail Abdul Fattah"),
+                        as.person("Hatem Ltaief"),
+                        as.person("H{\\aa}vard Rue"),
+                        as.person("David Keyes")),
+    journal = "(submitted)", 
+    title = "Dense matrices are alike; sparse matrices are sparse in their own way: A structure-adaptive tile Cholesky factorization",
+    volume = "xx",
+    number = "xx",
+    pages = "xx-xx", 
+    year = "2026", 
+    url = "https://arxiv.org/abs/2609.29765",
+    textVersion = paste("E. A. Fattah, H. Ltaief, H. Rue, and D. E. Keyes",
+                        "Dense matrices are alike; sparse matrices are sparse in their own way: A structure-adaptive tile Cholesky factorization",
+                        "xx(xx):xx–xx, 2026b. URL https://arxiv.org/abs/2609.29765")
+)

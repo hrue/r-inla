@@ -75,7 +75,9 @@ typedef struct {
 	int *rowind;
 	int *colptr;
 	int *vperm;
+	int *vperminv;
 	int *vperm2;
+	int *vperm2inv;
 } GMRFLib_graph_perm_cache_tp;
 
 typedef struct {
@@ -133,6 +135,7 @@ typedef struct {
 	int **snbs;
 
 	int *row2col;
+	int *col2row;
 	int n_ptr;
 	int n_idx;
 	int *rowptr;
@@ -173,7 +176,7 @@ int GMRFLib_QM(int thread_id, gsl_matrix * result, gsl_matrix * x, GMRFLib_graph
 	       int *nt_opt);
 int GMRFLib_Qx(int thread_id, double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);
-int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap);
+int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap, int *inv_remap);
 int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_find_idx(int *idx, int n, int *iarray, int value);
 int GMRFLib_getbit(GMRFLib_uchar c, unsigned int bitno);

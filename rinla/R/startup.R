@@ -98,7 +98,11 @@ inla.print.version <- function() {
 ## so file.exists() is always TRUE and would silence this permanently. Ask the
 ## binary whether it answers -V instead.
 `inla.first.run.binary` <- function() {
-    call <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
+    ## Resolve, do not read the option: inla.call is NULL on a healthy
+    ## installation, so reading it reported "no binary" with one sitting
+    ## next to the package.
+    call <- tryCatch(inla.binary.path(check = FALSE), error = function(e) NULL)
+    if (length(call) != 1L || is.na(call) || !nzchar(call)) call <- NULL
     if (!is.null(call) && is.character(call) && nzchar(call) && file.exists(call)) {
         out <- suppressWarnings(tryCatch(
             system2(call, "-V", stdout = TRUE, stderr = TRUE, timeout = 20),
@@ -115,21 +119,29 @@ inla.print.version <- function() {
             bv <- sub(".*version:[[:space:]]*", "",
                       grep("version", out, ignore.case = TRUE, value = TRUE)[1])
             bv <- trimws(bv)
-            ## Compare against the binary version this package DECLARES it
-            ## needs (Config/INLA/BinaryVersion), not against its own Version.
-            ## The R code moves independently: most edits here need no new
-            ## solver, so requiring equal versions would cry wolf on every R
-            ## update. Only an OLDER binary than the declared minimum is a
-            ## problem; a newer one is fine and stays quiet.
+            ## Getting here means inla.call is set, so somebody named this
+            ## binary deliberately. Use it as given, do not compare it against
+            ## the package, and report it: a chosen binary is the first thing
+            ## to look at when results differ from a colleague's.
+            ## Leave inla.call unset to get the binary for this package version.
             need <- tryCatch(utils::packageDescription("INLA")[["Config/INLA/BinaryVersion"]],
                              error = function(e) NULL)
-            if (!is.null(need) && nzchar(need) && nzchar(bv)) {
-                older <- tryCatch(package_version(bv) < package_version(need),
-                                  error = function(e) FALSE)
-                if (isTRUE(older)) {
+            if (!is.null(need) && nzchar(need) && nzchar(bv) &&
+                !identical(bv, need)) {
+                ## Two different situations, and calling both "you selected"
+                ## was wrong: a NULL inla.call means the resolver fell back
+                ## past the declared release to whatever was installed, which
+                ## the user did not choose and should be told to fix.
+                chosen <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
+                chosen <- !is.null(chosen) && is.character(chosen) && nzchar(chosen[1])
+                if (chosen) {
                     packageStartupMessage(
-                        " - Binary is ", bv, " but this package needs ", need,
-                        " or newer; run inla.stiles.install() to update it.")
+                        " - Using the binary you selected: ", bv,
+                        " (this package was built for ", need, ").")
+                } else {
+                    packageStartupMessage(
+                        " - No binary for ", need, "; using ", bv,
+                        ". Run inla.stiles.install() to get the matching one.")
                 }
             }
             return(invisible(NULL))
@@ -174,7 +186,9 @@ inla.print.version <- function() {
     } else {
         packageStartupMessage(appendLF=FALSE)
     }
-    try(inla.first.run.binary(), silent = TRUE)
+    ## Not wrapped in try(): a version mismatch must reach the user. Anything
+    ## else in here is best-effort and reports itself.
+    inla.first.run.binary()
 }
 
 .onUnload <- function(libpath) {

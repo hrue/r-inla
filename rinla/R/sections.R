@@ -124,7 +124,7 @@ inla.parse.Bmatrix.test <- function() {
                             sep = ""
                             ))
             fnm <- gsub(data.dir, "$inladatadir", file.rprior, fixed = TRUE)
-            cat(prefix, "prior", suff, " = ", "rprior:", prior.name, ":", fnm, "\n", sep = "", file = file, append = TRUE)
+            cat(prefix, "prior", suff, " = ", "rprior:", prior.name, "|", fnm, "\n", sep = "", file = file, append = TRUE)
             rm(prior.name) 
             cat(prefix, "parameters", suff, " = ", "", "\n", file = file, append = TRUE, sep = "")
         } else {
@@ -624,7 +624,7 @@ inla.parse.Bmatrix.test <- function() {
     if (!is.null(ngroup) && ngroup > 1) {
         cat("ngroup = ", ngroup, "\n", sep = " ", file = file, append = TRUE)
 
-        if (!inla.one.of(random.spec$model, "copy")) {
+        if (!inla.one.of(random.spec$model, c("copy", "scopy"))) {
             cat("group.model = ", random.spec$control.group$model, "\n", sep = " ", file = file, append = TRUE)
             inla.write.boolean.field("group.cyclic", random.spec$control.group$cyclic, file)
             if (is.null(random.spec$control.group$scale.model)) {
@@ -1834,6 +1834,10 @@ inla.parse.Bmatrix.test <- function() {
     inla.write.boolean.field("opt.solve", args$opt.solve, file)
     inla.write.boolean.field("opt.storage", args$opt.storage, file)
     inla.write.boolean.field("opt.num.threads", args$opt.num.threads, file)
+
+## DISABLE THIS ONE FOR THE MOMENT
+##    inla.write.boolean.field("pin.to.pcores", args$pin.to.pcores, file)
+
     ma <- args$memory.alignment
     if (is.null(ma) || all(ma != c(0, 16, 32, 64))) {
         ma <- 0

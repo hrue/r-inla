@@ -17,7 +17,7 @@ int inla_make_ar1c_graph(GMRFLib_graph_tp **graph_out, inla_ar1c_arg_tp *def)
 			GMRFLib_ged_add(ged, i, def->n + j);
 		}
 	}
-	assert(ged->n == def->N);
+	Assert(ged->n == def->N);
 	GMRFLib_ged_build(graph_out, ged);
 	GMRFLib_ged_free(ged);
 
@@ -175,7 +175,7 @@ int inla_make_group_graph(GMRFLib_graph_tp **new_graph, GMRFLib_graph_tp *graph,
 	case G_EXCHANGEABLE:
 	case G_EXCHANGEABLE_POS:
 	{
-		assert(cyclic == 0);
+		Assert(cyclic == 0);
 		for (i = 0; i < ngroup; i++) {
 			for (j = i + 1; j < ngroup; j++) {
 				GMRFLib_ged_insert_graph2(ged, graph, i * n, j * n);
@@ -186,7 +186,7 @@ int inla_make_group_graph(GMRFLib_graph_tp **new_graph, GMRFLib_graph_tp *graph,
 
 	case G_AR1:
 	{
-		assert(ngroup >= 2);
+		Assert(ngroup >= 2);
 		for (i = 0; i < ngroup - 1; i++) {
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 1) * n);
 		}
@@ -198,7 +198,7 @@ int inla_make_group_graph(GMRFLib_graph_tp **new_graph, GMRFLib_graph_tp *graph,
 
 	case G_AR:
 	{
-		assert(ngroup >= 2);
+		Assert(ngroup >= 2);
 		for (i = 0; i < ngroup - 1; i++) {
 			for (j = 1; j <= order; j++) {
 				if (i + j < ngroup) {
@@ -211,7 +211,7 @@ int inla_make_group_graph(GMRFLib_graph_tp **new_graph, GMRFLib_graph_tp *graph,
 
 	case G_RW1:
 	{
-		assert(ngroup >= 2);
+		Assert(ngroup >= 2);
 		for (i = 0; i < ngroup - 1; i++) {
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 1) * n);
 		}
@@ -223,7 +223,7 @@ int inla_make_group_graph(GMRFLib_graph_tp **new_graph, GMRFLib_graph_tp *graph,
 
 	case G_RW2:
 	{
-		assert(ngroup >= 3);
+		Assert(ngroup >= 3);
 		for (i = 0; i < ngroup - 2; i++) {
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 1) * n);
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 2) * n);
@@ -239,7 +239,7 @@ int inla_make_group_graph(GMRFLib_graph_tp **new_graph, GMRFLib_graph_tp *graph,
 
 	case G_BESAG:
 	{
-		assert(group_graph);
+		Assert(group_graph);
 		for (i = 0; i < group_graph->n; i++) {
 			int jj;
 
@@ -253,7 +253,7 @@ int inla_make_group_graph(GMRFLib_graph_tp **new_graph, GMRFLib_graph_tp *graph,
 
 	case G_IID:
 	{
-		assert(ngroup >= 1);
+		Assert(ngroup >= 1);
 		for (i = 0; i < ngroup; i++) {
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, i * n);
 		}
@@ -272,7 +272,7 @@ int inla_make_group_graph(GMRFLib_graph_tp **new_graph, GMRFLib_graph_tp *graph,
 		fclose(fp);
 	}
 
-	assert(ged->n == n * ngroup);
+	Assert(ged->n == n * ngroup);
 	GMRFLib_ged_build(new_graph, ged);
 	GMRFLib_ged_free(ged);
 

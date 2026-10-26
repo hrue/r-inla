@@ -449,7 +449,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->id = P_PC_SPDE_GA;
 		prior->priorfunc = priorfunc_pc_spde_ga;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
-		assert(nparam == 4);
+		Assert(nparam == 4);
 		if (mb->verbose) {
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
@@ -461,7 +461,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->id = P_PC_MATERN;
 		prior->priorfunc = priorfunc_pc_matern;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
-		assert(nparam == 3);
+		Assert(nparam == 3);
 		if (mb->verbose) {
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
@@ -473,7 +473,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->id = P_PC_RANGE;
 		prior->priorfunc = priorfunc_pc_range;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
-		assert(nparam == 2);
+		Assert(nparam == 2);
 		if (mb->verbose) {
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
@@ -485,7 +485,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->id = P_PC_GEVTAIL;
 		prior->priorfunc = priorfunc_pc_gevtail;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
-		assert(nparam == 3);
+		Assert(nparam == 3);
 		if (mb->verbose) {
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
@@ -497,7 +497,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->id = P_PC_EGPTAIL;
 		prior->priorfunc = priorfunc_pc_egptail;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
-		assert(nparam == 3);
+		Assert(nparam == 3);
 		if (mb->verbose) {
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
@@ -509,7 +509,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->id = P_PC_GAMMA;
 		prior->priorfunc = priorfunc_pc_gamma;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
-		assert(nparam == 1);
+		Assert(nparam == 1);
 		if (mb->verbose) {
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
@@ -521,7 +521,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->id = P_PC_ALPHAW;
 		prior->priorfunc = priorfunc_pc_alphaw;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
-		assert(nparam == 1);
+		Assert(nparam == 1);
 		if (mb->verbose) {
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
@@ -533,7 +533,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->id = P_PC_MGAMMA;
 		prior->priorfunc = priorfunc_pc_mgamma;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
-		assert(nparam == 1);
+		Assert(nparam == 1);
 		if (mb->verbose) {
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
@@ -545,7 +545,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		prior->id = P_PC_GAMMACOUNT;
 		prior->priorfunc = priorfunc_pc_gammacount;
 		inla_sread_doubles_q(&(prior->parameters), &nparam, param);
-		assert(nparam == 1);
+		Assert(nparam == 1);
 		if (mb->verbose) {
 			for (i = 0; i < nparam; i++) {
 				printf("\t\t%s->%s[%1d]=[%g]\n", prior_tag, param_tag, i, prior->parameters[i]);
@@ -611,12 +611,12 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 			    (!strcasecmp(prior->name, "WISHART2D") ? 2 :
 			     (!strcasecmp(prior->name, "WISHART3D") ? 3 :
 			      (!strcasecmp(prior->name, "WISHART4D") ? 4 : (!strcasecmp(prior->name, "WISHART5D") ? 5 : -1)))));
-		assert(idim > 0);
+		Assert(idim > 0);
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx == inla_iid_wishart_nparam(idim) + 1);	/* this must be TRUE */
+		Assert(nxx == inla_iid_wishart_nparam(idim) + 1);	/* this must be TRUE */
 
 		if (mb->verbose) {
 			int ii;
@@ -634,9 +634,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 2;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -663,9 +663,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 3;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -692,9 +692,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 4;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -721,9 +721,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 5;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -750,9 +750,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 6;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -779,9 +779,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 7;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -808,9 +808,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 8;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -837,9 +837,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 9;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -866,9 +866,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 10;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -895,9 +895,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 11;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -924,9 +924,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 12;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -953,9 +953,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 13;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -982,9 +982,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 14;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -1011,9 +1011,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 15;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -1040,9 +1040,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 16;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -1069,9 +1069,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 17;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -1098,9 +1098,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 18;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -1127,9 +1127,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 19;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -1156,9 +1156,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 20;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -1185,9 +1185,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 21;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -1214,9 +1214,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 22;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -1243,9 +1243,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 23;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -1272,9 +1272,9 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		int idim = 24;
 
 		inla_sread_doubles_q(&xx, &nxx, param);
-		assert(xx);
+		Assert(xx);
 		prior->parameters = xx;
-		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		Assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
 			if (INLA_IS_SPECIAL(xx[j])) {
@@ -1581,7 +1581,7 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 	} else if (!strncasecmp(prior->name, "RPRIOR:", strlen("RPRIOR:"))) {
 		prior->id = P_RPRIOR;
 		char *tag[3] = { NULL, NULL, NULL, };
-		inla_sread_str_str(tag, 3, prior->name);       // rprior:RPRIOR_FUNCTION:FILENAME
+		inla_sread_str_str_rprior(tag, 3, prior->name);	// rprior:RPRIOR_FUNCTION|FILENAME
 		prior->rprior = Strdup(tag[1]);
 		GMRFLib_sprintf(&(prior->name), "%s:%s", tag[0], tag[1]);
 		GMRFLib_sprintf(&(prior->expression), "%s:%s", tag[0], tag[1]);
@@ -1667,7 +1667,7 @@ double priorfunc_pc_egptail(double *x, double *parameters)
 		p_high = 1.0 - exp(-lambda * DIST(-low));
 		ld = -log(p_high - p_low) + log(lambda) - lambda * d + log(ABS(d_deriv)) + log(ABS(xi_deriv));
 	} else {
-		assert(0 == 1);
+		Assert(0 == 1);
 	}
 
 #undef DIST
@@ -1676,32 +1676,24 @@ double priorfunc_pc_egptail(double *x, double *parameters)
 
 double priorfunc_pc_spde_ga(double *x, double *parameters)
 {
-	double theta1 = x[0], theta2 = x[1], *par = parameters, ldens, lam1, lam2;
-	const int debug = 0;
-
-	lam1 = -par[0] * log(par[1]);
-	lam2 = -log(par[3]) / par[2];
-	ldens = (log(lam1) - theta1 - lam1 * exp(-theta1)) + (log(lam2) + theta2 - lam2 * exp(theta2));
-
-	if (debug) {
-		fprintf(stderr, "pc_spde_ga: x = %g %g\n", x[0], x[1]);
-		fprintf(stderr, "            param = %g %g %g %g\n", par[0], par[1], par[2], par[3]);
-		fprintf(stderr, "            lam1 = %g  lam2 = %g  ldens = %g\n", lam1, lam2, ldens);
-	}
+	double theta1 = x[0];
+	double theta2 = x[1];
+	double *par = parameters;
+	double lam1 = -par[0] * log(par[1]);
+	double lam2 = -log(par[3]) / par[2];
+	double ldens = (log(lam1) - theta1 - lam1 * exp(-theta1)) + (log(lam2) + theta2 - lam2 * exp(theta2));
 
 	return ldens;
 }
 
 double priorfunc_pc_matern(double *x, double *parameters)
 {
-	double theta1 = x[0], theta2 = x[1], *par = parameters, ldens, lam1, lam2, dHalf;
-	const int debug = 0;
-
-	lam1 = parameters[0];
-	lam2 = parameters[1];
-	dHalf = parameters[2] / 2.0;
-
-	ldens = 0.0;
+	double theta1 = x[0];
+	double theta2 = x[1]; 
+	double lam1 = parameters[0];
+	double lam2 = parameters[1];
+	double dHalf = parameters[2] / 2.0;
+	double ldens = 0.0;
 
 	// Check if range is fixed
 	if (!ISNAN(theta1))
@@ -1711,30 +1703,16 @@ double priorfunc_pc_matern(double *x, double *parameters)
 	if (!ISNAN(theta2))
 		ldens += log(lam2) + theta2 - lam2 * exp(theta2);
 
-	if (debug) {
-		fprintf(stderr, "pc_matern: x = %g %g\n", x[0], x[1]);
-		fprintf(stderr, "           param = %g %g %g\n", par[0], par[1], par[2]);
-		fprintf(stderr, "           lam1 = %g  lam2 = %g  ldens = %g\n", lam1, lam2, ldens);
-	}
-
 	return ldens;
 }
 
 double priorfunc_pc_range(double *x, double *parameters)
 {
 	double theta1 = x[0], ldens, lam, dHalf;
-	const int debug = 0;
 
 	lam = parameters[0];
 	dHalf = parameters[1] / 2.0;
-
 	ldens = log(lam * dHalf) - dHalf * theta1 - lam * exp(-dHalf * theta1);
-
-	if (debug) {
-		fprintf(stderr, "pc_range: x = %g\n", x[0]);
-		fprintf(stderr, "          param = %g %g\n", parameters[0], parameters[1]);
-		fprintf(stderr, "          lam = %g  dHalf = %g  ldens = %g\n", lam, dHalf, ldens);
-	}
 
 	return ldens;
 }
@@ -1889,14 +1867,12 @@ double priorfunc_pc_prec(double *x, double *parameters)
 double priorfunc_pc_cor0(double *x, double *parameters)
 {
 	// alpha = Prob(|rho| > u)
-	const int debug = 0;
 	double u = parameters[0], alpha = parameters[1];
 	double rho = map_rho(*x, MAP_FORWARD, NULL);
 	double ldens, lambda, ljac, val, mu;
 
 	mu = sqrt(-LOG_1mp(SQR(rho)));
 	if (alpha <= 0 || alpha >= 1.0) {
-		FIXME1("*****************************  USING lambda = u **********************************");
 		lambda = u;
 	} else {
 		lambda = -log(alpha) / sqrt(-LOG_1mp(SQR(u)));
@@ -1905,11 +1881,6 @@ double priorfunc_pc_cor0(double *x, double *parameters)
 	ldens = log(lambda) - lambda * mu + log((ABS(rho) + INLA_REAL_SMALL) / (1.0 - SQR(rho))) - log(mu + INLA_REAL_SMALL);
 	ljac = log(ABS(map_rho(*x, MAP_DFORWARD, NULL)));
 	val = ldens + ljac;
-
-	if (debug) {
-		fprintf(stderr, "priorfunc_pc_cor0: mu %g lambda %g ldens %g ljac %g\n", mu, lambda, ldens, ljac);
-		fprintf(stderr, "priorfunc_pc_cor0: theta %g val %g\n", *x, val);
-	}
 
 	return val;
 }
@@ -1939,12 +1910,12 @@ double priorfunc_pc_cor1(double *x, double *parameters)
 	if (_Fsolve(lambda) > 0.0) {
 		while (_Fsolve(lambda) > 0.0) {
 			lambda /= lambda_step;
-			assert(count++ < count_max);
+			Assert(count++ < count_max);
 		}
 	} else {
 		while (_Fsolve(lambda) < 0.0 && lambda >= eps_lambda) {
 			lambda *= lambda_step;
-			assert(count++ < count_max);
+			Assert(count++ < count_max);
 		}
 	}
 
@@ -1960,7 +1931,7 @@ double priorfunc_pc_cor1(double *x, double *parameters)
 		if (debug) {
 			printf("priorfunc_pc_cor1: iteration=%d lambda=%g\n", count, lambda);
 		}
-		assert(count++ < count_max);
+		Assert(count++ < count_max);
 	}
 	if (debug)
 		printf("priorfunc_pc_cor1: function value %g\n", _Fsolve(lambda));
@@ -2133,7 +2104,7 @@ double priorfunc_ref_ar(double *x, double *parameters)
 	double pacf[3], ldens;
 
 	p = (int) parameters[0];
-	assert(p >= 0 && p <= 3);
+	Assert(p >= 0 && p <= 3);
 	for (i = 0; i < p; i++) {
 		pacf[i] = map_phi(x[i], MAP_FORWARD, NULL);
 	}
@@ -2300,7 +2271,7 @@ double priorfunc_gamma(double *x, double *parameters)
 		 * while this is ok. (code copied from GSL...) 
 		 */
 		if (*x < 0.0) {
-			assert(*x >= 0.0);
+			Assert(*x >= 0.0);
 		} else if (*x == 0.0) {
 			if (a == 1.0) {
 				return 1.0 / b;
@@ -2420,7 +2391,7 @@ int inla_iid_wishart_adjust(int dim, double *theta)
 				k++;
 			}
 		}
-		assert(k == n_theta);
+		Assert(k == n_theta);
 
 		if (debug) {
 			printf("\n");
@@ -2544,7 +2515,7 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 			k++;
 		}
 	}
-	assert(k == n_param);
+	Assert(k == n_param);
 
 #define COMPUTE_Q(Q_)							\
 	if (1) {							\
@@ -2561,7 +2532,7 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 				k++;					\
 			}						\
 		}							\
-		assert(k == n_x);					\
+		Assert(k == n_x);					\
 		if (debug) printf("Covmatrix:\n");			\
 		if (debug) GMRFLib_printf_gsl_matrix(stdout, Q_, NULL); \
 		if (debug) printf("Precision:\n");			\
@@ -2612,7 +2583,7 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 		k = 0;
 		for (i = 0; i < dim; i++) {
 			gsl_matrix_set(J, ii, k, (gsl_matrix_get(Q, k, k) - gsl_matrix_get(QQ, k, k)) / (2.0 * f));
-			assert(k == i);
+			Assert(k == i);
 			k++;
 		}
 		for (i = 0; i < dim; i++) {
@@ -2622,7 +2593,7 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 			}
 		}
 	}
-	assert(k == n_x);
+	Assert(k == n_x);
 
 	gsl_permutation *p = NULL;
 	int signum;
@@ -2815,7 +2786,7 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 			k++;
 		}
 	}
-	assert(k == n_param);
+	Assert(k == n_param);
 
 	inla_wishartk_build_Q(idim, x, Q, L);
 	val = GMRFLib_Wishart_logdens(Q, r, R);
@@ -2859,7 +2830,7 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 				k++;
 			}
 		}
-		assert(k == n_x);
+		Assert(k == n_x);
 	}
 
 	gsl_permutation *p = NULL;

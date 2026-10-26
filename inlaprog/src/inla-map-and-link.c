@@ -324,9 +324,9 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 	double **par = NULL, intercept, intercept_intern, intercept_alpha;
 
 	par = (double **) param;
-	assert(par);
-	assert(par[0]);
-	assert(par[1]);
+	Assert(par);
+	Assert(par[0]);
+	Assert(par[1]);
 	skew_intern = *(par[0]);
 	intercept_intern = *(par[1]);
 
@@ -346,7 +346,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 #pragma omp critical (Name_375605f5a0a02853485931b7541aa2de0692bb42)
 		if (first) {
 			if (debug) {
-				fprintf(stderr, "map_invsn: build table\n");
+				LOG_INFO("build table");
 			}
 			table = Calloc(GMRFLib_CACHE_LEN(), inla_sn_table_tp *);
 			for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
@@ -373,7 +373,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 		double *work = NULL, *x = NULL, *y = NULL, *yy = NULL, nc = 0.0, xx;
 
 		if (debug) {
-			fprintf(stderr, "map_invsn: build new table for alpha=%g id=%1d\n", alpha, id);
+			LOG_INFO("build new table for alpha=%g id=%1d", alpha, id);
 		}
 
 		work = Calloc(3 * len, double);
@@ -774,7 +774,7 @@ double map_beta(double x, map_arg_tp typ, void *param)
 			abort();
 		}
 	} else if (ISINF(range[0]) && !ISINF(range[1])) {
-		FIXME("the case: ISINF(range[0]) && !ISINF(range[1]), is not yet implemented.");
+		LOG_ERROR("the case: ISINF(range[0]) && !ISINF(range[1]), is not yet implemented.");
 		exit(EXIT_FAILURE);
 	} else {
 		/*
@@ -1170,7 +1170,7 @@ double map_group_rho(double x, map_arg_tp typ, void *param)
 	/*
 	 * extern = 
 	 */
-	assert(param != NULL);
+	Assert(param != NULL);
 	int ngroups = *((int *) param);
 	double xx;
 
@@ -1240,7 +1240,7 @@ double link_this_should_not_happen(int UNUSED(thread_id), double UNUSED(x), map_
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
-	FIXMEstderr("This function is called because a wrong link function is used.");
+	LOG_ERROR("This function is called because a wrong link function is used.");
 	abort();
 	return 0.0;
 }
@@ -1361,7 +1361,7 @@ double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, d
 #pragma omp critical (Name_a862df53446b09ea53b4bd233636df42f8acd1ff)
 		if (first) {
 			if (debug) {
-				fprintf(stderr, "link_loga: init tables\n");
+				LOG_INFO("init tables");
 			}
 			table = Calloc(GMRFLib_CACHE_LEN(), inla_loga_table_tp *);
 			for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
@@ -1380,7 +1380,7 @@ double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, d
 		double *work = NULL, *x_ = NULL, *y = NULL, p_local;
 
 		if (debug) {
-			fprintf(stderr, "link_loga: build new table for a=%g [%1d]\n", a, id);
+			LOG_INFO("build new table for a=%g [%1d]", a, id);
 		}
 		// count to find the length
 		for (xx = -range, len = 0; xx <= 2 * range; xx += (ABS(xx) < 3.0 ? dx / 5.0 : dx), len++);
@@ -1572,7 +1572,7 @@ double link_sslogit(int thread_id, double x, map_arg_tp typ, void *param, double
 		return a / (1.0 + exp(-x)) + b;
 
 	case MAP_BACKWARD:
-		assert((x - b) / (x - b - a) > 0.0);
+		Assert((x - b) / (x - b - a) > 0.0);
 		return log((x - b) / (x - b - a));
 
 	case MAP_DFORWARD:
@@ -1675,7 +1675,7 @@ double link_qpoisson(int thread_id, double x, map_arg_tp typ, void *param, doubl
 
 	default:
 	{
-		assert(0 == 1);
+		Assert(0 == 1);
 	}
 		break;
 
@@ -1705,7 +1705,7 @@ double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, doubl
 		}
 			break;
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 		break;
@@ -1741,7 +1741,7 @@ double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, doubl
 				if (ret_val !=
 				    (link_qweibull(thread_id, x + 1.0, INVLINK, param, cov) >
 				     link_qweibull(thread_id, x, INVLINK, param, cov) ? 1 : 0)) {
-					FIXME("LINKINCREASING has error in link_qweibull");
+					LOG_ERROR("LINKINCREASING has error in link_qweibull");
 					exit(EXIT_FAILURE);
 				}
 				do_check[lparam->variant] = 0;
@@ -1753,7 +1753,7 @@ double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, doubl
 
 	default:
 	{
-		assert(0 == 1);
+		Assert(0 == 1);
 	}
 		break;
 
@@ -1808,7 +1808,7 @@ double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double 
 
 	default:
 	{
-		assert(0 == 1);
+		Assert(0 == 1);
 	}
 		break;
 
@@ -1889,7 +1889,7 @@ double link_qexppower(int thread_id, double x, map_arg_tp typ, void *param, doub
 			break;
 
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 			break;
 		}
 		return ret;
@@ -1936,7 +1936,7 @@ double link_qexppower(int thread_id, double x, map_arg_tp typ, void *param, doub
 		break;
 
 	default:
-		assert(0 == 1);
+		Assert(0 == 1);
 		break;
 	}
 
@@ -1985,7 +1985,7 @@ double link_qbinomial(int thread_id, double x, map_arg_tp typ, void *param, doub
 
 	default:
 	{
-		assert(0 == 1);
+		Assert(0 == 1);
 	}
 		break;
 
@@ -2036,7 +2036,7 @@ double link_pqbinomial(int thread_id, double x, map_arg_tp typ, void *param, dou
 
 	default:
 	{
-		assert(0 == 1);
+		Assert(0 == 1);
 	}
 		break;
 
@@ -2071,7 +2071,7 @@ double link_special1(int thread_id, double x, map_arg_tp typ, void *param, doubl
 	for (i = 0; i < p->order; i++) {
 		covariate_contribution += p->betas[i][thread_id][0] * cov[i];
 	}
-	assert(!ISNAN(covariate_contribution));
+	Assert(!ISNAN(covariate_contribution));
 
 	switch (typ) {
 	case MAP_FORWARD:

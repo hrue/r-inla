@@ -1,13 +1,4 @@
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/hashP.h"
 
 int GMRFLib_ghq__intern(double *x, double *w, int n)
 {
@@ -101,14 +92,14 @@ int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev)
 	double *xxp = NULL, *wwp = NULL;
 
 	GMRFLib_ghq(&xxp, &wwp, n);
-	assert(xxp);
-	assert(wwp);
+	Assert(xxp);
+	Assert(wwp);
 
 	*xp = aMalloc(n, double);
 	*wp = aMalloc(n, double);
 
-	assert(*xp);
-	assert(*wp);
+	Assert(*xp);
+	Assert(*wp);
 	for (i = 0; i < n; i++) {
 		(*xp)[i] = xxp[i] * stdev + mean;
 		(*wp)[i] = wwp[i];

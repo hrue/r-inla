@@ -24,9 +24,7 @@
 #       endif
 
 __BEGIN_DECLS
-
-/* 
- */
+// 
 #       if __GNUC__ > 7
 #              define FORTRAN_CHARLEN_T size_t
 #       else
@@ -48,8 +46,13 @@ __BEGIN_DECLS
 #              define POSSIBLY_UNUSED(x) x
 #       endif
 #       if 1
-#              define aligned_double alignas(64) double
-#              define aligned_int    alignas(64) int
+#              ifdef __cplusplus
+#                     define aligned_double double __attribute__((aligned(64)))
+#                     define aligned_int double __attribute__((aligned(64)))
+#              else
+#                     define aligned_double alignas(64) double
+#                     define aligned_int alignas(64) int
+#              endif
 #       else
 #              define aligned_double double
 #              define aligned_int    int
@@ -262,7 +265,7 @@ typedef enum {
 	static int debug_count_ = 0;					\
 	_Pragma("omp threadprivate(debug_count_)")			\
 	debug_count_++;							\
-	assert(debug_count_ > 0);					\
+	Assert(debug_count_ > 0);					\
 	if (debug_ < 0)	{						\
 		debug_ = GMRFLib_debug_functions(__GMRFLib_FuncName);	\
 	}
@@ -418,7 +421,7 @@ typedef enum {
 	size_t calloc_offset_ = 0;					\
 	size_t calloc_m_count_ = 0;					\
 	double *calloc_work_ = Calloc(IMAX(1, calloc_len_), double);	\
-	assert(calloc_work_)
+	Assert(calloc_work_)
 
 #       define iCalloc_init(n_, m_)						\
 	size_t icalloc_m_ = (m_);					\
@@ -427,7 +430,7 @@ typedef enum {
 	size_t icalloc_offset_ = 0;					\
 	size_t icalloc_m_count_ = 0;					\
 	int *icalloc_work_ = Calloc(IMAX(1, icalloc_len_), int); \
-	assert(icalloc_work_)
+	Assert(icalloc_work_)
 
 #       define Malloc_init(n_, m_)						\
 	size_t malloc_m_ = (m_);					\
@@ -436,7 +439,7 @@ typedef enum {
 	size_t malloc_offset_ = 0;					\
 	size_t malloc_m_count_ = 0;					\
 	double *malloc_work_ = Malloc(IMAX(1, malloc_len_), double);	\
-	assert(malloc_work_)
+	Assert(malloc_work_)
 
 #       define Calloc_get(_n)							\
 	calloc_work_ + calloc_offset_;					\
@@ -457,16 +460,16 @@ typedef enum {
 	Malloc_check()
 
 #       define Calloc_check()							\
-	if (!(calloc_offset_ <= calloc_len_)) { P(calloc_offset_); P(calloc_len_); }; assert(calloc_offset_ <= calloc_len_); \
-	if (!(calloc_m_count_ <= calloc_m_)) { P(calloc_m_); P(calloc_m_count_); }; assert(calloc_m_count_ <= calloc_m_)
+	if (!(calloc_offset_ <= calloc_len_)) { P(calloc_offset_); P(calloc_len_); }; Assert(calloc_offset_ <= calloc_len_); \
+	if (!(calloc_m_count_ <= calloc_m_)) { P(calloc_m_); P(calloc_m_count_); }; Assert(calloc_m_count_ <= calloc_m_)
 
 #       define iCalloc_check()							\
-	if (!(icalloc_offset_ <= icalloc_len_)) { P(icalloc_offset_); P(icalloc_len_); }; assert(icalloc_offset_ <= icalloc_len_); \
-	if (!(icalloc_m_count_ <= icalloc_m_)) { P(icalloc_m_); P(icalloc_m_count_); }; assert(icalloc_m_count_ <= icalloc_m_)
+	if (!(icalloc_offset_ <= icalloc_len_)) { P(icalloc_offset_); P(icalloc_len_); }; Assert(icalloc_offset_ <= icalloc_len_); \
+	if (!(icalloc_m_count_ <= icalloc_m_)) { P(icalloc_m_); P(icalloc_m_count_); }; Assert(icalloc_m_count_ <= icalloc_m_)
 
 #       define Malloc_check()							\
-	if (!(malloc_offset_ <= malloc_len_)) { P(malloc_offset_); P(malloc_len_); }; assert(malloc_offset_ <= malloc_len_); \
-	if (!(malloc_m_count_ <= malloc_m_)) { P(malloc_m_); P(malloc_m_count_); }; assert(malloc_m_count_ <= malloc_m_)
+	if (!(malloc_offset_ <= malloc_len_)) { P(malloc_offset_); P(malloc_len_); }; Assert(malloc_offset_ <= malloc_len_); \
+	if (!(malloc_m_count_ <= malloc_m_)) { P(malloc_m_); P(malloc_m_count_); }; Assert(malloc_m_count_ <= malloc_m_)
 
 #       define Calloc_free()   if (1) { Calloc_check(); Free(calloc_work_); }
 #       define iCalloc_free()  if (1) { iCalloc_check(); Free(icalloc_work_); }
@@ -493,10 +496,10 @@ typedef enum {
 #       endif
 
 #       define ABS(x) fabs(x)
-#       define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
+#       define FIXME(msg) if (1) { LOG_INFO("{%1d}[%s:%1d] %s: FIXME [%s]",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #       define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}
 #       define FIXME1stderr(msg) if (1) { static int first=1; if (first) { first=0; FIXMEstderr(msg); }}
-#       define FIXMEstderr( msg) if (1) { fprintf(stderr, "\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
+#       define FIXMEstderr( msg) if (1) { LOG_INFO("{%1d}[%s:%1d] %s: FIXME [%s]",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #       define IABS(x)   abs(x)
 #       define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
 #       define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
@@ -547,8 +550,8 @@ typedef enum {
 		nan_error = 1;						\
 	}
 
-#       define GMRFLib_STOP_IF_NAN_OR_INF(value, idx, jdx)			\
-	if (!gsl_finite(value)) {					\
+#       define GMRFLib_STOP_IF_NAN_OR_INF(value, idx, jdx)		\
+	if (!isfinite(value)) {						\
 		if (!nan_error)						\
 			fprintf(stdout,					\
 				"\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
@@ -573,10 +576,10 @@ typedef enum {
 			__id =  tnum_ + numa_offset_;			\
 		} else if (level1_ == 2) {				\
 			int tnum2_ = omp_get_ancestor_thread_num(level1_ -1); \
-			assert(tnum2_ >= 0);				\
+			Assert(tnum2_ >= 0);				\
 			__id = mt_ + tnum2_ * mt_ + tnum_ + numa_offset_; \
 		} else {						\
-			assert(0 == 1);					\
+			Assert(0 == 1);					\
 		}							\
 	}
 
@@ -592,7 +595,7 @@ typedef enum {
 			int tnum2_ = omp_get_ancestor_thread_num(level1_ -1); \
 			__id = mt_ + tnum1_ + tnum2_ * mt_;		\
 		} else {						\
-			assert(0 == 1);					\
+			Assert(0 == 1);					\
 		}							\
 	}
 
@@ -664,12 +667,14 @@ typedef enum {
 #       define CODE_BLOCK_ALL_WORK_ZERO_x(thread_num_) Memset(CODE_BLOCK_WORK_PTR_x(0, thread_num_), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
 
 #       define CODE_BLOCK_INIT()						\
-	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : omp_get_thread_num()) : 0); \
+	int tid__ = omp_get_thread_num();				\
+	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : tid__) : 0); \
 	if (need_work__ && !work__[t_num__] && len_work__ && n_work__) \
 		work__[t_num__] = Malloc(len_work__ * n_work__, double)
 
 #       define CODE_BLOCK_INIT_X(work_tp_, len2__) \
-	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : omp_get_thread_num()) : 0); \
+	int tid__ = omp_get_thread_num();	   \
+	int t_num__ = (need_work__ ? (nt__ == 1 ? 0 : tid__) : 0); \
 	if (need_work__ && !work__[t_num__] && len_work__ && n_work__)		\
 		work__[t_num__] = Calloc(len_work__ * n_work__, double); \
 	if (!work_t__[t_num__])						\
@@ -678,7 +683,7 @@ typedef enum {
 #       define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\
 		int need_work__ = (n_work_ * len_work_ > 0);		\
-		assert(need_work__ >= 0);				\
+		Assert(need_work__ >= 0);				\
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
@@ -687,7 +692,7 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		assert(work__);						\
+		Assert(work__);						\
 									\
 		if (nt__ > 1) {						\
                         _Pragma("omp parallel for num_threads(nt__)")	\
@@ -704,7 +709,7 @@ typedef enum {
 #       define RUN_CODE_BLOCK_GUIDED(thread_max_, n_work_, len_work_)		\
 	if (1) {							\
 		int need_work__ = (n_work_ * len_work_ > 0);		\
-		assert(need_work__ >= 0);				\
+		Assert(need_work__ >= 0);				\
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
@@ -713,62 +718,10 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		assert(work__);						\
+		Assert(work__);						\
 									\
 		if (nt__ > 1) {						\
                         _Pragma("omp parallel for num_threads(nt__) schedule(guided, GMRFLib_openmp->chunk_size)") \
-				CODE_BLOCK;				\
-		} else {						\
-			CODE_BLOCK;					\
-		}							\
-		for (int i_ = 0; i_ < nt__; i_++) {			\
-			Free(work__[i_]);				\
-		}							\
-		Free(work__);						\
-        }
-
-#       define RUN_CODE_BLOCK_DYNAMIC(thread_max_, n_work_, len_work_)		\
-	if (1) {							\
-		int need_work__ = (n_work_ * len_work_ > 0);		\
-		assert(need_work__ >= 0);				\
-		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
-			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
-		int tmax__ = thread_max_;				\
-		int len_work__ = IMAX(1, len_work_);			\
-		int n_work__ = IMAX(1, n_work_);			\
-		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
-									\
-		double ** work__ = Calloc(nt__, double *);		\
-		assert(work__);						\
-									\
-		if (nt__ > 1) {						\
-			_Pragma("omp parallel for num_threads(nt__) schedule(dynamic)") \
-				CODE_BLOCK;				\
-		} else {						\
-			CODE_BLOCK;					\
-		}							\
-		for (int i_ = 0; i_ < nt__; i_++) {			\
-			Free(work__[i_]);				\
-		}							\
-		Free(work__);						\
-        }
-
-#       define RUN_CODE_BLOCK_STATIC(thread_max_, n_work_, len_work_)		\
-	if (1) {							\
-		int need_work__ = (n_work_ * len_work_ > 0);		\
-		assert(need_work__ >= 0);				\
-		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
-			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
-		int tmax__ = thread_max_;				\
-		int len_work__ = IMAX(1, len_work_);			\
-		int n_work__ = IMAX(1, n_work_);			\
-		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
-									\
-		double ** work__ = Calloc(nt__, double *);		\
-		assert(work__);						\
-									\
-		if (nt__ > 1) {						\
-			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
 				CODE_BLOCK;				\
 		} else {						\
 			CODE_BLOCK;					\
@@ -785,7 +738,7 @@ typedef enum {
 #       define RUN_CODE_BLOCK_X(thread_max_, n_work_, len_work_, work_tp_)	\
 	if (1) {							\
 		int need_work__ = (n_work_ * len_work_ > 0);		\
-		assert(need_work__ >= 0);				\
+		Assert(need_work__ >= 0);				\
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
@@ -794,10 +747,10 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		work_tp_ ** work_t__ = Calloc(nt__, work_tp_ *);	\
-		assert(work_t__);					\
+		Assert(work_t__);					\
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		assert(work__);						\
+		Assert(work__);						\
 									\
 		if (nt__ > 1) {						\
 			_Pragma("omp parallel for num_threads(nt__)")   \
@@ -819,7 +772,7 @@ typedef enum {
 #       define RUN_CODE_BLOCK_PLAIN(thread_max_, n_work_, len_work_)		\
 	if (1) {							\
 		int need_work__ = (n_work_ * len_work_ > 0);		\
-		assert(need_work__ >= 0);				\
+		Assert(need_work__ >= 0);				\
 		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
 			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
@@ -828,7 +781,7 @@ typedef enum {
 		nt__ = IMAX(1, (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__)))); \
 									\
 		double ** work__ = Calloc(nt__, double *);		\
-		assert(work__);						\
+		Assert(work__);						\
 									\
 		CODE_BLOCK;						\
 									\
@@ -856,7 +809,7 @@ typedef enum {
 
 #       define TIMER_CHECK							\
 	if (timer_use_) {						\
-		assert(timer_idx_ < timer_n_);				\
+		Assert(timer_idx_ < timer_n_);				\
 		double tim = GMRFLib_timer();				\
 		if (timer_idx_ >= 0)					\
 			timer_[timer_idx_] += tim;			\
@@ -875,7 +828,7 @@ typedef enum {
 	}								\
 
 
-/* from /usr/include/assert.h */
+/* from /usr/include/Assert.h */
 #       ifndef __GNUC_PRERQ
 #              if defined __GNUC__ && defined __GNUC_MINOR__
 #                     define __GNUC_PREREQ(maj, min) ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
@@ -885,7 +838,8 @@ typedef enum {
 #       endif
 #       if defined __GNUC__
 #              if defined __cplusplus ? __GNUC_PREREQ (2, 6) : __GNUC_PREREQ (2, 4)
-#                     define  __GMRFLib_FuncName   __FUNCTION__
+//#                     define  __GMRFLib_FuncName   __FUNCTION__
+#                     define  __GMRFLib_FuncName   __func__
 #              else
 #                     if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
 #                            define __GMRFLib_FuncName  __func__
@@ -905,6 +859,9 @@ typedef enum {
 #       ifdef _MSC_VER
 #              define FORCEINLINE __forceinline
 #       elif defined(__GNUC__)
+#              if defined(_WIN32) && defined(FORCEINLINE)
+#                     undef FORCEINLINE
+#              endif
 #              define FORCEINLINE inline __attribute__((__always_inline__))
 #       elif defined(__CLANG__)
 #              if __has_attribute(__always_inline__)

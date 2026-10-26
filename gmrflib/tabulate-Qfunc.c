@@ -1,10 +1,3 @@
-#include <assert.h>
-#include <limits.h>
-#include <math.h>
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 #define TAB_FUNC_CORE(_prec_scale)					\
@@ -125,7 +118,7 @@ int GMRFLib_tabulate_Qfunc_core(int thread_id,
 		if (arg->Q->a[0] < 0.0 || ISNAN(arg->Q->a[0]) || ISINF(arg->Q->a[0])) {
 			P(arg->Q->a[0]);
 		}
-		assert(arg->Q->a[0] >= 0.0);
+		Assert(arg->Q->a[0] >= 0.0);
 		GMRFLib_graph_duplicate(&(arg->graph), graph);
 	} else {
 		arg->values = Calloc(graph->n, map_id *);
@@ -195,12 +188,12 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc,
 		M = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 		sparse = (M->i && M->j);
 		if (!sparse) {
-			assert(M->ncol == 3);
+			Assert(M->ncol == 3);
 		} else {
 			/*
 			 * make sure to fix the dimension of the matrix
 			 */
-			assert(M->nrow == M->ncol);
+			Assert(M->nrow == M->ncol);
 			GMRFLib_ged_add(ged, M->nrow - 1, M->ncol - 1);
 		}
 		if (sparse) {

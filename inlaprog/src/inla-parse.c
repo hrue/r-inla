@@ -35,7 +35,7 @@ int inla_parse_lincomb(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	mb->lc_order[mb->nlc] = iniparser_getdouble(ini, inla_string_join(secname, "LINCOMB.ORDER"), -1.0);
-	assert(mb->lc_order[mb->nlc] >= 0);
+	Assert(mb->lc_order[mb->nlc] >= 0);
 
 	// FORMAT:: se section.R in Rinla...
 
@@ -67,9 +67,7 @@ int inla_parse_lincomb(inla_tp *mb, dictionary *ini, int sec)
 	int all_weights_are_zero = 1;
 
 	for (sec_no = 0; sec_no < num_sections; sec_no++) {
-
-		int len;
-
+		int len = 0;
 		GMRFLib_io_read(io, &len, sizeof(int));
 		ptr = Calloc(len + 1, char);
 
@@ -92,7 +90,7 @@ int inla_parse_lincomb(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\t\tSection has offset=[%1d] and n=[%1d]\n", offset, n);
 
 		GMRFLib_io_read(io, &npairs, sizeof(int));
-		assert(npairs >= 0);
+		Assert(npairs >= 0);
 
 		if (mb->verbose) {
 			printf("\t\t\tnpairs=[%1d]\n", npairs);
@@ -111,10 +109,12 @@ int inla_parse_lincomb(inla_tp *mb, dictionary *ini, int sec)
 			 * check that the index is legal
 			 */
 			if (!LEGAL(idx[i] - 1, n)) {
-				fprintf(stderr, "\n\n");
-				fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
-				fprintf(stderr, "*** ERROR ***\t[%s] has length %1d, but idx=%1d (R-style index) is given\n", ptr, n, idx[i]);
-				GMRFLib_ASSERT(0 == 1, GMRFLib_EPARAMETER);
+				LOG_ERROR_WRAPPER(
+					fprintf(stderr, "\n\n");
+					fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
+					fprintf(stderr, "*** ERROR ***\t[%s] has length %1d, but idx=%1d (R-style index) is given\n", ptr, n, idx[i]);
+					);
+				abort();
 			}
 		}
 
@@ -141,10 +141,12 @@ int inla_parse_lincomb(inla_tp *mb, dictionary *ini, int sec)
 	GMRFLib_io_close(io);
 
 	if (all_weights_are_zero) {
-		fprintf(stderr, "\n\n");
-		fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
-		fprintf(stderr, "*** ERROR ***\tAll weights are zero.\n");
-		GMRFLib_ASSERT(0 == 1, GMRFLib_EPARAMETER);
+		LOG_ERROR_WRAPPER(
+			fprintf(stderr, "\n\n");
+			fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
+			fprintf(stderr, "*** ERROR ***\tAll weights are zero.\n");
+			);
+		abort();
 	}
 
 	/*
@@ -200,11 +202,11 @@ int inla_parse_mode(inla_tp *mb, dictionary *ini, int sec)
 		fp = fopen(tmp, "rb");
 		if (fp) {
 			nread = fread(&(mb->ntheta_file), sizeof(int), 1, fp);
-			assert(nread == 1);
+			Assert(nread == 1);
 			mb->theta_file = Calloc(mb->ntheta_file, double);
 
 			nread = fread(mb->theta_file, sizeof(double), mb->ntheta_file, fp);
-			assert(nread == (size_t) mb->ntheta_file);
+			Assert(nread == (size_t) mb->ntheta_file);
 			fclose(fp);
 		} else {
 			inla_sread_doubles_q(&t, &nt, tmp);
@@ -243,11 +245,11 @@ int inla_parse_mode(inla_tp *mb, dictionary *ini, int sec)
 		// format: NX x[0] x[1] .... x[ NX-1 ]
 		fp = fopen(tmp, "rb");
 		nread = fread(&(mb->nx_file), sizeof(int), 1, fp);
-		assert(nread == 1);
+		Assert(nread == 1);
 		mb->x_file = Calloc(mb->nx_file, double);
 
 		nread = fread(mb->x_file, sizeof(double), mb->nx_file, fp);
-		assert(nread == (size_t) mb->nx_file);
+		Assert(nread == (size_t) mb->nx_file);
 		fclose(fp);
 
 		if (mb->verbose) {
@@ -313,6 +315,12 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 		}
 		char a = -1;
 		signed char b = -1;
+
+#if defined(INLA_WITH_OPENSSL)
+		printf("\t\tSHA256: Use implementation in openssl-library libcrypto\n");
+#else
+		printf("\t\tSHA256: Use internal implementation\n");
+#endif
 
 		printf("\t\t'char' is %s\n", (((int) a == (int) b) ? "signed" : "unsigned"));
 		printf("\t\t'short int' is %1zu bytes\n", sizeof(short int));
@@ -419,6 +427,9 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(INLA_WITH_LIBR)
 		printf("\t\tCompiled with -DINLA_WITH_LIBR\n");
 #endif
+#if defined(INLA_WITH_LIBR_DLOPEN)
+		printf("\t\tCompiled with -DINLA_WITH_LIBR_DLOPEN\n");
+#endif
 #if defined(INLA_WITH_MUPARSER)
 		printf("\t\tCompiled with -DINLA_WITH_MUPARSER\n");
 #endif
@@ -446,6 +457,31 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(INLA_WITH_SIMDE)
 		printf("\t\tCompiled with -DINLA_WITH_SIMDE\n");
 #endif
+#if defined(INLA_WITH_CLONE_TARGETS)
+		printf("\t\tCompiled with -DINLA_WITH_CLONE_TARGETS");
+		const char *aa[] = { INLA_CLONE_TARGETS };
+		size_t count = sizeof(aa) / sizeof(aa[0]);
+		for (size_t k = 0; k < count; k++) {
+			printf(" %s", aa[k]);
+		}
+		printf("\n");
+#endif
+#if defined(INLA_WITH_EXTERNAL_PACKAGE)
+		printf("\t\tCompiled with -DINLA_WITH_EXTERNAL_PACKAGES\n");
+#endif
+#if defined(INLA_WITH_MVEC)
+		printf("\t\tCompiled with -DINLA_WITH_MVEC\n");
+#endif
+#if defined(INLA_WITH_OPENSSL)
+		printf("\t\tCompiled with -DINLA_WITH_OPENSSL\n");
+#endif
+#if defined(INLA_WITHOUT_FAST_LGAMMA)
+		printf("\t\tCompiled with -DINLA_WITHOUT_FAST_LGAMMA\n");
+#endif
+#if defined(INLA_WITH_COLOR)
+		printf("\t\tCompiled with -DINLA_WITH_COLOR\n");
+#endif
+		
 #if defined(__x86_64__)
 		printf("\t\tCPU feature SSE     availble? %s\n", __builtin_cpu_supports("sse") ? "YES" : "NO");
 		printf("\t\tCPU feature SSE2    availble? %s\n", __builtin_cpu_supports("sse2") ? "YES" : "NO");
@@ -531,8 +567,10 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 				printf("\t\tfail to create directory [%s]: %s\n", tmp, strerror(errno));
 			}
 			if (!accept_argument) {
-				fprintf(stderr, "\n\t\tFail to create directory [%s]: %s\n", tmp, strerror(errno));
-				fprintf(stderr, "\t\tmb->dir=[%s] does not accept integer arguments. Cannot proceed.\n\n", mb->dir);
+				LOG_ERROR_WRAPPER(
+					fprintf(stderr, "\n\t\tFail to create directory [%s]: %s\n", tmp, strerror(errno));
+					fprintf(stderr, "\t\tmb->dir=[%s] does not accept integer arguments. Cannot proceed.\n\n", mb->dir);
+					);
 				exit(EXIT_FAILURE);
 			}
 		} else {
@@ -627,12 +665,12 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	mb->predictor_n = iniparser_getint(ini, inla_string_join(secname, "N"), -1);
-	assert(mb->predictor_n > 0);
+	Assert(mb->predictor_n > 0);
 	if (mb->verbose) {
 		printf("\t\tn=[%1d]\n", mb->predictor_n);
 	}
 	mb->predictor_m = iniparser_getint(ini, inla_string_join(secname, "M"), 0);
-	assert(mb->predictor_m >= 0);
+	Assert(mb->predictor_m >= 0);
 	if (mb->verbose) {
 		printf("\t\tm=[%1d]\n", mb->predictor_m);
 	}
@@ -651,7 +689,7 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 	// mb->output->dic
 	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->predictor_compute) {
-			fprintf(stderr, "*** Warning: HYPER_MODE require predictor_compute = 0\n");
+			LOG_WARNING("HYPER_MODE require predictor_compute = 0");
 		}
 		mb->predictor_compute = 0;
 	}
@@ -687,16 +725,6 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 				       mb->predictor_n + mb->predictor_m, 0, 1, mb->verbose, 0.0);
 	} else {
 		mb->link_fitted_values = NULL;
-	}
-
-	if (0) {
-		if (mb->link_fitted_values) {
-			for (int i = 0; i < mb->predictor_n + mb->predictor_m; i++)
-				if (gsl_isnan(mb->link_fitted_values[i]))
-					fprintf(stderr, "link[%d] = NAN\n", i);
-				else
-					fprintf(stderr, "link[%d] = %g (%g)\n", i, mb->link_fitted_values[i], GSL_NAN);
-		}
 	}
 
 	mb->predictor_cross_sumzero = NULL;
@@ -744,10 +772,10 @@ int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\tAextPrecision=[%.4g]\n", mb->predictor_Aext_precision);
 	}
 	if (mb->predictor_m > 0) {
-		assert(mb->predictor_Aext_fnm != NULL);
+		Assert(mb->predictor_Aext_fnm != NULL);
 	}
 	if (mb->predictor_m == 0) {
-		assert(mb->predictor_Aext_fnm == NULL);
+		Assert(mb->predictor_Aext_fnm == NULL);
 	}
 
 	inla_parse_output(mb, ini, sec, &(mb->predictor_output));
@@ -1795,7 +1823,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_ASSERT(nclasses <= POM_MAXTHETA, GMRFLib_EPARAMETER);
 		GMRFLib_ASSERT(nclasses > 1, GMRFLib_EPARAMETER);
 		ds->data_observations.pom_nclasses = nclasses;
-		assert(nclasses > 0);
+		Assert(nclasses > 0);
 
 		int *check = Calloc(nclasses + 1, int);
 
@@ -2150,7 +2178,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 						inla_error_general(msg);
 					}
 				}
-				assert(ds->data_observations.y[i] < 0);	/* have to be void */
+				Assert(ds->data_observations.y[i] < 0);	/* have to be void */
 			}
 		}
 	}
@@ -3110,17 +3138,17 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	{
 		char *Bfile = iniparser_getstring(ini, inla_string_join(secname, "CONTROL.SEM.B"), NULL);
 
-		assert(Bfile);
+		Assert(Bfile);
 
 		FILE *fp = fopen(Bfile, "r");
 
-		assert(fp);
+		Assert(fp);
 
 		int idx = iniparser_getint(ini, inla_string_join(secname, "CONTROL.SEM.IDX"), -1);
 		int dim = 0;
 
-		assert(fscanf(fp, "%d", &dim) == 1);
-		assert(idx >= 0 && idx < dim);
+		Assert(fscanf(fp, "%d", &dim) == 1);
+		Assert(idx >= 0 && idx < dim);
 
 		double *A = Calloc(ISQR(dim), double);
 		char **B = Calloc(ISQR(dim), char *);
@@ -3130,13 +3158,13 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		for (int ii = 0; ii < ISQR(dim); ii++) {
 			int ret = fscanf(fp, "%lf", &(A[ii]));
 
-			assert(ret == 1);
+			Assert(ret == 1);
 			ret = fscanf(fp, "%s\n", cache);
-			assert(ret == 1);
+			Assert(ret == 1);
 			size_t len0 = strlen(cache);
 			size_t len1 = len0 + 1L;
 
-			assert(len0 <= len);
+			Assert(len0 <= len);
 			B[ii] = Calloc(len1, char);
 
 			Memcpy(B[ii], cache, len1);
@@ -3487,12 +3515,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			if (count == 0) {
 				inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "DIRICHLET", count, NULL);
-				assert(ds->data_nprior[count].id == P_DIRICHLET);
+				Assert(ds->data_nprior[count].id == P_DIRICHLET);
 				ds->data_nprior[count].parameters[1] = nclasses;
 				ds->data_nprior[count].parameters[2] = ds->data_observations.pom_cdf;
 			} else {
 				inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "NONE", count, NULL);
-				assert(ds->data_nprior[count].id == P_NONE);
+				Assert(ds->data_nprior[count].id == P_NONE);
 			}
 
 			/*
@@ -3877,9 +3905,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->data_observations.egp_tail_interval[1] = 0.5;
 		}
 
-		if (DMAX(ds->data_observations.egp_tail_interval[0], ds->data_observations.egp_tail_interval[1]) > 0.5 ||
-		    ds->data_observations.egp_tail_interval[0] >= ds->data_observations.egp_tail_interval[1]) {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "TAIL.INTERVAL", ctmp);
+		double a0 = DMIN(ds->data_observations.egp_tail_interval[0], ds->data_observations.egp_tail_interval[1]);
+		double a1 = DMAX(ds->data_observations.egp_tail_interval[0], ds->data_observations.egp_tail_interval[1]);
+		ds->data_observations.egp_tail_interval[0] = a0;
+		ds->data_observations.egp_tail_interval[1] = a1;
+		if (ds->data_observations.egp_tail_interval[1] > 1.0 || ds->data_observations.egp_tail_interval[0] < -0.5) {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "TAIL.INTERVAL extends c=(-0.5, 1.0)", ctmp);
 		}
 		if (mb->verbose) {
 			printf("\t\tegp.tail.interval [%g , %g]\n", ds->data_observations.egp_tail_interval[0],
@@ -4393,7 +4424,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 * get options related to the gev
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "gev.scale.xi"), 0.01);	/* yes! */
-		assert(tmp > 0.0);
+		Assert(tmp > 0.0);
 		ds->data_observations.gev_scale_xi = tmp;
 		if (mb->verbose) {
 			printf("\t\tgev.scale.xi [%g]\n", ds->data_observations.gev_scale_xi);
@@ -4507,14 +4538,14 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		 * get options related to the bgev
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "bgev.q.location"), 0.5);
-		assert(tmp > 0.0 && tmp < 1.0);
+		Assert(tmp > 0.0 && tmp < 1.0);
 		ds->data_observations.bgev_qlocation = tmp;
 		if (mb->verbose) {
 			printf("\t\tbgev.q.location [%g]\n", ds->data_observations.bgev_qlocation);
 		}
 
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "bgev.q.spread"), 0.25);
-		assert(tmp > 0.0 && tmp < 1.0);
+		Assert(tmp > 0.0 && tmp < 1.0);
 		ds->data_observations.bgev_qspread = tmp;
 		if (mb->verbose) {
 			printf("\t\tbgev.q.spread [%g]\n", ds->data_observations.bgev_qspread);
@@ -4568,7 +4599,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * this gives the number of betas in the spread and tail
 		 */
-		assert(BGEV_MAXTHETA == 10);		       /* otherwise change below... */
+		Assert(BGEV_MAXTHETA == 10);		       /* otherwise change below... */
 		ds->data_observations.bgev_nbetas[0] = ds->data_observations.attr[0];
 		ds->data_observations.bgev_nbetas[1] = ds->data_observations.attr[1];
 		int nbetas = ds->data_observations.bgev_nbetas[0] + ds->data_observations.bgev_nbetas[1];
@@ -5450,7 +5481,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				ds->data_nfixed[0] = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_size, tmp);
-		assert(ds->variant == 0 || ds->variant == 1);
+		Assert(ds->variant == 0 || ds->variant == 1);
 		if (mb->verbose) {
 			printf("\t\tinitialise log_size[%g]\n", ds->data_observations.log_size[0][0]);
 			printf("\t\tfixed[0]=[%1d]\n", ds->data_nfixed[0]);
@@ -6190,7 +6221,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		if (ds->data_id == L_QLOGLOGISTIC) {
 			GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
 		}
-		assert(ds->variant == 0 || ds->variant == 1);
+		Assert(ds->variant == 0 || ds->variant == 1);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 0.0);	/* yes! */
 		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
 		if (!ds->data_fixed && mb->mode_use_mode) {
@@ -6278,7 +6309,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		if (ds->data_id == L_QLOGLOGISTICSURV) {
 			GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
 		}
-		assert(ds->variant == 0 || ds->variant == 1);
+		Assert(ds->variant == 0 || ds->variant == 1);
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 0.0);	/* yes! */
 		ds->data_nfixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
 		if (!ds->data_nfixed[0] && mb->mode_use_mode) {
@@ -6725,7 +6756,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_size, tmp);
-		assert(ds->variant == 0 || ds->variant == 1 || ds->variant == 2);
+		Assert(ds->variant == 0 || ds->variant == 1 || ds->variant == 2);
 		if (mb->verbose) {
 			printf("\t\tinitialise log_size[%g]\n", ds->data_observations.log_size[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
@@ -6750,7 +6781,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				mb->theta_tag_userscale[mb->ntheta] =
 				    inla_make_tag("size for the nbinomial observations (1/overdispersion)", mb->ds);
 			} else {
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -6786,7 +6817,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				ds->data_fixed = 1;
 		}
 		HYPER_NEW(ds->data_observations.log_size, tmp);
-		assert(ds->variant == 0 || ds->variant == 1 || ds->variant == 2);
+		Assert(ds->variant == 0 || ds->variant == 1 || ds->variant == 2);
 		if (mb->verbose) {
 			printf("\t\tinitialise log_size[%g]\n", ds->data_observations.log_size[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
@@ -6811,7 +6842,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				mb->theta_tag_userscale[mb->ntheta] =
 				    inla_make_tag("size for the cennbinomial2 observations (1/overdispersion)", mb->ds);
 			} else {
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -7540,7 +7571,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			}
 		}
 		nstrata++;
-		assert(nstrata <= TSTRATA_MAXTHETA - 1);
+		Assert(nstrata <= TSTRATA_MAXTHETA - 1);
 
 		/*
 		 * dof = theta0
@@ -9158,7 +9189,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tnmix%s.m=[%1d]\n", suff, ds->data_observations.nmix_m);
 		}
-		assert(ds->data_observations.nmix_m > 0 && ds->data_observations.nmix_m <= NMIX_MMAX);
+		Assert(ds->data_observations.nmix_m > 0 && ds->data_observations.nmix_m <= NMIX_MMAX);
 		ds->data_observations.nmix_beta = Calloc(NMIX_MMAX + 1, double **);	/* yes, its +1 to cover the NB case */
 
 		ds->data_nprior = Calloc(NMIX_MMAX + 1, Prior_tp);
@@ -9548,17 +9579,17 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		const char *emsg = NULL;
 		char *cloglike_shlib = iniparser_getstring(ini, inla_string_join(secname, "CLOGLIKE.SHLIB"), NULL);
 
-		assert(cloglike_shlib);
+		Assert(cloglike_shlib);
 
 		char *cloglike_model = iniparser_getstring(ini, inla_string_join(secname, "CLOGLIKE.MODEL"), NULL);
 
-		assert(cloglike_model);
+		Assert(cloglike_model);
 
 		ds->data_observations.cloglike_debug = iniparser_getboolean(ini, inla_string_join(secname, "CLOGLIKE.DEBUG"), 0);
 
 		char *cdata_fnm = iniparser_getstring(ini, inla_string_join(secname, "CLOGLIKE.DATA"), NULL);
 
-		assert(cdata_fnm);
+		Assert(cdata_fnm);
 		ds->data_observations.cloglike_data = inla_cgeneric_read_data(cdata_fnm, ds->data_observations.cloglike_debug);
 
 		if (mb->verbose) {
@@ -9570,7 +9601,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 		int POSSIBLY_UNUSED(n_attr) = ds->data_observations.n_attr;
 
-		assert(n_attr == 1);
+		Assert(n_attr == 1);
 		double *x_out = NULL;
 
 		loglike_func = (inla_cloglike_func_tp *) inla_cloglike_mapper(cloglike_model);
@@ -9583,7 +9614,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			if (!cloglike_shlib) {
 				GMRFLib_sprintf(&msg, "\n *** shlib for cloglike %s is NULL\n", cloglike_model);
 				inla_error_general(msg);
-				assert(0 != 1);
+				Assert(0 != 1);
 				exit(1);
 			}
 			if (ltdl_init) {
@@ -9591,7 +9622,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				if ((emsg = lt_dlerror())) {
 					GMRFLib_sprintf(&msg, "\n *** dlinit error with model[%s] err_msg[%s]\n", cloglike_model, emsg);
 					inla_error_general(msg);
-					assert(0 != 1);
+					Assert(0 != 1);
 					exit(1);
 				}
 				ltdl_init = 0;
@@ -9603,16 +9634,16 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			if (!handle) {
 				GMRFLib_sprintf(&msg, "\n *** dlopen error with file[%s] err_msg[%s]\n", cloglike_shlib, lt_dlerror());
 				inla_error_general(msg);
-				assert(0 != 1);
+				Assert(0 != 1);
 				exit(1);
 			}
 			lt_dlerror();
 
-			loglike_func = (inla_cloglike_func_tp *) lt_dlsym(handle, cloglike_model);
+			loglike_func = (inla_cloglike_func_tp *) (intptr_t) lt_dlsym(handle, cloglike_model);
 			if ((emsg = lt_dlerror())) {
 				GMRFLib_sprintf(&msg, "\n *** dlsym error with model[%s] err_msg[%s]\n", cloglike_model, emsg);
 				inla_error_general(msg);
-				assert(0 != 1);
+				Assert(0 != 1);
 				exit(1);
 			}
 			lt_dlerror();
@@ -9882,7 +9913,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			break;
 
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	} else if (!strcasecmp(ds->link_model, "PQUANTILE")) {
 		GMRFLib_ASSERT((ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0), GMRFLib_EPARAMETER);
@@ -9896,7 +9927,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		}
 			break;
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	} else {
 		GMRFLib_sprintf(&msg, "Unknown link-model [%s]\n", ds->link_model);
@@ -10391,7 +10422,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->link_parameters->bgev_tail_interval[0] = ds->link_prior[0].parameters[1];
 		ds->link_parameters->bgev_tail_interval[1] = ds->link_prior[0].parameters[2];
 
-		assert(ds->link_prior[0].parameters[1] < ds->link_prior[0].parameters[2]);
+		Assert(ds->link_prior[0].parameters[1] < ds->link_prior[0].parameters[2]);
 		if (mb->verbose) {
 			printf("\t\t%s.tail.interval [%g %g]\n", name, ds->link_prior[0].parameters[1], ds->link_prior[0].parameters[2]);
 
@@ -10898,7 +10929,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			exit(EXIT_FAILURE);
 		}
 		ds->link_ntheta = ds->link_order + 1;
-		assert(ds->link_ntheta <= LINK_MAXTHETA + 1);
+		Assert(ds->link_ntheta <= LINK_MAXTHETA + 1);
 		if (mb->verbose) {
 			printf("\t\tlink ntheta = [%1d]\n", ds->link_ntheta);
 		}
@@ -11079,7 +11110,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		char *model = NULL, *integrator = NULL;
 
 		ds->mix_npoints = iniparser_getint(ini, inla_string_join(secname, "MIX.NPOINTS"), 99);
-		assert(ds->mix_npoints >= 5);
+		Assert(ds->mix_npoints >= 5);
 		model = Strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.MODEL"), NULL)));
 		integrator = Strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "MIX.INTEGRATOR"), NULL)));
 		if (!strcasecmp(integrator, "default")) {
@@ -11089,7 +11120,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		} else if (!strcasecmp(integrator, "simpson")) {
 			ds->mix_integrator = MIX_INT_SIMPSON;
 		} else {
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 
 		if (mb->verbose) {
@@ -11245,7 +11276,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 	if (ds->data_id == L_FL) {
 		// mark those indices belonging to 'FL'
-		assert(mb->predictor_ndata >= 0);
+		Assert(mb->predictor_ndata >= 0);
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				mb->fl[i] = 1;
@@ -11316,7 +11347,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 	int thread_id = 0;
 
-	assert(omp_get_thread_num() == 0);
+	Assert(omp_get_thread_num() == 0);
 
 	if (mb->verbose) {
 		printf("\tinla_parse_ffield...\n");
@@ -11784,7 +11815,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 	case F_AR:
 	{
-		assert(11 == AR_MAXTHETA + 1);
+		Assert(11 == AR_MAXTHETA + 1);
 		mb->f_prior[mb->nf] = Calloc(11, Prior_tp);
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "PCPREC", NULL);	// log precision
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "PCRHO0", NULL);	// the pacf
@@ -11842,7 +11873,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	{
 		int dim = WISHART_DIM(mb->nf);
 
-		assert(dim > 0);
+		Assert(dim > 0);
 		char *pri = NULL, *par = NULL, *to_theta = NULL, *from_theta = NULL, *prifunc = NULL, *hyperid = NULL;
 		int nt = inla_iid_wishart_nparam(dim);
 
@@ -11885,8 +11916,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	{
 		int dim = mb->f_order[mb->nf];
 
-		assert(dim >= INLA_WISHARTK_KMIN);
-		assert(dim <= INLA_WISHARTK_KMAX);
+		Assert(dim >= INLA_WISHARTK_KMIN);
+		Assert(dim <= INLA_WISHARTK_KMAX);
 		char *pri = NULL, *par = NULL, *to_theta = NULL, *from_theta = NULL, *prifunc = NULL, *hyperid = NULL;
 		int nt_max = INLA_WISHARTK_NTHETA(INLA_WISHARTK_KMAX);
 		int nt = INLA_WISHARTK_NTHETA(dim);
@@ -12104,7 +12135,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	mb->f_compute[mb->nf] = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE"), 1);
 	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->f_compute[mb->nf]) {
-			fprintf(stderr, "*** Warning: HYPER_MODE require f_compute[%1d] = 0\n", mb->nf);
+			LOG_WARNING("HYPER_MODE require f_compute[%1d] = 0", mb->nf);
 		}
 		mb->f_compute[mb->nf] = 0;
 	}
@@ -12136,7 +12167,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	char *fnm_Alocal = iniparser_getstring(ini, inla_string_join(secname, "A.local"), NULL);
 
 	if (fnm_Alocal) {
-		assert(GMRFLib_is_fmesher_file(fnm_Alocal, (long int) 0, -1) == GMRFLib_SUCCESS);
+		Assert(GMRFLib_is_fmesher_file(fnm_Alocal, (long int) 0, -1) == GMRFLib_SUCCESS);
 		mb->f_Alocal[mb->nf] = GMRFLib_read_fmesher_file(fnm_Alocal, (long int) 0, -1);
 	}
 	if (mb->verbose) {
@@ -12340,7 +12371,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				arg->max_eigenvalue = DMAX(arg->max_eigenvalue, arg->eigenvalues[i]);
 				arg->min_eigenvalue = DMIN(arg->min_eigenvalue, arg->eigenvalues[i]);
 			}
-			assert(arg->max_eigenvalue > 0.0);
+			Assert(arg->max_eigenvalue > 0.0);
 			gsl_eigen_symm_free(w);
 			gsl_matrix_free(C);
 			gsl_vector_free(evalues);
@@ -12394,7 +12425,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			GMRFLib_ged_insert_graph(ged, g, nn);
 			GMRFLib_graph_free(g);
 			GMRFLib_ged_build(&g, ged);
-			assert(g->n == 2 * nn);
+			Assert(g->n == 2 * nn);
 			GMRFLib_ged_free(ged);
 
 			mb->f_graph[mb->nf] = g;
@@ -12425,8 +12456,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				printf("\t\tread generic3.n[%1d]\n", arg->n);
 				printf("\t\tread generic3.m[%1d]\n", arg->m);
 			}
-			assert(arg->n > 0);
-			assert(arg->m > 0 && arg->m < GENERIC3_MAXTHETA);
+			Assert(arg->n > 0);
+			Assert(arg->m > 0 && arg->m < GENERIC3_MAXTHETA);
 
 			arg->g = Calloc(arg->m, GMRFLib_graph_tp *);
 			arg_orig->g = Calloc(arg->m, GMRFLib_graph_tp *);
@@ -12436,7 +12467,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				ctmp = NULL;
 				GMRFLib_sprintf(&ctmp, "generic3.Cmatrix.%1d", k);
 				filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL));
-				assert(filename != NULL);
+				Assert(filename != NULL);
 				if (mb->verbose) {
 					printf("\t\tread Cmatrix[[%1d]] from file=[%s]\n", k, filename);
 				}
@@ -12705,7 +12736,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			if (mb->verbose) {
 				printf("\t\tcyclic=[%1d]\n", mb->f_cyclic[mb->nf]);
 			}
-			assert(mb->f_cyclic[mb->nf] == 0);     /* not implemented */
+			Assert(mb->f_cyclic[mb->nf] == 0);    /* not implemented */
 
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
 		}
@@ -12814,7 +12845,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			 */
 			int dim = WISHART_DIM(mb->nf);
 
-			assert(dim > 0);
+			Assert(dim > 0);
 
 			ptmp = Strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
 			if (!ptmp) {
@@ -12890,13 +12921,13 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			}
 
 			filename = Strdup(iniparser_getstring(ini, inla_string_join(secname, "intslope.def"), NULL));
-			assert(filename != NULL);
+			Assert(filename != NULL);
 			intslope_def = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 
 			if (mb->verbose) {
 				printf("\t\tRead intslope.def[%s] nrow[%1d] ncol[%1d]\n", filename, intslope_def->nrow, intslope_def->ncol);
 				printf("\t\t    Idx  Subject Strata  Covariate\n");
-				assert(intslope_def->ncol == 3);
+				Assert(intslope_def->ncol == 3);
 				for (i = 0; i < IMIN(intslope_def->nrow, PREVIEW); i++) {
 					printf("\t\t%6d %6.1g %6.1g  %12.6f\n", i,
 					       GMRFLib_matrix_get(i, INTSLOPE_SUBJECT, intslope_def),
@@ -13004,7 +13035,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 				// not supported
 				if (mb->f_id[mb->nf] == F_PRW2)
-					assert(mb->f_cyclic[mb->nf] == 0);
+					Assert(mb->f_cyclic[mb->nf] == 0);
 			}
 		}
 			break;
@@ -13635,9 +13666,9 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				exit(EXIT_FAILURE);
 			}
 		} else if (!strcasecmp(mb->f_prior[mb->nf][0].name, "PCSPDEGA")) {
-			assert(ntheta_used == 2);	       /* requirement... */
+			Assert(ntheta_used == 2);	       /* requirement... */
 		} else if (mb->f_prior[mb->nf][0].id == P_PC_MATERN) {
-			assert(ntheta_used <= 2);	       /* requirement... */
+			Assert(ntheta_used <= 2);	       /* requirement... */
 		} else {
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 		}
@@ -14335,7 +14366,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 						"and correctness cannot be verified.",
 						"Please use argument n=", nn, ", f.ex, to *define* the dimension of the rgeneric model.");
 				inla_error_general(msg);
-				assert(0 != 1);
+				Assert(0 != 1);
 				exit(1);
 			}
 
@@ -14473,7 +14504,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			if (!cgeneric_shlib) {
 				GMRFLib_sprintf(&msg, "\n *** shlib for cgeneric %s is NULL\n", cgeneric_model);
 				inla_error_general(msg);
-				assert(0 != 1);
+				Assert(0 != 1);
 				exit(1);
 			}
 			if (ltdl_init) {
@@ -14481,7 +14512,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				if ((emsg = lt_dlerror())) {
 					GMRFLib_sprintf(&msg, "\n *** dlinit error with model[%s] err_msg[%s]\n", cgeneric_model, emsg);
 					inla_error_general(msg);
-					assert(0 != 1);
+					Assert(0 != 1);
 					exit(1);
 				}
 				ltdl_init = 0;
@@ -14492,16 +14523,16 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			if (!handle) {
 				GMRFLib_sprintf(&msg, "\n *** dlopen error with file[%s] err_msg[%s]\n", cgeneric_shlib, lt_dlerror());
 				inla_error_general(msg);
-				assert(0 != 1);
+				Assert(0 != 1);
 				exit(1);
 			}
 			lt_dlerror();
 
-			model_func = (inla_cgeneric_func_tp *) lt_dlsym(handle, cgeneric_model);
+			model_func = (inla_cgeneric_func_tp *) (intptr_t) lt_dlsym(handle, cgeneric_model);
 			if ((emsg = lt_dlerror())) {
 				GMRFLib_sprintf(&msg, "\n *** dlsym error with model[%s] err_msg[%s]\n", cgeneric_model, emsg);
 				inla_error_general(msg);
-				assert(0 != 1);
+				Assert(0 != 1);
 				exit(1);
 			}
 			lt_dlerror();
@@ -14566,7 +14597,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			GMRFLib_sprintf(&msg, "f(%s): 'n' does not match with the one in cgeneric-function '%s', %1d != %1d\n",
 					secname, cgeneric_model, nn, cgeneric_n);
 			inla_error_general(msg);
-			assert(0 != 1);
+			Assert(0 != 1);
 			exit(1);
 		}
 
@@ -14585,7 +14616,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 						"and correctness cannot be verified.",
 						"Please use argument n=", nn, ", f.ex, to *define* the dimension of the cgeneric model.");
 				inla_error_general(msg);
-				assert(0 != 1);
+				Assert(0 != 1);
 				exit(1);
 			}
 
@@ -15973,7 +16004,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tnbeta=[%1d]\n", nbeta);
 		}
-		assert(nbeta <= SCOPY_MAXTHETA);
+		Assert(nbeta <= SCOPY_MAXTHETA);
 
 		char *filenameW = Strdup(iniparser_getstring(ini, inla_string_join(secname, "SCOPY.W"), NULL));
 
@@ -15992,14 +16023,14 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		ncov = cov_m->nrow;
 
 		cov_m = NULL;				       /* that is ok */
-		assert(cov);
+		Assert(cov);
 		if (mb->verbose) {
 			printf("\t\tread covariates from file=[%s]\n", filenamec);
 			for (i = 0; i < IMIN(PREVIEW, ncov); i++) {
 				printf("\t\t\tcovariate[%1d] = %g\n", i, cov[i]);
 			}
 		}
-		assert(ncov >= 3);
+		Assert(ncov >= 3);
 
 		loc = Calloc(nbeta, double);
 		double cov_min = GMRFLib_min_value(cov, ncov, NULL);
@@ -17066,7 +17097,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	{
 		int dim = WISHART_DIM(mb->nf);
 
-		assert(dim > 0);
+		Assert(dim > 0);
 
 		int n_theta = mb->f_ntheta[mb->nf];
 		theta_iidwishart = Calloc(n_theta, double **);
@@ -17198,7 +17229,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				k++;
 			}
 		}
-		assert(k == n_theta);
+		Assert(k == n_theta);
 	}
 		break;
 
@@ -17283,7 +17314,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				mb->ntheta++;
 			}
 		}
-		assert(k == n_theta);
+		Assert(k == n_theta);
 	}
 		break;
 
@@ -17481,7 +17512,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			k++;
 		}
 
-		assert(k == n_theta + INTSLOPE_MAXTHETA);
+		Assert(k == n_theta + INTSLOPE_MAXTHETA);
 	}
 		break;
 
@@ -17770,13 +17801,13 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 	case F_GENERIC2:
 	{
-		assert(mb->f_N[mb->nf] == 2 * mb->f_n[mb->nf]);
+		Assert(mb->f_N[mb->nf] == 2 * mb->f_n[mb->nf]);
 	}
 		break;
 
 	case F_GENERIC3:
 	{
-		assert(mb->f_N[mb->nf] == mb->f_n[mb->nf]);
+		Assert(mb->f_N[mb->nf] == mb->f_n[mb->nf]);
 	}
 		break;
 
@@ -17815,7 +17846,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		def->betas = betas;
 		def->precision = mb->f_precision[mb->nf];
 		def->W = W;
-		assert(W);
+		Assert(W);
 
 		def->cache00 = Calloc(GMRFLib_CACHE_LEN(), inla_scopy_cache_tp *);
 		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
@@ -18001,9 +18032,6 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		mb->f_rankdef[mb->nf] = 1.0;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_id[mb->nf] = F_BESAG;
-
-		// arg->log_prec[0][0] = 0;
-		// GMRFLib_printf_Qfunc(stderr, mb->f_graph[mb->nf], mb->f_Qfunc[mb->nf], mb->f_Qfunc_arg[mb->nf]);
 	}
 		break;
 
@@ -18116,7 +18144,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		inla_make_rw2diid_graph(&(mb->f_graph[mb->nf]), arg->rw2ddef);
 		std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 1);
-		assert(std == 1);			       /* this has to be true for this model */
+		Assert(std == 1);			       /* this has to be true for this model */
 		GMRFLib_rw2d_scale(thread_id, arg->rw2ddef);
 		if (mb->verbose) {
 			printf("\t\tscale.model[%1d]\n", std);
@@ -18170,11 +18198,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				printf("\t\tscale.model: prec_scale[%g]\n", arg->besag_arg->prec_scale[0]);
 			}
 		} else {
-			fprintf(stderr,
-				"\n\n*** Warning ***\tModel[%s] in Section[%s] use scale.model=FALSE which is NOT recommended!!!\n\n",
-				model, secname);
+			LOG_WARNING("Model[%s] in Section[%s] use scale.model=FALSE which is NOT recommended!!!", model, secname);
 			arg->besag_arg->prec_scale = Calloc(arg->besag_arg->graph->n, double);
-
 			for (k = 0; k < arg->besag_arg->graph->n; k++) {
 				arg->besag_arg->prec_scale[k] = 1.0;
 			}
@@ -18281,7 +18306,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		def->n = mb->f_n[mb->nf];
 		def->p = mb->f_order[mb->nf];
-		assert((def->n > def->p) && (def->p > 0));
+		Assert((def->n > def->p) && (def->p > 0));
 		def->log_prec = log_prec;
 		def->pacf_intern = pacf_intern;
 
@@ -18472,9 +18497,9 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		inla_iid_wishart_arg_tp *arg = NULL;
 		int dim = WISHART_DIM(mb->nf);
 
-		assert(dim > 0);
+		Assert(dim > 0);
 
-		assert(mb->f_N[mb->nf] == mb->f_n[mb->nf]);
+		Assert(mb->f_N[mb->nf] == mb->f_n[mb->nf]);
 		arg = Calloc(1, inla_iid_wishart_arg_tp);
 		arg->dim = dim;
 		arg->n = mb->f_n[mb->nf] / dim;		       /* yes */
@@ -18495,7 +18520,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		inla_iid_wishartk_arg_tp *arg = NULL;
 		int dim = mb->f_order[mb->nf];
 
-		assert(mb->f_N[mb->nf] == mb->f_n[mb->nf]);
+		Assert(mb->f_N[mb->nf] == mb->f_n[mb->nf]);
 		arg = Calloc(1, inla_iid_wishartk_arg_tp);
 		arg->dim = dim;
 		arg->n = mb->f_n[mb->nf] / dim;		       /* yes */
@@ -18572,7 +18597,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		if (std) {
 			thread_id = 0;
-			assert(omp_get_thread_num() == 0);
+			Assert(omp_get_thread_num() == 0);
 			GMRFLib_seasonal_scale(thread_id, sdef);
 		}
 		if (mb->verbose) {
@@ -18784,7 +18809,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		int len, *ilist = NULL, *jlist = NULL;
 
 		k = 0;
-		assert(n_out >= 2);
+		Assert(n_out >= 2);
 		n = (int) x_out[k++];
 		len = (int) x_out[k++];
 
@@ -18799,7 +18824,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		for (i = 0; i < len; i++) {
 			jlist[i] = (int) x_out[k++];
 		}
-		assert(k == n_out);
+		Assert(k == n_out);
 
 		double *Qijlist = Calloc(len, double);
 
@@ -18845,7 +18870,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		my_sort2_ii(def->jlist, def->ilist, def->len_list);
 
 		// now we need to sort within each value of jlist.
-		assert(def->jlist[0] == 0);
+		Assert(def->jlist[0] == 0);
 		for (j = k = 0; j < graph->n; j++) {
 			for (jj = k; jj < def->len_list; jj++) {
 				if (def->jlist[jj] > j)
@@ -18854,7 +18879,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			QSORT_FUN((void *) &def->ilist[k], (size_t) (jj - k), sizeof(int), GMRFLib_icmp);
 			k = jj;
 		}
-		assert(k == def->len_list);
+		Assert(k == def->len_list);
 
 		def_orig->len_list = def->len_list;
 		def_orig->ilist = Calloc(def_orig->len_list, int);
@@ -19011,7 +19036,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				j = graph->lnbs[i][jj];
 				def->ilist[k] = i;
 				def->jlist[k] = j;
-				assert(def->ilist[k] <= def->jlist[k]);
+				Assert(def->ilist[k] <= def->jlist[k]);
 				k++;
 			}
 		}
@@ -19055,7 +19080,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		def = Calloc(1, inla_fgn_arg_tp);
 		def->n = mb->f_n[mb->nf];
-		assert(def->n > 1);
+		Assert(def->n > 1);
 		def->k = mb->f_order[mb->nf];
 		def->N = def->n * (def->k + 1);
 		def->log_prec = log_prec;
@@ -19098,7 +19123,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) def_orig;
 
 		mb->f_N[mb->nf] = mb->f_n[mb->nf] = mb->f_graph[mb->nf]->n;
-		assert(mb->f_N[mb->nf] == def->N);
+		Assert(mb->f_N[mb->nf] == def->N);
 		mb->f_rankdef[mb->nf] = 0.0;
 	}
 		break;
@@ -19109,7 +19134,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		def = Calloc(1, inla_fgn2_arg_tp);
 		def->n = mb->f_n[mb->nf];
-		assert(def->n > 1);
+		Assert(def->n > 1);
 		def->k = mb->f_order[mb->nf];
 		def->N = def->n * def->k;
 		def->log_prec = log_prec;
@@ -19150,7 +19175,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) def_orig;
 
 		mb->f_N[mb->nf] = mb->f_n[mb->nf] = mb->f_graph[mb->nf]->n;
-		assert(mb->f_N[mb->nf] == def->N);
+		Assert(mb->f_N[mb->nf] == def->N);
 		mb->f_rankdef[mb->nf] = 0.0;
 	}
 		break;
@@ -19164,7 +19189,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 		def = Calloc(1, inla_ar1_arg_tp);
 		def->n = mb->f_n[mb->nf];
-		assert(def->n > 1);
+		Assert(def->n > 1);
 		def->cyclic = mb->f_cyclic[mb->nf];
 		def->log_prec = log_prec;
 		def->phi_intern = phi_intern;
@@ -19201,7 +19226,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		def->n = iniparser_getint(ini, inla_string_join(secname, "ar1c.n"), -1);
 		def->m = iniparser_getint(ini, inla_string_join(secname, "ar1c.m"), -1);
 		def->N = def->n + def->m;
-		assert(def->N == mb->f_n[mb->nf]);
+		Assert(def->N == mb->f_n[mb->nf]);
 		if (mb->verbose) {
 			printf("\t\tn.ar1=[%1d]\n", def->n);
 			printf("\t\tm.beta=[%1d]\n", def->m);
@@ -19272,7 +19297,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		def->n = mb->f_n[mb->nf];
 		def->log_prec = log_prec;
 		def->phi_intern = phi_intern;
-		assert(mb->f_locations[mb->nf]);
+		Assert(mb->f_locations[mb->nf]);
 		def->locations = mb->f_locations[mb->nf];
 		inla_make_ou_graph(&(mb->f_graph[mb->nf]), def);
 		mb->f_Qfunc[mb->nf] = Qfunc_ou;
@@ -19356,7 +19381,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_graph_mk_linear(&(mb->f_graph[mb->nf]), arg->n, arg->n, 0);
 		GMRFLib_graph_mk_linear(&(mb->f_graph_orig[mb->nf]), arg->n, arg->n, 0);
 		mb->f_rankdef[mb->nf] = 0.0;
-		assert(mb->f_n[mb->nf] == arg->n);
+		Assert(mb->f_n[mb->nf] == arg->n);
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_id[mb->nf] = F_DMATERN;
 
@@ -19407,7 +19432,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		inla_prw2_arg_tp *arg = NULL;
 		inla_prw2_arg_tp *arg_orig = NULL;
 
-		assert(!strcasecmp(mb->f_prior[mb->nf][1].name, "PCPRW2RANGE"));
+		Assert(!strcasecmp(mb->f_prior[mb->nf][1].name, "PCPRW2RANGE"));
 
 		arg = inla_prw2_create(mb->f_n[mb->nf], mb->f_locations[mb->nf]);
 		arg_orig = inla_prw2_create(mb->f_n[mb->nf], mb->f_locations[mb->nf]);
@@ -19488,10 +19513,12 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 					}
 				}
 				if (!ok) {
-					fprintf(stderr, "\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but values != NULL.\n",
-						model, secname);
-					fprintf(stderr, "*** Warning ***\tCylic = TRUE is not implemented for non-equal spaced values.\n");
-					fprintf(stderr, "*** Warning ***\tAssume values are equal spaced.\n\n");
+					LOG_WARNING_WRAPPER(
+						fprintf(stderr, "\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but values != NULL.\n",
+							model, secname);
+						fprintf(stderr, "*** Warning ***\tCylic = TRUE is not implemented for non-equal spaced values.\n");
+						fprintf(stderr, "*** Warning ***\tAssume values are equal spaced.\n\n");
+						);
 				}
 			}
 
@@ -19520,10 +19547,10 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			} else if (mb->f_id[mb->nf] == F_RW1) {
 				rwdef->order = 1;
 			} else {
-				assert(mb->f_id[mb->nf] == F_RW2);
+				Assert(mb->f_id[mb->nf] == F_RW2);
 				rwdef->order = 2;
 			}
-			assert(rwdef->n > rwdef->order);
+			Assert(rwdef->n > rwdef->order);
 			rwdef->log_prec_omp = log_prec;
 			rwdef->cyclic = mb->f_cyclic[mb->nf];
 			if (mb->f_cyclic[mb->nf]) {
@@ -19607,7 +19634,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, "model", model);
 			}
 			crwdef->position = mb->f_locations[mb->nf];	/* do this here, as the locations are duplicated for CRW2 */
-			assert(crwdef->n > crwdef->order);
+			Assert(crwdef->n > crwdef->order);
 			int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
 
 			if (mb->f_id[mb->nf] == F_RW1 || mb->f_id[mb->nf] == F_RW2 || mb->f_id[mb->nf] == F_CRW2) {
@@ -19929,8 +19956,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 				ntheta_orig = mb->f_ntheta[mb->nf];
 				ntheta = mb->f_group_order[mb->nf] + 1;
-				assert(ntheta <= AR_MAXTHETA + 1 && ntheta >= 1);
-				assert(11 == AR_MAXTHETA + 1);
+				Assert(ntheta <= AR_MAXTHETA + 1 && ntheta >= 1);
+				Assert(11 == AR_MAXTHETA + 1);
 
 				mb->f_prior[mb->nf] = Realloc(mb->f_prior[mb->nf], ntheta_orig + AR_MAXTHETA + 1, Prior_tp);
 				inla_read_prior_group0(mb, ini, sec, &(mb->f_prior[mb->nf][ntheta_orig + 0]), "LOGGAMMA", NULL);
@@ -20096,6 +20123,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			 * make required changes.  oops, the rankdef is for the size-n model, not the size-N one! 
 			 */
 			int ng = mb->f_ngroup[mb->nf];
+			Assert(ng > 0);
+
 			int Norig = mb->f_N[mb->nf];
 			GMRFLib_graph_tp *g = NULL;
 
@@ -20165,7 +20194,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 					 */
 					def->crwdef = Calloc(1, GMRFLib_crwdef_tp);
 					def->crwdef->n = ng;
-					assert(def->crwdef->n > 0);
+					Assert(def->crwdef->n > 0);
 					def->crwdef->order = (mb->f_group_model[mb->nf] == G_RW1 ? 1 : 2);
 					def->crwdef->log_prec_omp = NULL;
 					def->crwdef->layout = GMRFLib_CRW_LAYOUT_SIMPLE;
@@ -20336,7 +20365,7 @@ int inla_parse_linear(inla_tp *mb, dictionary *ini, int sec)
 	mb->linear_compute[mb->nlinear] = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE"), 1);
 	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->linear_compute[mb->nlinear]) {
-			fprintf(stderr, "*** Warning: HYPER_MODE require linear_compute[%1d] = 0\n", mb->nlinear);
+			LOG_WARNING("HYPER_MODE require linear_compute[%1d] = 0", mb->nlinear);
 		}
 		mb->linear_compute[mb->nlinear] = 0;
 	}
@@ -20574,7 +20603,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 	}
 	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_GRID) {
-			fprintf(stderr, "*** Warning: HYPER_MODE require int_strategy = GMRFLib_AI_INT_STRATEGY_GRID\n");
+			LOG_WARNING("HYPER_MODE require int_strategy = GMRFLib_AI_INT_STRATEGY_GRID");
 		}
 		mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
 	}
@@ -20597,10 +20626,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 	mb->ai_par->f0 = iniparser_getdouble(ini, inla_string_join(secname, "F0"), mb->ai_par->f0);
 	tmp = iniparser_getdouble(ini, inla_string_join(secname, "DZ"), mb->ai_par->dz);
 	if (G.mode == INLA_MODE_HYPER && tmp > mb->ai_par->dz) {
-		/*
-		 * cannot set it to a larger value 
-		 */
-		fprintf(stderr, "*** Warning: HYPER_MODE require dz <= %f\n", mb->ai_par->dz);
+		LOG_WARNING("HYPER_MODE require dz <= %f", mb->ai_par->dz);
 	} else {
 		mb->ai_par->dz = tmp;
 	}
@@ -20610,14 +20636,14 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 	mb->ai_par->diff_log_dens = iniparser_getdouble(ini, inla_string_join(secname, "DIFF.LOG.DENS"), mb->ai_par->diff_log_dens);
 	mb->ai_par->diff_log_dens = iniparser_getdouble(ini, inla_string_join(secname, "DIFF.LOGDENS"), mb->ai_par->diff_log_dens);
 	if (G.mode == INLA_MODE_HYPER && mb->ai_par->diff_log_dens < tmp_ref) {
-		fprintf(stderr, "*** Warning: HYPER_MODE require diff_log_dens >= %f\n", tmp_ref);
+		LOG_WARNING("HYPER_MODE require diff_log_dens >= %f", tmp_ref);
 		mb->ai_par->diff_log_dens = tmp_ref;
 	}
 	mb->ai_par->skip_configurations =
 	    iniparser_getboolean(ini, inla_string_join(secname, "SKIP.CONFIGURATIONS"), mb->ai_par->skip_configurations);
 
 	if (G.mode == INLA_MODE_HYPER && mb->ai_par->skip_configurations) {
-		fprintf(stderr, "*** Warning: HYPER_MODE require skip_configurations = 0\n");
+		LOG_WARNING("HYPER_MODE require skip_configurations = 0");
 		mb->ai_par->skip_configurations = 0;
 	}
 
@@ -20670,7 +20696,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 	if (filename) {
 		GMRFLib_matrix_tp *mat = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 
-		assert(mat->nrow == mat->ncol);
+		Assert(mat->nrow == mat->ncol);
 
 		gsl_matrix *M = gsl_matrix_alloc((size_t) mat->nrow, (size_t) mat->ncol);
 
@@ -20730,25 +20756,27 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 
 	if (G.mode == INLA_MODE_HYPER) {
 		if (mb->ai_par->compute_nparam_eff) {
-			fprintf(stderr, "*** Warning: HYPER_MODE require compute_nparam_eff = GMRFLib_FALSE\n");
+			LOG_WARNING("HYPER_MODE require compute_nparam_eff = GMRFLib_FALSE");
 		}
 		mb->ai_par->compute_nparam_eff = GMRFLib_FALSE;
 	}
 
 	tmp = iniparser_getboolean(ini, inla_string_join(secname, "HUGE"), -1);
 	if (tmp != -1) {
-		fprintf(stderr, "\n\n*** Warning *** option control.inla(huge=TRUE) is disabled and obsolete.\n");
-		fprintf(stderr, "*** Warning *** use control.compute = list(strategy = \"SMALL|MEDIUM|LARGE|HUGE|DEFAULT\") instead.\n\n");
+		LOG_WARNING_WRAPPER(
+			fprintf(stderr, "\n\n*** Warning *** option control.inla(huge=TRUE) is disabled and obsolete.\n");
+			fprintf(stderr, "*** Warning *** use control.compute = list(strategy = \"SMALL|MEDIUM|LARGE|HUGE|DEFAULT\") instead.\n\n");
+			);
 	}
 
 	GMRFLib_global_node.factor = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL.NODE.FACTOR"), GMRFLib_global_node.factor);
-	assert(GMRFLib_global_node.factor >= 0.0);
+	Assert(GMRFLib_global_node.factor >= 0.0);
 	if (mb->verbose) {
 		printf("\t\tglobal_node.factor = %.3f\n", GMRFLib_global_node.factor);
 	}
 
 	GMRFLib_global_node.degree = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL.NODE.DEGREE"), GMRFLib_global_node.degree);
-	assert(GMRFLib_global_node.degree >= 0);
+	Assert(GMRFLib_global_node.degree >= 0);
 	if (mb->verbose) {
 		printf("\t\tglobal_node.degree = %.1d\n", GMRFLib_global_node.degree);
 	}
@@ -20839,7 +20867,7 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 
 	// default value is set in main()
 	GMRFLib_aqat_m_diag_add = iniparser_getdouble(ini, inla_string_join(secname, "CONSTR.MARGINAL.DIAGONAL"), GMRFLib_aqat_m_diag_add);
-	assert(GMRFLib_aqat_m_diag_add >= 0.0);
+	Assert(GMRFLib_aqat_m_diag_add >= 0.0);
 	if (mb->verbose) {
 		printf("\t\tconstr.marginal.diagonal = %.3g\n", GMRFLib_aqat_m_diag_add);
 	}
@@ -20930,8 +20958,8 @@ int inla_parse_update(inla_tp *mb, dictionary *ini, int sec)
 				}
 			}
 		}
-		assert(1 == M->ncol);
-		assert(i == M->nrow);
+		Assert(1 == M->ncol);
+		Assert(i == M->nrow);
 		GMRFLib_matrix_free(M);
 	}
 
@@ -20995,7 +21023,7 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 		} else if (tile_type == 0) {
 			printf("\t\ttile.type[%1d] (dense)\n", tile_type);
 		} else {
-			assert(0 == 1 && "tile_type is wrong");
+			Assert(0 == 1 && "tile_type is wrong");
 		}
 	}
 
@@ -21006,15 +21034,15 @@ int inla_parse_stiles(inla_tp *mb, dictionary *ini, int sec)
 		GMRFLib_io_tp *io = NULL;
 
 		ret = GMRFLib_io_open(&io, filename, "rb");
-		assert(ret == GMRFLib_SUCCESS);
+		Assert(ret == GMRFLib_SUCCESS);
 		GMRFLib_io_read(io, &len, sizeof(int));
-		assert(len > 0);
+		Assert(len > 0);
 		param = Malloc(len, int);
 
 		GMRFLib_ifill(len, -1, param);
 		if (len > 0) {
 			ret = GMRFLib_io_read(io, param, len * sizeof(int));
-			assert(ret == GMRFLib_SUCCESS);
+			Assert(ret == GMRFLib_SUCCESS);
 		}
 		GMRFLib_io_close(io);
 	} else {
@@ -21234,8 +21262,9 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	GMRFLib_opt_solve = iniparser_getboolean(ini, inla_string_join(secname, "OPT.SOLVE"), 0);
 	GMRFLib_opt_storage = iniparser_getboolean(ini, inla_string_join(secname, "OPT.STORAGE"), 0);
 	GMRFLib_opt_num_threads = iniparser_getboolean(ini, inla_string_join(secname, "OPT.NUM.THREADS"), 1);
+	GMRFLib_pin_to_p_cores = iniparser_getboolean(ini, inla_string_join(secname, "PIN.TO.PCORES"), 0);
 
-	GMRFLib_memory_alignment = 64;
+	GMRFLib_memory_alignment = 64;			       /* bytes */
 #if defined(__linux__)
 	GMRFLib_memory_alignment = 64;
 #       if defined(__x86_64__)
@@ -21250,7 +21279,6 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 #elif defined(__APPLE__)
 	GMRFLib_memory_alignment = 64;
 #elif defined(_WIN32)
-
 	GMRFLib_memory_alignment = 32;
 #endif
 
@@ -21271,7 +21299,7 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 		} else if (malign <= 64) {
 			GMRFLib_memory_alignment = 64;
 		} else {
-			assert(malign == 16 || malign == 32 || malign == 64 || "error in argument memory.alignment");
+			Assert(malign == 16 || malign == 32 || malign == 64 || "error in argument memory.alignment");
 		}
 	}
 
@@ -21280,6 +21308,7 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 		printf("\t\t\tOptimise storage         = [%s]\n", (GMRFLib_opt_storage ? "Yes" : "No"));
 		printf("\t\t\tOptimise num.threads     = [%s]\n", (GMRFLib_opt_num_threads ? "Yes" : "No"));
 		printf("\t\t\tMemory.alignment.enabled = [%s]\n", (GMRFLib_memory_alignment_enabled ? "Yes" : "No"));
+		// printf("\t\t\tPin.to.pcores = [%1d]\n", GMRFLib_pin_to_p_cores);
 		printf("\t\t\tMemory.alignment         = [%u] bytes\n", GMRFLib_memory_alignment);
 	}
 
@@ -21344,13 +21373,13 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	if (file) {
 		mb->global_constr = Calloc(2, GMRFLib_matrix_tp *);
 		mb->global_constr[0] = GMRFLib_read_fmesher_file(file, 0, -1);
-		assert(mb->global_constr[0]);
+		Assert(mb->global_constr[0]);
 
 		file = iniparser_getstring(ini, inla_string_join(secname, "GLOBALCONSTR.E.FILE"), NULL);
 		mb->global_constr[1] = GMRFLib_read_fmesher_file(file, 0, -1);
-		assert(mb->global_constr[1]);
+		Assert(mb->global_constr[1]);
 		printf("\t\t\tnumber of global.constr=[%1d]\n", mb->global_constr[1]->nrow);
-		assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
+		Assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
 	}
 
 	GMRFLib_openmp->blas_num_threads_force = IMAX(0, iniparser_getint(ini, inla_string_join(secname, "BLAS.NUM.THREADS"),
@@ -21371,15 +21400,15 @@ void inla_theta_all_init(inla_tp *mb)
 
 int inla_theta_all_get_n(void)
 {
-	assert(hold);
+	Assert(hold);
 	return (hold->ntheta);
 }
 
 void inla_theta_all_get_tags(char **tags)
 {
-	assert(hold);
+	Assert(hold);
 	if (hold->ntheta > 0) {
-		assert(tags);
+		Assert(tags);
 		for (int i = 0; i < hold->ntheta; i++) {
 			tags[i] = hold->theta_tag[i];
 		}
@@ -21388,9 +21417,9 @@ void inla_theta_all_get_tags(char **tags)
 
 void inla_theta_all_get_values(int thread_id, double *values)
 {
-	assert(hold);
+	Assert(hold);
 	if (hold->ntheta > 0) {
-		assert(values);
+		Assert(values);
 		for (int i = 0; i < hold->ntheta; i++) {
 			values[i] = hold->theta[i][thread_id][0];
 		}

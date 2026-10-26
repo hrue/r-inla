@@ -1,9 +1,3 @@
-#include <time.h>
-#include <assert.h>
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 #define omp_max_max_nested() 3
@@ -95,7 +89,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 		break;
@@ -123,7 +117,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 		break;
@@ -151,7 +145,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 		break;
@@ -179,7 +173,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 		break;
@@ -221,7 +215,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 		break;
@@ -255,7 +249,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 		break;
@@ -302,7 +296,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 		break;
@@ -343,7 +337,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 		break;
@@ -371,7 +365,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 		break;
@@ -419,7 +413,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 		break;
@@ -437,7 +431,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
 		case GMRFLib_OPENMP_STRATEGY_STILES:
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 	}
@@ -539,7 +533,7 @@ void GMRFLib_openmp_timing(void)
 		int nt = GMRFLib_adapt_nt_get(tag, 0, 0, nt_def);
 		double tref = -GMRFLib_timer();
 
-#pragma omp parallel for num_threads(nt) schedule(static)
+#pragma omp parallel for num_threads(nt)
 		for (int k = 0; k < m; k++) {
 			GMRFLib_openmp_chunk(nmax, A, b);
 		}
@@ -596,7 +590,7 @@ void GMRFLib_adapt_nt_update(char *tag, int thread_num, int level, double wtime)
 		double fac = 1.0E6;
 		void **p = map_strvp_ptr(adapt_nt[level][thread_num], tag);
 
-		assert(p);
+		Assert(p);
 		GMRFLib_adapt_nt_tp *obj = *((GMRFLib_adapt_nt_tp **) p);
 
 		obj->tot_times++;

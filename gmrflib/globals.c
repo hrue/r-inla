@@ -1,9 +1,4 @@
 #define __GMRFLib_DONT_DEFINE_GLOBALS
-#include <limits.h>
-#include <time.h>
-#include <stdlib.h>
-#include <omp.h>
-
 #include "GMRFLib/GMRFLib.h"
 #undef __GMRFLib_DONT_DEFINE_GLOBALS
 
@@ -139,6 +134,12 @@ int GMRFLib_cachelinesize = 64;
 int GMRFLib_model_idx = 0;
 int GMRFLib_model_n = 1;
 int GMRFLib_force_stiles = 0;
+int GMRFLib_pin_to_p_cores = 0;
 double GMRFLib_overall_cpu[8] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
 char *GMRFLib_tmpdir = NULL;
+
+// Use SIMD <=cutoff and BLAS above
+int GMRFLib_daxpy_cutoff = 192;
+int GMRFLib_ddot_cutoff = 96;
+int GMRFLib_dscale_cutoff = 1024;

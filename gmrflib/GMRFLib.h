@@ -17,19 +17,37 @@
 
 #       include "GMRFLib/alloc.h"
 
-#       include <stdalign.h>
-#       include <errno.h>
+#       if !defined(_DEFAULT_SOURCE)
+#              define _DEFAULT_SOURCE
+#       endif
 #       include <assert.h>
-#       include <stddef.h>
+#       include <ctype.h>
+#       include <errno.h>
+#       include <fcntl.h>
+#       include <inttypes.h>
+#       include <ltdl.h>
 #       include <math.h>
+#       include <signal.h>
+#       include <stdalign.h>
+#       include <stdarg.h>
+#       include <stdbool.h>
+#       include <stddef.h>
+#       include <stdint.h>
 #       include <stdio.h>
 #       include <stdlib.h>
-#       include <stdint.h>
-#       include <inttypes.h>
-#       include <stdbool.h>
-
+#       include <sys/stat.h>
 #       if defined(__linux__)
 #              include <features.h>
+#       endif
+#       if !defined(_WIN32)
+#              include <sys/resource.h>
+#       endif
+#       if defined(_WIN32)
+#              include <windows.h>
+#       endif
+#       if defined(__APPLE__)
+#              include <sys/types.h>
+#              include <sys/sysctl.h>
 #       endif
 
 /* ... */
@@ -146,6 +164,8 @@
 
 #       include "GMRFLib/GMRFLibP.h"
 #       include "GMRFLib/alloc.h"
+#       include "GMRFLib/color.h"
+#       include "GMRFLib/sha.h"
 #       include "GMRFLib/init.h"
 #       include "GMRFLib/fsort.h"
 #       include "GMRFLib/error-handler.h"
@@ -171,6 +191,7 @@
 #       include "GMRFLib/density.h"
 #       include "GMRFLib/globals.h"
 #       include "GMRFLib/hash.h"
+#       include "GMRFLib/hashP.h"
 #       include "GMRFLib/optimize.h"
 #       include "GMRFLib/blockupdate.h"
 #       include "GMRFLib/distributions.h"

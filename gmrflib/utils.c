@@ -1,29 +1,4 @@
-#include <assert.h>
-#include <float.h>
-#include <limits.h>
-#include <math.h>
-#include <omp.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-#include <time.h>
-
-#if defined(_WIN32)
-#       include <windows.h>
-#endif
-
-#if defined(__APPLE__)
-#       include <sys/types.h>
-#       include <sys/sysctl.h>
-#endif
-
 #include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/hashP.h"
 
 #define IDX_ALLOC_INITIAL 64
 #define IDX_ALLOC_ADD     512
@@ -876,18 +851,39 @@ int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec)
 
 #pragma GCC diagnostic pop
 
-int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat)
+int GMRFLib_gsl_plain2mat(gsl_matrix *M, double *mat)
 {
+	if (mat && M && M->size1 > 0 && M->size2 > 0) {
+		for (size_t j = 0; j < M->size2; j++) {
+			for (size_t i = 0; i < M->size1; i++) {
+				gsl_matrix_set(M, i, j, mat[i + j * M->size1]);
+			}
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_gsl_mat2plain(double **out, double *out_alt, gsl_matrix *mat)
+{
+	// two optional outputs, one that is alloc'ed, one that exists from before. priority in that order (first OUT, then OUT_ALT)
 	if (!mat || mat->size1 == 0 || mat->size2 == 0) {
-		*out = NULL;
+		if (out) {
+			*out = NULL;
+		}
 	} else {
-		*out = Malloc(mat->size1 * mat->size2, double);
+		double *p;
+		if (out) {
+			*out = Malloc(mat->size1 * mat->size2, double);
+			p = *out;
+		} else {
+			p = out_alt;
+		}
+		Assert(p);
 
 		for (size_t j = 0; j < mat->size2; j++) {
 			size_t off = j * mat->size1;
-
 			for (size_t i = 0; i < mat->size1; i++) {
-				(*out)[i + off] = gsl_matrix_get(mat, i, j);
+				p[i + off] = gsl_matrix_get(mat, i, j);
 			}
 		}
 	}
@@ -986,7 +982,7 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 			}
 			return NAN;
 		} else {
-			assert(x);
+			Assert(x);
 			if (idx) {
 				*idx = 0;
 			}
@@ -994,7 +990,7 @@ double GMRFLib_max_value(double *x, int n, int *idx)
 		}
 	}
 	// sometimes the max is at the boundary
-	assert(x);
+	Assert(x);
 	if (idx) {
 		int imax;
 		double max_val;
@@ -1039,7 +1035,7 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 			}
 			return NAN;
 		} else {
-			assert(x);
+			Assert(x);
 			if (idx) {
 				*idx = 0;
 			}
@@ -1047,7 +1043,7 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 		}
 	}
 	// sometimes the min is at the boundary
-	assert(x);
+	Assert(x);
 	if (idx) {
 		int imin;
 		double min_val;
@@ -1095,7 +1091,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 			}
 			return INT_MAX;
 		} else {
-			assert(x);
+			Assert(x);
 			if (idx) {
 				*idx = 0;
 			}
@@ -1103,7 +1099,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 		}
 	}
 	// sometimes the max is at the boundary, but we're just 'almost' sure
-	assert(x);
+	Assert(x);
 	if (idx) {
 		int imax;
 		int max_val;
@@ -1153,7 +1149,7 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 			}
 			return INT_MIN;
 		} else {
-			assert(x);
+			Assert(x);
 			if (idx) {
 				*idx = 0;
 			}
@@ -1161,7 +1157,7 @@ int GMRFLib_imin_value(int *x, int n, int *idx)
 		}
 	}
 	// sometimes the min is at the boundary, but we're just 'almost' sure
-	assert(x);
+	Assert(x);
 	if (idx) {
 		int imin;
 		int min_val;
@@ -1282,7 +1278,7 @@ int GMRFLib_debug_functions(const char *name)
 	int idx = 0;
 
 	GMRFLib_CACHE_SET_IDX(idx);
-	assert(idx < clen);
+	Assert(idx < clen);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_c3afbb5a350a04cd0a2ad81d85df8cc44ff04279)
@@ -1325,7 +1321,7 @@ int GMRFLib_debug_functions(const char *name)
 						int len = s2 - s + 1;
 						int len1 = len + 1;	/* to avoid compiler warning */
 
-						assert(len >= 0);
+						Assert(len >= 0);
 						ss = Calloc(len + 1, char);
 
 						ss[len1 - 1] = '\0';
@@ -1402,7 +1398,7 @@ int GMRFLib_trace_functions(const char *name)
 	int idx = 0;
 
 	GMRFLib_CACHE_SET_IDX(idx);
-	assert(idx < clen);
+	Assert(idx < clen);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_e9b04207643dde9dc8734f9ae0e41a3e03910f80)
@@ -1444,7 +1440,7 @@ int GMRFLib_trace_functions(const char *name)
 					} else {
 						int len = s2 - s + 1;
 
-						assert(len >= 0);
+						Assert(len >= 0);
 						ss = Calloc(len + 1, char);
 
 						ss[len] = '\0';
@@ -1521,7 +1517,7 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 	int idx = 0;
 
 	GMRFLib_CACHE_SET_IDX(idx);
-	assert(idx < clen);
+	Assert(idx < clen);
 
 	if (!ddefs[idx]) {
 #pragma omp critical (Name_4b0bcb2d4e2c1a81a1672358ca7320e389c962bc)
@@ -1563,7 +1559,7 @@ int GMRFLib_trace_cache_hitmiss(const char *name)
 					} else {
 						int len = s2 - s + 1;
 
-						assert(len >= 0);
+						Assert(len >= 0);
 						ss = Calloc(len + 1, char);
 
 						ss[len] = '\0';
@@ -1997,7 +1993,7 @@ void my_sort2_id_work(int *RESTRICT ix, double *RESTRICT x, int n, double *work)
 
 void my_sort2_id(int *RESTRICT ix, double *RESTRICT x, int n)
 {
-	return my_sort2_id_x(ix, x, n, NULL);
+	my_sort2_id_x(ix, x, n, NULL);
 }
 
 void my_sort2_id_x(int *RESTRICT ix, double *RESTRICT x, int n, void *UNUSED(work))
@@ -2013,8 +2009,6 @@ void my_sort2_id_x(int *RESTRICT ix, double *RESTRICT x, int n, void *UNUSED(wor
 	} else {
 		gsl_sort2_id(ix, x, n);
 	}
-
-	return;
 }
 
 void my_sort2_dd(double *RESTRICT ix, double *RESTRICT x, int n)
@@ -2198,12 +2192,11 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_iinc(int n, int *a)
 {
-#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+	// __x86_64__ only
+#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__) && defined(__x86_64__)
 #       include "intrinsics/simde/is-sorted-int-avx512.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+#elif defined(INLA_WITH_SIMDE_AVX2_) && defined(__AVX2__) && defined(__x86_64__)
 #       include "intrinsics/simde/is-sorted-int-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-#       include "intrinsics/simde/is-sorted-int-sse2.h"
 #else
 	SOURCE_INCLUDE(<);
 #endif
@@ -2217,12 +2210,11 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_dinc(int n, double *a)
 {
-#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
+	// __x86_64__ only
+#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__) && defined(__x86_64__)
 #       include "intrinsics/simde/is-sorted-double-avx512.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
+#elif defined(INLA_WITH_SIMDE_AVX2_) && defined(__AVX2__) && defined(__x86_64__)
 #       include "intrinsics/simde/is-sorted-double-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-#       include "intrinsics/simde/is-sorted-double-sse2.h"
 #else
 	SOURCE_INCLUDE(<);
 #endif
@@ -2230,52 +2222,88 @@ int GMRFLib_is_sorted_dinc(int n, double *a)
 
 #pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_idec(int n, int *a)
 {
 	// decreasing int's
 	SOURCE_INCLUDE(>);
 }
 
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_ddec(int n, double *a)
 {
 	// decreasing double's
 	SOURCE_INCLUDE(>);
 }
 
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_iinc_plain(int n, int *a)
 {
 	SOURCE_INCLUDE(<);
 }
 
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_dinc_plain(int n, double *a)
 {
 	SOURCE_INCLUDE(<);
 }
 
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_idec_plain(int n, int *a)
 {
 	SOURCE_INCLUDE(>);
 }
 
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+__attribute__((optimize("O3")))
+    __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int GMRFLib_is_sorted_ddec_plain(int n, double *a)
 {
 	SOURCE_INCLUDE(>);
 }
 
+#pragma GCC diagnostic pop
+
 #undef SOURCE_INCLUDE
 
 int GMRFLib_is_sorted(void *a, size_t n, size_t size, int (*cmp)(const void *, const void *))
 {
-	if((cmp ==(void *) GMRFLib_icmp) && size == sizeof(int)) {
+	if ( (cmp == GMRFLib_icmp) && size == sizeof(int)) {
 		// increasing ints
-		return GMRFLib_is_sorted_iinc(n,(int *) a);
-	} else if (cmp == (void *) GMRFLib_dcmp && size == sizeof(double)) {
+		return GMRFLib_is_sorted_iinc(n, (int *) a);
+	} else if (cmp == GMRFLib_dcmp && size == sizeof(double)) {
 		// increasing doubles
 		return GMRFLib_is_sorted_dinc(n, (double *) a);
-	} else if (cmp == (void *) GMRFLib_icmp_r && size == sizeof(int)) {
+	} else if (cmp == GMRFLib_icmp_r && size == sizeof(int)) {
 		// decreasing ints
 		return GMRFLib_is_sorted_idec(n, (int *) a);
-	} else if (cmp == (void *) GMRFLib_dcmp_r && size == sizeof(double)) {
+	} else if (cmp == GMRFLib_dcmp_r && size == sizeof(double)) {
 		// decreasing doubles
 		return GMRFLib_is_sorted_ddec(n, (double *) a);
 	} else {
@@ -2310,8 +2338,9 @@ void GMRFLib_qsort(void *a, size_t n, size_t size, int (*cmp)(const void *, cons
 
 void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, int (*compar)(const void *, const void *))
 {
-	if(!y) {
-		return(GMRFLib_qsort(x, nmemb, size_x, compar));
+	if (!y) {
+		GMRFLib_qsort(x, nmemb, size_x, compar);
+		return;
 	}
 
 	if (nmemb == 0) {
@@ -2352,7 +2381,7 @@ void GMRFLib_qsort2(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y
 // easier interface to sort ints and doubles, increasingly
 void GMRFLib_sort_i(int *ix, int n)
 {
-	return QSORT_FUN((void *) ix, (size_t) n, sizeof(int), GMRFLib_icmp);
+	QSORT_FUN((void *) ix, (size_t) n, sizeof(int), GMRFLib_icmp);
 }
 
 void GMRFLib_sort_d(double *x, int n)
@@ -2490,69 +2519,10 @@ __attribute__((optimize("O3")))
     __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 void GMRFLib_zero_small(int n, double eps, double *x)
 {
-	// if (ABS(x[i]) < eps) x[i]=0.0
-#if defined(INLA_WITH_SIMDE_AVX512F_) && defined(__AVX512F__)
-#       include "intrinsics/simde/zero-small-avx512f.h"
-#elif defined(INLA_WITH_SIMDE_AVX2_) && (!defined(__x86_64__) || (defined(__x86_64__) && defined(__AVX2__)))
-#       include "intrinsics/simde/zero-small-avx2.h"
-#elif defined(INLA_WITH_SIMDE)
-#       include "intrinsics/simde/zero-small-sse2.h"
-#else
-#       pragma omp simd
+#pragma omp simd
 	for (int i = 0; i < n; i++) {
-		if (ABS(x[i]) <= eps) {
-			x[i] = 0.0;
-		}
+		x[i] = (ABS(x[i]) <= eps ? 0.0 : x[i]);
 	}
-#endif
 }
 
 #pragma GCC diagnostic pop
-
-int GMRFLib_idx_match(int nx, int *x, int ny, int *y)
-{
-	// check if any value in (increasing) x matches any element in (increasing) y.
-
-	FIXME("This function is not yet finalized. second option is good when na << nb:  complete...");
-	exit(1);
-
-	if (1) {
-		int i = 0;
-		int j = 0;
-
-		while (i < nx && j < ny) {
-			if (x[i] == y[j]) {
-				return 1;
-			}
-			if (x[i] < y[j]) {
-				i++;
-			} else {
-				j++;
-			}
-		}
-	} else {
-		// let 'a' be the shorter one
-		int na, nb, *a, *b;
-
-		if (nx <= ny) {
-			a = x;
-			b = y;
-			na = nx;
-			nb = ny;
-		} else {
-			b = x;
-			a = y;
-			nb = nx;
-			na = ny;
-		}
-
-		for (int i = 0; i < na; i++) {
-			int found = GMRFLib_iwhich_sorted(a[i], b, nb);
-
-			if (found >= 0) {
-				return 1;
-			}
-		}
-	}
-	return 0;
-}

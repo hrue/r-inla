@@ -1,11 +1,3 @@
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stdlib.h>
-#include <strings.h>
-#include <time.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 double GMRFLib_seasonal(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
@@ -70,7 +62,7 @@ int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp *def)
 	n = sdef->n = (def->n / def->s) * def->s;	       // make sure its a multiplum of 's'
 	s = sdef->s = def->s;
 	m = n / s;
-	assert(m > 0);
+	Assert(m > 0);
 
 	GMRFLib_graph_tp *graph = NULL;
 
@@ -103,7 +95,7 @@ int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp *def)
 	GMRFLib_problem_tp *problem = NULL;
 
 	// this is not yet implemented
-	assert(GMRFLib_smtp != GMRFLib_SMTP_STILES);
+	Assert(GMRFLib_smtp != GMRFLib_SMTP_STILES);
 
 	for (i = 0; i < n; i++) {
 		c[i] = eps;

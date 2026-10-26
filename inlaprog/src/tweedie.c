@@ -1,17 +1,5 @@
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
-#include <time.h>
-
-#include "rmath.h"
-#undef ISNAN
-
 #include "GMRFLib/GMRFLib.h"
-#include "fast-math/special-functions.h"
-#include "tweedie.h"
+#include "inla.h"
 
 // the 'dtweedie'-code is inspired from tweedie.c in cplm_0.7-9.tar.gz package of Wayne Zhang <actuary_zhang@hotmail.com>, but got largly
 // rewritten to incorporate caching and interpolation and other optimization features. This to optimize it to how its used within the INLA
@@ -122,7 +110,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 
 	nterms = IMIN(TWEEDIE_MAX_IDX, (int) ceil(jmax));
 	if (nterms == TWEEDIE_MAX_IDX) {
-		fprintf(stderr, "\ndtweedie: Reached upper limit. Increase TWEEDIE_MAX_IDX or scale your data!\n");
+		LOG_ERROR("Reached upper limit. Increase TWEEDIE_MAX_IDX or scale your data!");
 	}
 	if (verbose) {
 #pragma omp atomic

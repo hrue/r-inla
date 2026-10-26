@@ -1,13 +1,3 @@
-#include <assert.h>
-#include <errno.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/bfgs3.h"
 
@@ -53,7 +43,7 @@ int bfgs3_robust_eval(double x_eval, double *y_eval, int nn, double *x, double *
 	int err = bfgs3_dofit(gsl_multifit_robust_bisquare, X, yy, c, cov);
 
 	if (err == GSL_EMAXITER) {
-		assert(!err);
+		Assert(!err);
 	}
 
 	gsl_vector *xx = gsl_vector_alloc(order);
@@ -233,7 +223,7 @@ static int minimize(gsl_function_fdf *fn, double rho, double sigma, double tau1,
 		printf("Open file %s\n", name);
 		FILE *fpp = fopen(name, "w");
 
-		assert(fpp);
+		Assert(fpp);
 	}
 
 	if (debug)

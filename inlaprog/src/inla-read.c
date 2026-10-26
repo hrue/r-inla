@@ -21,7 +21,7 @@ int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_
 		 */
 		GMRFLib_matrix_tp *M = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
 
-		assert(M->elems == M->nrow * M->ncol);	       /* no sparse matrix! */
+		Assert(M->elems == M->nrow * M->ncol);	       /* no sparse matrix! */
 
 		*n = M->nrow * M->ncol;
 		*x = Calloc(*n, double);
@@ -89,13 +89,13 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 	int nx = 0, ndata, i, j, ii, ncol_true;
 	double *x = NULL;
 
-	assert(xx || ix);
+	Assert(xx || ix);
 	/*
 	 * first read all entries in the file 
 	 */
 	inla_read_data_all(&x, &nx, filename, NULL);
 	if (nx) {
-		assert(x);
+		Assert(x);
 	}
 	if (verbose) {
 		printf("\t\tread n=[%1d] entries from file=[%s]\n", nx, filename);
@@ -147,8 +147,8 @@ char *inla_read_lineno(int lineno, const char *filename)
 
 	size_t siz = 4096;
 
-	assert(lineno >= 0);
-	assert(fp);
+	Assert(lineno >= 0);
+	Assert(fp);
 
 	char *line = Calloc(siz + 1, char);
 	int count = 0;
@@ -156,7 +156,7 @@ char *inla_read_lineno(int lineno, const char *filename)
 	while (1) {
 		int ret = fscanf(fp, "%s\n", line);
 
-		assert(ret != EOF);
+		Assert(ret != EOF);
 		if (count == lineno) {
 			break;
 		}
@@ -193,6 +193,7 @@ int inla_sread_str_int(char **tag, int *i, const char *str)
 
 int inla_sread_str_str(char **tag, int nmax, char *str)
 {
+	// TAG0:TAG1:TAG2
 	char *strtok_ptr = NULL, *token = NULL;
 	const char *delim = ":";
 	char *p = Strdup(str);
@@ -201,6 +202,26 @@ int inla_sread_str_str(char **tag, int nmax, char *str)
 	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
 		p = NULL;
 		tag[i++] = Strdup(token);
+		if (i == nmax)
+			break;
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int inla_sread_str_str_rprior(char **tag, int nmax, char *str)
+{
+	// TAG0:TAG1|TAG2
+	char *strtok_ptr = NULL, *token = NULL;
+	const char *delim1 = ":";
+	const char *delim2 = "|";
+	const char *delim = delim1;
+	char *p = Strdup(str);
+	int i = 0;
+
+	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
+		p = NULL;
+		tag[i++] = Strdup(token);
+		delim = delim2;
 		if (i == nmax)
 			break;
 	}
@@ -256,7 +277,7 @@ int inla_sread(void *x, int nx, const char *str, int code)
 	if (debug)
 		printf("read %d entries from %s\n", nx, str);
 
-	assert(code == 0 || code == 1);
+	Assert(code == 0 || code == 1);
 	p = Strdup(str);
 	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
 		p = NULL;
@@ -308,7 +329,7 @@ int inla_sread_q(void **x, int *nx, const char *str, int code)
 	int ix_try;
 	int ok;
 
-	assert(code == 0 || code == 1);
+	Assert(code == 0 || code == 1);
 	p = Strdup(str);
 
 	while ((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
@@ -434,86 +455,79 @@ const char *inla_string_join(const char *a, const char *b)
 	 */
 	char *ans = NULL;
 
-	assert((a ? strlen(a) + 1 : 0) + (b ? strlen(b) + 1 : 0) < 1025);
+	Assert((a ? strlen(a) + 1 : 0) + (b ? strlen(b) + 1 : 0) < 1025);
 	GMRFLib_sprintf(&ans, "%s%c%s", (a ? a : ""), INIPARSER_SEP, (b ? b : ""));
 	return ans;
 }
 
-int inla_error_missing_required_field(const char *funcname, const char *secname, const char *field)
+int inla_error_missing_required_field(const char POSSIBLY_UNUSED(*funcname), const char *secname, const char *field)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s: section [%s]: missing required field [%s]\n\n", funcname, secname, field);
+	LOG_ERROR("section [%s]: missing required field [%s]", secname, field);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_open_file(const char *msg)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \tfail to open file[%s] for writing. Exit...\n\n", msg);
+	LOG_ERROR("Fail to open file[%s] for writing. Exit...", msg);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_general(const char *msg)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s\n\n", msg);
+	LOG_ERROR("%s", msg);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_general2(const char *msg, const char *msg2)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s: %s\n\n", msg, msg2);
+	LOG_ERROR("%s %s", msg, msg2);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_field_is_void(const char *funcname, const char *secname, const char *field, const char *value)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s: section [%s]: field [%s] is void: [%s]\n\n", funcname, secname, field, value);
+	LOG_ERROR("function [%s] section [%s]: field [%s] is void: [%s]\n\n", funcname, secname, field, value);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_file_numelm(const char *funcname, const char *filename, int n, int idiv)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, which is not a multiple of [%1d]\n\n", funcname,
-		filename, n, idiv);
+	LOG_ERROR("function [%s] file [%s] contains [%1d] elements, which is not a multiple of [%1d]", funcname, filename, n, idiv);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_file_totnumelm(const char *funcname, const char *filename, int n, int total)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, which is different from [n] = [%1d]\n\n",
-		funcname, filename, n, total);
+	LOG_ERROR("function [%s] file [%s] contains [%1d] elements, which is different from [n] = [%1d]", funcname, filename, n, total);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_file_error_sorted(const char *funcname, const char *filename, int n, int element_number, double val)
 {
-	fprintf(stderr,
-		"\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, but element [%1d] = [%g] is void. The 'values' needs to be increasing!\n\n",
-		funcname, filename, n, element_number, val);
-	abort();
+	LOG_ERROR("function [%s] file [%s] contains [%1d] elements, but element [%1d] = [%g] is void. The 'values' needs to be increasing!",
+		  funcname, filename, n, element_number, val);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_file_error(const char *funcname, const char *filename, int n, int element_number, double val)
 {
-	fprintf(stderr, "\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, but element [%1d] = [%g] is void.\n\n",
-		funcname, filename, n, element_number, val);
-	abort();
+	LOG_ERROR("function [%s] file [%s] contains [%1d] elements, but element [%1d] = [%g] is void", funcname, filename, n, element_number, val);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
 
 int inla_error_file_error2(const char *funcname, const char *filename, int n, int element_number, double val, int element_number2, double val2)
 {
-	fprintf(stderr,
-		"\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, but element [%1d] = [%g] or [%1d] = [%g] is void.\n\n",
-		funcname, filename, n, element_number, val, element_number2, val2);
+	LOG_ERROR("function [%s] file [%s] contains [%1d] elements, but element [%1d] = [%g] or [%1d] = [%g] is void",
+		  funcname, filename, n, element_number, val, element_number2, val2);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
@@ -557,7 +571,7 @@ int inla_trim_family(char *family)
 {
 	size_t i, j = 0;
 
-	assert(family);
+	Assert(family);
 	for (i = 0, j = 0; i < strlen(family); i++) {
 		if (family[i] != '.' && family[i] != '_' && family[i] != ' ' && family[i] != '\t') {
 			family[j] = family[i];
@@ -665,14 +679,14 @@ inla_file_contents_tp *inla_read_file_contents(const char *filename)
 	}
 	fseek(fp, 0L, SEEK_END);
 	len = ftell(fp);
-	assert(len > 0L);
+	Assert(len > 0L);
 
 	inla_file_contents_tp *fc = Calloc(1, inla_file_contents_tp);
 	fc->contents = Calloc((size_t) len, char);
 
 	rewind(fp);
 	fc->len = fread(fc->contents, (size_t) 1, (size_t) len, fp);
-	assert(fc->len == (size_t) len);
+	Assert(fc->len == (size_t) len);
 	fclose(fp);
 
 	return fc;
@@ -692,9 +706,9 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp *fc)
 	size_t len;
 
 	fp = fopen(filename, "wb");
-	assert(fp);
+	Assert(fp);
 	len = fwrite(fc->contents, (size_t) 1, fc->len, fp);
-	assert(len == fc->len);
+	Assert(len == fc->len);
 
 	fclose(fp);
 	return INLA_OK;

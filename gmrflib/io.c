@@ -1,14 +1,3 @@
-#include <fcntl.h>
-#include <omp.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 int GMRFLib_io_find_file_in_path(char **ptr, const char *filename, int must_find)

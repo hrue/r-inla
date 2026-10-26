@@ -133,6 +133,13 @@ case "$BLAS" in
             echo "== BLAS: ARMPL (shared) at $ARMPL_DIR =="
             BLAS_LIBS="-L$ARMPL_DIR/lib -larmpl -lamath"
         fi
+        ## An NVHPC-built ARMPL needs that compiler's runtime, which lives
+        ## beside the compilers rather than beside ARMPL. Absent elsewhere.
+        NVHPC_LIB=$(cd "$ARMPL_DIR/../../compilers/lib" 2>/dev/null && pwd || true)
+        if [ -n "$NVHPC_LIB" ] && [ -f "$NVHPC_LIB/libnvcpumath.so" ]; then
+            echo "== BLAS: NVHPC-built ARMPL, adding its runtime from $NVHPC_LIB =="
+            BLAS_LIBS="$BLAS_LIBS -L$NVHPC_LIB -Wl,-rpath,$NVHPC_LIB -lnvcpumath -lnvc"
+        fi
         ;;
     *)
         BLAS_INC=""
@@ -327,6 +334,34 @@ if echo "$OMPRT" | grep -q 'libiomp5'; then
 fi
 if [ "$(echo "$OMPRT" | grep -c .)" -gt 1 ]; then
     echo "ERROR: more than one OpenMP runtime is linked:"; echo "$OMPRT"
+    exit 1
+fi
+
+## The binary must have the R linkage this lane asked for. Losing it is
+## silent: -DINLA_WITH_LIBR arrives through RLIB_INC, so anything that drops
+## it (a makefile rule compiling with FLAGS instead of CFLAGS, say) still
+## builds, links and runs every model. Only rgeneric fails, at run time,
+## with "libR is not supported in this build" -- a message about the build
+## that appears nowhere near it. That string lives in the no-libR stub and
+## nowhere else, so finding it in the binary IS "compiled without libR".
+## grep -a rather than strings: one less tool to have installed, and it
+## reads a cross-compiled binary just as well.
+if LC_ALL=C grep -aq "libR is not supported in this build" "$PREFIX/bin/inla"; then
+    HAVE_LIBR=0
+else
+    HAVE_LIBR=1
+fi
+case "$WITH_LIBR" in
+    0) WANT_LIBR=0 ;;
+    *) WANT_LIBR=1 ;;
+esac
+echo "== libR support in the binary: $HAVE_LIBR (WITH_LIBR=$WITH_LIBR wants $WANT_LIBR) =="
+if [ "$HAVE_LIBR" != "$WANT_LIBR" ]; then
+    echo "ERROR: WITH_LIBR=$WITH_LIBR, but the binary was built"
+    [ "$HAVE_LIBR" = 0 ] && echo "       WITHOUT libR: -DINLA_WITH_LIBR never reached the compiler." \
+                        || echo "       WITH libR, which this lane did not ask for."
+    echo "       RLIB_INC was: $RLIB_INC"
+    echo "       Check that inlaprog/Makefile's src/%.o rule compiles with \$(CFLAGS)."
     exit 1
 fi
 

@@ -1,14 +1,3 @@
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-#include <time.h>
-
 #include "GMRFLib/GMRFLib.h"
 
 static GMRFLib_opt_arg_tp G;				       /* hold arguments */
@@ -218,7 +207,7 @@ int GMRFLib_opt_f(int thread_id, double *x, double *fx, int *ierr, GMRFLib_tabul
 	 * this function is called only for thread=0!!! 
 	 */
 	GMRFLib_ENTER_FUNCTION;
-	assert(GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
+	Assert(GMRFLib_OPENMP_IN_SERIAL() || GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 	GMRFLib_ASSERT(thread_id == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
 	GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);
@@ -500,7 +489,6 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < G.nhyper + 1; i++) {
 			int thread_id = omp_get_thread_num();
-
 			int j, err;
 			GMRFLib_ai_store_tp *ais = NULL;
 			double *xx = Calloc(G.nhyper, double);
@@ -572,7 +560,6 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 #pragma omp parallel for num_threads(nt)
 		for (int i = 0; i < 2 * G.nhyper; i++) {
 			int thread_id = omp_get_thread_num();
-
 			int j, err;
 			double *xx = NULL;
 			GMRFLib_ai_store_tp *ais = NULL;
@@ -765,8 +752,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	}
 
 	tmax = GMRFLib_MAX_THREADS();
-	f1 = Calloc(n, double);
-	fm1 = Calloc(n, double);
+	f1 = Malloc(n, double);
+	fm1 = Malloc(n, double);
 
 	GMRFLib_dfill(n, NAN, f1);
 	GMRFLib_dfill(n, NAN, fm1);
@@ -829,7 +816,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 				ais = G.ai_store;
 				i2thread[i] = -1;
 			} else {
-				assert(ai_store_reference);
+				Assert(ai_store_reference);
 				if (!ai_store[thread_id]) {
 					ai_store[thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE);
 				}
@@ -1036,8 +1023,10 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			 * There is a change 
 			 */
 			if (debug) {
-				fprintf(stderr, "\n%s: (II) Mode not found sufficiently accurate %.8g %.8g\n", __GMRFLib_FuncName, f_best_save,
-					B.f_best);
+				LOG_WARNING_WRAPPER(fprintf
+						    (stderr, "\n%s: (II) Mode not found sufficiently accurate %.8g %.8g\n", __GMRFLib_FuncName,
+						     f_best_save, B.f_best);
+				    );
 			}
 			ok = 0;
 		} else {
@@ -1048,8 +1037,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	GMRFLib_opt_dir_transform_hessian(hessian);
 	if (ok) {
 		char *msg = NULL;
-
-		GMRFLib_ensure_spd(hessian, n, -1.0, &msg);
+		GMRFLib_ensure_spd(hessian, n, FLT_EPSILON, &msg);
 		if (msg) {
 			if (G.ai_par->fp_log || debug) {
 				fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "%s: ensure spd for Hessian: mode seems fine\n",
@@ -1153,7 +1141,7 @@ void GMRFLib_gsl_df(const gsl_vector *v, void *UNUSED(params), gsl_vector *df)
 	double *x = NULL, *gradx = NULL;
 	int ierr;
 
-	assert(G.nhyper > 0);
+	Assert(G.nhyper > 0);
 	x = Calloc(G.nhyper, double);
 	gradx = Calloc(G.nhyper, double);
 
@@ -1182,7 +1170,7 @@ void GMRFLib_gsl_fdf(const gsl_vector *v, void *UNUSED(params), double *f, gsl_v
 	double *x = NULL, *gradx = NULL;
 	int ierr;
 
-	assert(G.nhyper > 0);
+	Assert(G.nhyper > 0);
 	x = Calloc(G.nhyper, double);
 	gradx = Calloc(G.nhyper, double);
 
@@ -1312,8 +1300,11 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 				if (Adir->size1 == G.directions->size1 && Adir->size2 == G.directions->size2) {
 					gsl_matrix_memcpy(Adir, G.directions);
 				} else {
-					fprintf(stderr, "Direction matrix has wrong dimension, ignore. [(%1d,%1d) != (%1d,%1d)]\n",
-						(int) G.directions->size1, (int) G.directions->size2, (int) Adir->size1, (int) Adir->size2);
+					LOG_WARNING_WRAPPER(fprintf
+							    (stderr, "Direction matrix has wrong dimension, ignore. [(%1d,%1d) != (%1d,%1d)]\n",
+							     (int) G.directions->size1, (int) G.directions->size2, (int) Adir->size1,
+							     (int) Adir->size2);
+					    );
 				}
 			}
 			gsl_matrix_memcpy(A, Adir);
@@ -1501,7 +1492,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 
 	if (0) {
 		// take the solution from the minimizer. this we do not do anymore
-		assert(0 == 1);
+		Assert(0 == 1);
 		xx = gsl_multimin_fdfminimizer_x(s);
 		G.fvalue = -gsl_multimin_fdfminimizer_minimum(s);
 
@@ -1611,20 +1602,20 @@ void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, 
 	int fd = mkstemp(templat);
 
 	rval = write(fd, &fval, sizeof(double));
-	assert(rval >= 0);
+	Assert(rval >= 0);
 	rval = write(fd, &nfun, sizeof(int));
-	assert(rval >= 0);
+	Assert(rval >= 0);
 	rval = write(fd, &ntheta, sizeof(int));
-	assert(rval >= 0);
+	Assert(rval >= 0);
 	if (ntheta) {
 		rval = write(fd, theta, ntheta * sizeof(double));
-		assert(rval >= 0);
+		Assert(rval >= 0);
 	}
 	rval = write(fd, &nx, sizeof(int));
-	assert(rval >= 0);
+	Assert(rval >= 0);
 	if (nx) {
 		rval = write(fd, x, nx * sizeof(double));
-		assert(rval >= 0);
+		Assert(rval >= 0);
 	}
 	close(fd);
 

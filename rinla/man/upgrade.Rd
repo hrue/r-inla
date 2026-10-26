@@ -10,9 +10,10 @@ inla.update(...)
 inla.upgrade(...)
 }
 \arguments{
-\item{...}{\code{testing=TRUE} installs the newest release of any kind,
-prereleases included, instead of the one marked "Latest" on GitHub.
-The default installs the stable release.}
+\item{...}{\code{testing=TRUE} installs the newest inla-program release,
+pre-releases included; the default installs the one marked Latest on
+GitHub. The R package is the latest from the install repository either
+way.}
 }
 \value{
 \code{inla.upgrade} returns nothing

@@ -12,8 +12,8 @@
 #              define __END_DECLS			       /* empty */
 #       endif
 
-// workaround for the moment (gcc-15.2.1)
-#       if 1
+// workaround for g++-15.2: do not know exactly which g++ version causing the issue
+#       if defined(INLA_OMP_GCC15_2_WORKAROUND)
 #              if defined(__cplusplus)
 #                     define TMP_ __cplusplus
 #                     undef __cplusplus
@@ -23,6 +23,8 @@
 #              else
 #                     include <omp.h>
 #              endif
+#       else
+#              include <omp.h>
 #       endif
 
 __BEGIN_DECLS typedef struct {
@@ -121,9 +123,6 @@ typedef struct {
 #       define GMRFLib_OPENMP_IN_PARALLEL()             (!GMRFLib_OPENMP_IN_SERIAL())
 #       define GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD()  (GMRFLib_OPENMP_IN_PARALLEL() && (omp_get_num_threads() == 1))
 #       define GMRFLib_OPENMP_IN_SERIAL()               (omp_get_level() == 0)
-
-#       define GMRFLib_OPENMP_NUM_THREADS_LEVEL() (GMRFLib_OPENMP_IN_OUTER() ? GMRFLib_openmp->max_threads_outer : \
-					    GMRFLib_openmp->max_threads_inner)
 
 #       define GMRFLib_OPENMP_ENSURE_IN_PARALLEL_RUN()				\
 	if (GMRFLib_OPENMP_IN_SERIAL()) {				\

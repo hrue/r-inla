@@ -36,7 +36,7 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 	}
 	int thread_id = 0;
 
-	assert(omp_get_thread_num() == 0);
+	Assert(omp_get_thread_num() == 0);
 
 	GMRFLib_stiles_idx_tp *stiles_idx = NULL;
 
@@ -86,7 +86,7 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 			k++;
 		}
 	}
-	assert(k == M->elems);
+	Assert(k == M->elems);
 
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
 
@@ -108,7 +108,7 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	 */
 	GMRFLib_matrix_tp *B = GMRFLib_read_fmesher_file(Bfilename, (long int) 0, -1);
 
-	assert(B->i == NULL);				       /* I want B as dense matrix */
+	Assert(B->i == NULL);				       /* I want B as dense matrix */
 
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL);
 	if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
@@ -120,12 +120,12 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 			GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 		}
 	} else {
-		assert(0 == 1);
+		Assert(0 == 1);
 	}
 
 	int thread_id = 0;
 
-	assert(omp_get_thread_num() == 0);
+	Assert(omp_get_thread_num() == 0);
 
 	GMRFLib_stiles_idx_tp *stiles_idx = NULL;
 
@@ -141,7 +141,7 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 		GMRFLib_stiles_bind(stiles_idx);
 	}
 	GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, NULL, stiles_idx, NULL);
-	assert(problem->n == B->nrow);
+	Assert(problem->n == B->nrow);
 
 	if (!strcasecmp(method, "solve")) {
 		GMRFLib_solve_llt_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph, problem, NULL);
@@ -150,7 +150,7 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	} else if (!strcasecmp(method, "backward")) {
 		GMRFLib_solve_lt_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph, problem);
 	} else {
-		assert(0 == 1);
+		Assert(0 == 1);
 	}
 
 	B->iA = NULL;
@@ -170,7 +170,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	FILE *fp = NULL;
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: start pre...\n");
+		LOG_INFO("inla_qsample: start pre...");
 	}
 	fp = fopen(rngfile, "rb");
 	if (fp) {
@@ -245,16 +245,16 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: end pre %.2fs\n", GMRFLib_timer() - t_ref);
+		LOG_INFO("end pre %.2fs", GMRFLib_timer() - t_ref);
 	}
 	t_ref = GMRFLib_timer();
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: start prepare the model...\n");
+		LOG_INFO("start prepare the model...");
 	}
 
 	int thread_id = 0;
 
-	assert(omp_get_thread_num() == 0);
+	Assert(omp_get_thread_num() == 0);
 
 	GMRFLib_stiles_idx_tp *stiles_idx = NULL;
 
@@ -273,7 +273,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 			     stiles_idx, NULL);
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: end prepare the model %.2fs\n", GMRFLib_timer() - t_ref);
+		LOG_INFO("end prepare the model %.2fs", GMRFLib_timer() - t_ref);
 	}
 	t_ref = GMRFLib_timer();
 
@@ -287,7 +287,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	M->A = Calloc(M->nrow * M->ncol, double);
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: start to sample %1d samples...\n", ns);
+		LOG_INFO("start to sample %1d samples...", ns);
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
@@ -309,7 +309,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 			M->A[(i + 1) * M->nrow - 1] = problem->sub_logdens;
 
 			if (verbose && (!((i + 1) % output_every) || i == (ns - 1))) {
-				fprintf(stderr, "inla_qsample: done with %1d samples, with %.2f samples/s and %.2fs in total\n",
+				LOG_INFO("done with %1d samples, with %.2f samples/s and %.2fs in total",
 					i + 1, (i + 1.0) / (GMRFLib_timer() - t_ref), (GMRFLib_timer() - t_ref));
 			}
 		}
@@ -342,12 +342,12 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: end in %.2fs with %.2f samples/s\n", GMRFLib_timer() - t_ref,
+		LOG_INFO("end in %.2fs with %.2f samples/s", GMRFLib_timer() - t_ref,
 			(double) ns / (GMRFLib_timer() - t_ref));
 	}
 	t_ref = GMRFLib_timer();
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: start post...\n");
+		LOG_INFO("start post...");
 	}
 
 	GMRFLib_write_fmesher_file(M, outfile, (long int) 0, -1);
@@ -374,8 +374,10 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	fclose(fp);
 
 	if (verbose) {
-		fprintf(stderr, "inla_qsample: end post %.2fs\n", GMRFLib_timer() - t_ref);
-		fprintf(stderr, "inla_qsample: total time %.2fs\n", GMRFLib_timer() - t_reff);
+		LOG_INFO_WRAPPER(
+			fprintf(stderr, "inla_qsample: end post %.2fs\n", GMRFLib_timer() - t_ref);
+			fprintf(stderr, "inla_qsample: total time %.2fs\n", GMRFLib_timer() - t_reff);
+			);
 	}
 
 	return 0;
@@ -428,9 +430,9 @@ int inla_fgn(char *infile, char *outfile)
 
 	GMRFLib_matrix_tp *Hm = GMRFLib_read_fmesher_file(infile, 0, -1);
 
-	assert(Hm->ncol == 1);
+	Assert(Hm->ncol == 1);
 	nH = Hm->nrow - 1;
-	assert(nH >= 1);
+	Assert(nH >= 1);
 	K = (int) GMRFLib_matrix_get(0, 0, Hm);		       // first element is K, then H's.
 	len = 2 * K + 1;
 	res = Calloc(nH * len, double);

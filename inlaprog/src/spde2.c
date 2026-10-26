@@ -1,16 +1,9 @@
-#include <assert.h>
-#include <float.h>
-#include <math.h>
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
-
 #include "GMRFLib/GMRFLib.h"
 #include "inla.h"
-#include "spde2.h"
 
 extern G_tp G;						       /* import some global parametes from inla */
+
+#define NC 32
 
 FORCEINLINE void compute_d_values_opt(double *RESTRICT d, double *RESTRICT vals, double *RESTRICT theta, int nc)
 {
@@ -238,7 +231,8 @@ double inla_spde2_Qfunction_OLD(int thread_id, int ii, int jj, double *values, v
 		int nb = model->graph->lnnbs[ii];
 		double *V = model->row_V[ii];
 		double *v = model->row_v[ii];
-		double theta[nc];
+		double theta_vec[NC];
+		double *theta = (nc <= NC ? theta_vec : Calloc(nc, double));
 
 		theta[0] = 1.0;
 		for (int k = 1; k < nc; k++) {
@@ -282,7 +276,7 @@ double inla_spde2_Qfunction_OLD(int thread_id, int ii, int jj, double *values, v
 				break;
 
 			default:
-				assert(0 == 1);
+				Assert(0 == 1);
 			}
 		}
 
@@ -298,6 +292,9 @@ double inla_spde2_Qfunction_OLD(int thread_id, int ii, int jj, double *values, v
 			d_j += 3;
 		}
 
+		if (nc > NC) {
+			Free(theta);
+		}
 		return 0.0;
 	} else {
 		return inla_spde2_Qfunction_ij(thread_id, IMIN(ii, jj), IMAX(ii, jj), values, arg);
@@ -316,8 +313,8 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 	double d_i[6] = { 0.0 };
 	double *d_j = d_i + 3;
 	double *vals_i = model->row_V[ii];
-
-	double theta[nc];
+	double theta_vec[NC];
+	double *theta = (nc <= NC ? theta_vec : Calloc(nc, double));
 
 	theta[0] = 1.0;
 	for (int k = 1; k < nc; k++) {
@@ -365,7 +362,7 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 			break;
 
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 
@@ -373,6 +370,9 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 		double *v = model->row_v[ii];
 		double value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
 
+		if (nc > NC) {
+			Free(theta);
+		}
 		return value;
 	}
 
@@ -420,13 +420,16 @@ FORCEINLINE double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double
 			break;
 
 		default:
-			assert(0 == 1);
+			Assert(0 == 1);
 		}
 	}
 
 	double *v = vals_j_p->v;
 	double value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 
+	if (nc > NC) {
+		Free(theta);
+	}
 	return value;
 }
 
@@ -446,7 +449,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 	} else if (strcasecmp(transform, "identity") == 0) {
 		model->transform = SPDE2_TRANSFORM_IDENTITY;
 	} else {
-		assert(0 == 1);
+		Assert(0 == 1);
 	}
 
 	model->B = Calloc(3, GMRFLib_matrix_tp *);
@@ -463,19 +466,19 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 		/*
 		 * all need the same dimensions n x (p+1) 
 		 */
-		assert(model->B[0]->nrow == model->B[i]->nrow);
-		assert(model->B[0]->ncol == model->B[i]->ncol);
+		Assert(model->B[0]->nrow == model->B[i]->nrow);
+		Assert(model->B[0]->ncol == model->B[i]->ncol);
 
 		/*
 		 * all are square with the same dimension n x n 
 		 */
-		assert(model->M[i]->nrow == model->M[i]->ncol);
-		assert(model->M[0]->nrow == model->M[i]->nrow);
+		Assert(model->M[i]->nrow == model->M[i]->ncol);
+		Assert(model->M[0]->nrow == model->M[i]->nrow);
 
 		/*
 		 * and the number of rows must be the same 
 		 */
-		assert(model->B[i]->nrow == model->M[i]->nrow);
+		Assert(model->B[i]->nrow == model->M[i]->nrow);
 	}
 
 	model->n = model->M[0]->nrow;
@@ -521,7 +524,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 #undef ADD_GRAPH
 
 	GMRFLib_ged_build(&(model->graph), ged);
-	assert(model->n == model->graph->n);
+	Assert(model->n == model->graph->n);
 	GMRFLib_ged_free(ged);
 
 	model->Qfunc = inla_spde2_Qfunction;
@@ -634,7 +637,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 		P(model->ntheta_used);
 	}
 
-	assert(ncol - 1 == model->ntheta);
+	Assert(ncol - 1 == model->ntheta);
 
 	/*
 	 * build new theta vector and covariance matrix by inserting fixed values
@@ -815,7 +818,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 		}
 	} else {
 		// Not yet modified to deal with the case there ntheta_used < ntheta. hrue 26/7/2016.
-		assert(model->ntheta == model->ntheta_used);
+		Assert(model->ntheta == model->ntheta_used);
 		for (i = 0; i < nrow; i++) {
 			double mean = 0.0, var = 0.0;
 
@@ -851,3 +854,5 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 #undef ThetaNew
 	return NULL;
 }
+
+#undef NC

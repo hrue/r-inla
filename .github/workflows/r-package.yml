@@ -123,8 +123,10 @@ jobs:
           Rscript -e 'if (!tinytex::is_tinytex()) tinytex::install_tinytex()'
           R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
           ## The vignettes FIT MODELS, so the R side alone is not enough.
-          Rscript -e 'INLA::inla.stiles.install(persist = TRUE)'
-          Rscript -e 'cat("binary:", INLA::inla.getOption("inla.call"), "\n")'
+          ## No persist: inla.call stays unset and the resolver finds this
+          ## binary, which is what the --vanilla vignette renders rely on.
+          Rscript -e 'INLA::inla.stiles.install()'
+          Rscript -e 'cat("binary:", INLA::inla.binary.path(check = FALSE), "\n")'
 
       - name: Build the package
         env:

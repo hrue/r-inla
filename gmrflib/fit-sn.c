@@ -1,6 +1,3 @@
-#include <float.h>
-#include <stdio.h>
-#include <math.h>
 #include "GMRFLib/GMRFLib.h"
 
 // 2 * phi((x-mu)*exp(lsinv)) * Phi(a*(x-mu)*exp(lsinv)) * exp(lsinv) * exp(Z), where Z allows for un-normalized density
@@ -330,7 +327,7 @@ void fitsn_fit(int n, double *w, double *x, double *y, GMRFLib_sn_param_tp *sn)
 	double func_val_p = 0.0;
 
 	for (int iter = 0; iter <= iter_max; iter++) {	       /* yes: <= */
-		assert(iter < iter_max);
+		Assert(iter < iter_max);
 		func_val_p = func_val;
 		func_val = 0.0;
 
