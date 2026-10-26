@@ -146,14 +146,12 @@ double inla_eval_Not(double v)
 
 void inla_eval_OnError(muParserHandle_t hParser)
 {
-	LOG_ERROR_WRAPPER(
-		fprintf(stderr, "\n\n\nEval: Error while parsing expression:\n");
-		fprintf(stderr, "----------\n");
-		fprintf(stderr, "Message   :  \"%s\"\n", mupGetErrorMsg(hParser));
-		fprintf(stderr, "Token     :    \"%s\"\n", mupGetErrorToken(hParser));
-		fprintf(stderr, "Position  : %1d\n", mupGetErrorPos(hParser));
-		fprintf(stderr, "Error Code:     %1d\n", mupGetErrorCode(hParser));
-		);
+	LOG_ERROR_WRAPPER(fprintf(stderr, "\n\n\nEval: Error while parsing expression:\n");
+			  fprintf(stderr, "----------\n");
+			  fprintf(stderr, "Message   :  \"%s\"\n", mupGetErrorMsg(hParser));
+			  fprintf(stderr, "Token     :    \"%s\"\n", mupGetErrorToken(hParser));
+			  fprintf(stderr, "Position  : %1d\n", mupGetErrorPos(hParser));
+			  fprintf(stderr, "Error Code:     %1d\n", mupGetErrorCode(hParser)););
 	exit(1);
 }
 

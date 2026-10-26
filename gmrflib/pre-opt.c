@@ -214,8 +214,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, 
 			if (!(ngc * nn == global_constr[0]->nrow)) {
 				LOG_ERROR_WRAPPER(fprintf(stderr, "\t*** Number of global constraints = %1d,  but the length = %1d\n",
 							  ngc, global_constr[0]->nrow);
-						  fprintf(stderr, "\t*** is not a multiplum of the size of the latent = %1d, exit...\n", nn);
-				    );
+						  fprintf(stderr, "\t*** is not a multiplum of the size of the latent = %1d, exit...\n", nn););
 				GMRFLib_ASSERT(ngc * nn == global_constr[0]->nrow, GMRFLib_ESNH);
 			}
 

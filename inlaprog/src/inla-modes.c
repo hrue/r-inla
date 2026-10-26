@@ -310,7 +310,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 
 			if (verbose && (!((i + 1) % output_every) || i == (ns - 1))) {
 				LOG_INFO("done with %1d samples, with %.2f samples/s and %.2fs in total",
-					i + 1, (i + 1.0) / (GMRFLib_timer() - t_ref), (GMRFLib_timer() - t_ref));
+					 i + 1, (i + 1.0) / (GMRFLib_timer() - t_ref), (GMRFLib_timer() - t_ref));
 			}
 		}
 	} else {
@@ -342,8 +342,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	if (verbose) {
-		LOG_INFO("end in %.2fs with %.2f samples/s", GMRFLib_timer() - t_ref,
-			(double) ns / (GMRFLib_timer() - t_ref));
+		LOG_INFO("end in %.2fs with %.2f samples/s", GMRFLib_timer() - t_ref, (double) ns / (GMRFLib_timer() - t_ref));
 	}
 	t_ref = GMRFLib_timer();
 	if (verbose) {
@@ -374,10 +373,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	fclose(fp);
 
 	if (verbose) {
-		LOG_INFO_WRAPPER(
-			fprintf(stderr, "inla_qsample: end post %.2fs\n", GMRFLib_timer() - t_ref);
-			fprintf(stderr, "inla_qsample: total time %.2fs\n", GMRFLib_timer() - t_reff);
-			);
+		LOG_INFO_WRAPPER(fprintf(stderr, "inla_qsample: end post %.2fs\n", GMRFLib_timer() - t_ref);
+				 fprintf(stderr, "inla_qsample: total time %.2fs\n", GMRFLib_timer() - t_reff););
 	}
 
 	return 0;

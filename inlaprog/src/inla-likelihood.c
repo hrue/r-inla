@@ -6591,9 +6591,9 @@ int loglikelihood_mix_gaussian(int thread_id, int *lcache_idx, double *RESTRICT 
 __attribute__((target_clones(INLA_CLONE_TARGETS "default")))
 int loglikelihood_mix_core(int thread_id, int *lcache_idx, double *RESTRICT logll, double *RESTRICT x, int m, int idx, double *x_vec,
 			   double *y_cdf, void *arg, int (*func_quadrature)(int, int *, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, int *, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, int *, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 
 	if (m == 0) {
 		if (arg) {
@@ -7546,7 +7546,7 @@ int loglikelihood_egp(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT l
 	}
 
 	LINK_INIT;
-	Assert(PREDICTOR_SCALE == 1.0);		       /* need to check... */
+	Assert(PREDICTOR_SCALE == 1.0);			       /* need to check... */
 
 	double a = pow(1.0 - pow(alpha, 1.0 / kappa), -xi) - 1.0;
 	double ia = 1.0 / a;
@@ -9075,7 +9075,7 @@ int loglikelihood_lavm(int thread_id, int *UNUSED(lcache_idx), double *RESTRICT 
 	double prec = map_precision_forward(lprec, NULL, NULL);
 
 	LINK_INIT;
-	Assert(PREDICTOR_SCALE == 1.0);		       /* not prepared for this */
+	Assert(PREDICTOR_SCALE == 1.0);			       /* not prepared for this */
 
 	if (m > 0) {
 		double yp = PREDICTOR_LINK_PLAIN(y);

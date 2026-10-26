@@ -351,19 +351,15 @@ int inla_R_init_(void)
 				} else if (my_dir_exists("/usr/local/lib/R") == INLA_OK) {
 					GMRFLib_sprintf(&rhome, "R_HOME=/usr/local/lib/R");
 				} else {
-					LOG_ERROR_WRAPPER(
-						fprintf(stderr, "\n\n");
-						fprintf(stderr, "*** ERROR: Environment variable R_HOME is not set or invalid.\n");
-						fprintf(stderr, "*** ERROR: Evaluate this in R:  Sys.getenv(\"R_HOME\")\n");
-						fprintf(stderr, "\n\n");
-						);
+					LOG_ERROR_WRAPPER(fprintf(stderr, "\n\n");
+							  fprintf(stderr, "*** ERROR: Environment variable R_HOME is not set or invalid.\n");
+							  fprintf(stderr, "*** ERROR: Evaluate this in R:  Sys.getenv(\"R_HOME\")\n");
+							  fprintf(stderr, "\n\n"););
 					exit(1);
 				}
-				LOG_ERROR_WRAPPER(
-					fprintf(stderr, "\n\n");
-					fprintf(stderr, "*** WARNING: Environment variable R_HOME is not set or invalid.\n");
-					fprintf(stderr, "*** WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome);
-					);
+				LOG_ERROR_WRAPPER(fprintf(stderr, "\n\n");
+						  fprintf(stderr, "*** WARNING: Environment variable R_HOME is not set or invalid.\n");
+						  fprintf(stderr, "*** WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome););
 				my_setenv(rhome, 0);
 			} else {
 				char *rrhome = NULL;
@@ -769,84 +765,84 @@ int inla_R_do_(inla_R_cmd_tp POSSIBLY_UNUSED(cmd), void POSSIBLY_UNUSED(*a1), vo
 
 int inla_R_exit_(void)
 {
-	inla_R_no_lib(); 
+	inla_R_no_lib();
 	return 1;
 }
 
 int inla_R_init_(void)
 {
-	inla_R_no_lib(); 
+	inla_R_no_lib();
 	return 1;
 }
 
 int inla_R_library_(const char POSSIBLY_UNUSED(*library))
 {
-	inla_R_no_lib(); 
+	inla_R_no_lib();
 	return 1;
 }
 
 int inla_R_source_(const char POSSIBLY_UNUSED(*filename))
 {
-	inla_R_no_lib(); 
+	inla_R_no_lib();
 	return 1;
 }
 
 int inla_R_load_(const char POSSIBLY_UNUSED(*filename))
 {
-	inla_R_no_lib(); 
+	inla_R_no_lib();
 	return 1;
 }
 
 int inla_R_inlaload_(const char POSSIBLY_UNUSED(*filename))
 {
-	inla_R_no_lib(); 
+	inla_R_no_lib();
 	return 1;
 }
 
 int inla_R_funcall2_(int POSSIBLY_UNUSED(*n_out), double POSSIBLY_UNUSED(**x_out), const char POSSIBLY_UNUSED(*function),
 		     const char POSSIBLY_UNUSED(*tag), int POSSIBLY_UNUSED(*n), double POSSIBLY_UNUSED(*x))
 {
-	inla_R_no_lib(); 
+	inla_R_no_lib();
 	return 1;
 }
 
 int inla_R_funcall1_(int POSSIBLY_UNUSED(*n_out), double POSSIBLY_UNUSED(**x_out), const char POSSIBLY_UNUSED(*function),
 		     int POSSIBLY_UNUSED(*n), double POSSIBLY_UNUSED(*x))
 {
-	inla_R_no_lib(); 
+	inla_R_no_lib();
 	return 1;
 }
 
 int inla_R_funcall_jp_(int POSSIBLY_UNUSED(*n_out), double POSSIBLY_UNUSED(**x_out), const char POSSIBLY_UNUSED(*function),
 		       int POSSIBLY_UNUSED(*n), double POSSIBLY_UNUSED(*x), void POSSIBLY_UNUSED(*sexp))
 {
-	inla_R_no_lib(); 
+	inla_R_no_lib();
 	return 1;
 }
 
 int inla_R_assign_(const char POSSIBLY_UNUSED(*variable), int POSSIBLY_UNUSED(*n), double POSSIBLY_UNUSED(*x))
 {
-	inla_R_no_lib(); 
+	inla_R_no_lib();
 	return 1;
 }
 
 int inla_R_get_(int POSSIBLY_UNUSED(*n_out), double POSSIBLY_UNUSED(**x_out), const char POSSIBLY_UNUSED(*variable))
 {
-	inla_R_no_lib(); 
+	inla_R_no_lib();
 	return 1;
 }
 
 int inla_R_rgeneric_(int POSSIBLY_UNUSED(*n_out), double POSSIBLY_UNUSED(**x_out), const char POSSIBLY_UNUSED(*cmd),
 		     const char POSSIBLY_UNUSED(*model), int POSSIBLY_UNUSED(*n), double POSSIBLY_UNUSED(*theta))
 {
-	inla_R_no_lib(); 
+	inla_R_no_lib();
 	return 1;
 }
 
 void *inla_R_vector_of_strings(int POSSIBLY_UNUSED(n), char POSSIBLY_UNUSED(**s))
 {
-	inla_R_no_lib(); 
-	return (void *)NULL;
+	inla_R_no_lib();
+	return (void *) NULL;
 }
 
 #endif
