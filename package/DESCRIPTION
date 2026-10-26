@@ -73,8 +73,8 @@ VignetteBuilder: knitr
 BuildVignettes: true
 LazyData: true
 License: MIT + file LICENSE
-Version: 26.10.26
-Config/INLA/BinaryVersion: 26.10.26
+Version: 26.10.26-1
+Config/INLA/BinaryVersion: 26.10.26-1
 Encoding: UTF-8
 StagedInstall: no
 Collate: 
@@ -203,4 +203,4 @@ Collate:
     'utils.R'
     'version.R'
 Roxygen: list(markdown = TRUE)
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
