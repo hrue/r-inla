@@ -109,11 +109,10 @@ int inla_parse_lincomb(inla_tp *mb, dictionary *ini, int sec)
 			 * check that the index is legal
 			 */
 			if (!LEGAL(idx[i] - 1, n)) {
-				LOG_ERROR_WRAPPER(
-					fprintf(stderr, "\n\n");
-					fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
-					fprintf(stderr, "*** ERROR ***\t[%s] has length %1d, but idx=%1d (R-style index) is given\n", ptr, n, idx[i]);
-					);
+				LOG_ERROR_WRAPPER(fprintf(stderr, "\n\n");
+						  fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
+						  fprintf(stderr, "*** ERROR ***\t[%s] has length %1d, but idx=%1d (R-style index) is given\n", ptr,
+							  n, idx[i]););
 				abort();
 			}
 		}
@@ -141,11 +140,9 @@ int inla_parse_lincomb(inla_tp *mb, dictionary *ini, int sec)
 	GMRFLib_io_close(io);
 
 	if (all_weights_are_zero) {
-		LOG_ERROR_WRAPPER(
-			fprintf(stderr, "\n\n");
-			fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
-			fprintf(stderr, "*** ERROR ***\tAll weights are zero.\n");
-			);
+		LOG_ERROR_WRAPPER(fprintf(stderr, "\n\n");
+				  fprintf(stderr, "*** ERROR ***\tLincomb error for section[%s]\n", secname);
+				  fprintf(stderr, "*** ERROR ***\tAll weights are zero.\n"););
 		abort();
 	}
 
@@ -481,7 +478,7 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 #if defined(INLA_WITH_COLOR)
 		printf("\t\tCompiled with -DINLA_WITH_COLOR\n");
 #endif
-		
+
 #if defined(__x86_64__)
 		printf("\t\tCPU feature SSE     availble? %s\n", __builtin_cpu_supports("sse") ? "YES" : "NO");
 		printf("\t\tCPU feature SSE2    availble? %s\n", __builtin_cpu_supports("sse2") ? "YES" : "NO");
@@ -567,10 +564,9 @@ int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec)
 				printf("\t\tfail to create directory [%s]: %s\n", tmp, strerror(errno));
 			}
 			if (!accept_argument) {
-				LOG_ERROR_WRAPPER(
-					fprintf(stderr, "\n\t\tFail to create directory [%s]: %s\n", tmp, strerror(errno));
-					fprintf(stderr, "\t\tmb->dir=[%s] does not accept integer arguments. Cannot proceed.\n\n", mb->dir);
-					);
+				LOG_ERROR_WRAPPER(fprintf(stderr, "\n\t\tFail to create directory [%s]: %s\n", tmp, strerror(errno));
+						  fprintf(stderr, "\t\tmb->dir=[%s] does not accept integer arguments. Cannot proceed.\n\n",
+							  mb->dir););
 				exit(EXIT_FAILURE);
 			}
 		} else {
@@ -12736,7 +12732,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			if (mb->verbose) {
 				printf("\t\tcyclic=[%1d]\n", mb->f_cyclic[mb->nf]);
 			}
-			Assert(mb->f_cyclic[mb->nf] == 0);    /* not implemented */
+			Assert(mb->f_cyclic[mb->nf] == 0);     /* not implemented */
 
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
 		}
@@ -19513,12 +19509,13 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 					}
 				}
 				if (!ok) {
-					LOG_WARNING_WRAPPER(
-						fprintf(stderr, "\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but values != NULL.\n",
-							model, secname);
-						fprintf(stderr, "*** Warning ***\tCylic = TRUE is not implemented for non-equal spaced values.\n");
-						fprintf(stderr, "*** Warning ***\tAssume values are equal spaced.\n\n");
-						);
+					LOG_WARNING_WRAPPER(fprintf
+							    (stderr,
+							     "\n*** Warning ***\tModel[%s] in Section[%s] has cyclic = TRUE but values != NULL.\n",
+							     model, secname);
+							    fprintf(stderr,
+								    "*** Warning ***\tCylic = TRUE is not implemented for non-equal spaced values.\n");
+							    fprintf(stderr, "*** Warning ***\tAssume values are equal spaced.\n\n"););
 				}
 			}
 
@@ -20763,10 +20760,9 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec)
 
 	tmp = iniparser_getboolean(ini, inla_string_join(secname, "HUGE"), -1);
 	if (tmp != -1) {
-		LOG_WARNING_WRAPPER(
-			fprintf(stderr, "\n\n*** Warning *** option control.inla(huge=TRUE) is disabled and obsolete.\n");
-			fprintf(stderr, "*** Warning *** use control.compute = list(strategy = \"SMALL|MEDIUM|LARGE|HUGE|DEFAULT\") instead.\n\n");
-			);
+		LOG_WARNING_WRAPPER(fprintf(stderr, "\n\n*** Warning *** option control.inla(huge=TRUE) is disabled and obsolete.\n");
+				    fprintf(stderr,
+					    "*** Warning *** use control.compute = list(strategy = \"SMALL|MEDIUM|LARGE|HUGE|DEFAULT\") instead.\n\n"););
 	}
 
 	GMRFLib_global_node.factor = iniparser_getdouble(ini, inla_string_join(secname, "GLOBAL.NODE.FACTOR"), GMRFLib_global_node.factor);

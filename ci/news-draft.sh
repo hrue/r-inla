@@ -17,7 +17,7 @@
 ## section for the version in DESCRIPTION, so run this before tagging.
 set -euo pipefail
 
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 NEWS=$ROOT/rinla/NEWS.md
 DESC=$ROOT/rinla/DESCRIPTION
 

@@ -160,8 +160,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 		 */
 		LOG_ERROR_WRAPPER(fprintf
 				  (stderr, " *** Error in graph: n=%1d but min_node=%1d and max_node=%1d\n", (*graph)->n, min_node, max_node);
-				  fprintf(stderr, " *** The position in reported in the file is not correct...\n");
-		    );
+				  fprintf(stderr, " *** The position in reported in the file is not correct...\n"););
 		GMRFLib_io_error(io, GMRFLib_IO_ERR_READLINE);
 		return GMRFLib_EREADFILE;
 	}
@@ -1044,7 +1043,6 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *grap
 		GMRFLib_LEAVE_FUNCTION;
 		return GMRFLib_SUCCESS;
 	}
-
 #pragma omp critical (Name_fc475f20f495b388c7953ffc2fc3449b6e0e358c)
 	{
 		int found = 0;
@@ -1110,7 +1108,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *grap
 			}
 		}
 	}
-	
+
 	GMRFLib_LEAVE_FUNCTION;
 	return GMRFLib_SUCCESS;
 }

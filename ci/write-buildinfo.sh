@@ -8,7 +8,7 @@
 set -e
 
 OUT=$1; CC=$2; FLAGS=$3; BLAS=$4
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 
 {
     echo "== inla build =="

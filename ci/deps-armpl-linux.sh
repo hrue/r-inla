@@ -10,7 +10,7 @@
 set -e
 
 ## default from the shared toolchain file when the caller does not pin one
-_ROOT=$(cd "$(dirname "$0")/.." && pwd)
+_ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 [ -f "$_ROOT/ci/toolchain.env" ] && . "$_ROOT/ci/toolchain.env"
 ARMPL_VERSION=${ARMPL_VERSION:-26.07}
 ARMPL_PKG=${ARMPL_PKG:-rpm}

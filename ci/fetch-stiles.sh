@@ -12,7 +12,7 @@
 ##   STILES_ASSET    override the asset name for this platform
 set -e -o pipefail
 
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 PREFIX=${PREFIX:-$ROOT/local}
 DEST=$PREFIX/stiles
 STILES_REPO=${STILES_REPO:-esmail-abdulfattah/sTiles}

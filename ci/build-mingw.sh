@@ -8,7 +8,7 @@
 ## use, so exactly one R.dll is ever mapped into the process.
 set -e -o pipefail
 
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 ## Versions are pinned in one file the maintainer owns; BUILDINFO below
 ## reports the BLAS from it rather than from a second copy of the number.
 [ -f "$ROOT/ci/toolchain.env" ] && . "$ROOT/ci/toolchain.env"

@@ -1689,7 +1689,7 @@ double priorfunc_pc_spde_ga(double *x, double *parameters)
 double priorfunc_pc_matern(double *x, double *parameters)
 {
 	double theta1 = x[0];
-	double theta2 = x[1]; 
+	double theta2 = x[1];
 	double lam1 = parameters[0];
 	double lam2 = parameters[1];
 	double dHalf = parameters[2] / 2.0;

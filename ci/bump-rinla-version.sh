@@ -30,7 +30,7 @@
 ## exclusive: one verifies the number in use, the other picks an unused one.
 set -e -o pipefail
 
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 DESC=$ROOT/rinla/DESCRIPTION
 CHECK=0
 NOW=0
