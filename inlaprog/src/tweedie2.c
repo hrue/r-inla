@@ -1,4 +1,3 @@
-#include "GMRFLib/GMRFLib.h"
 #include "inla.h"
 
 // this code is very insprired from tweedie.c in cplm_0.7-9.tar.gz package of Wayne Zhang <actuary_zhang@hotmail.com>, but rewritten

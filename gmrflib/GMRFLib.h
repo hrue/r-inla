@@ -15,26 +15,29 @@
 #              define _GNU_SOURCE 1
 #       endif
 
-#       include "GMRFLib/alloc.h"
-
 #       if !defined(_DEFAULT_SOURCE)
 #              define _DEFAULT_SOURCE
 #       endif
+
+#       include <math.h>
+#       include <stddef.h>
+#       include <stdint.h>
+#       include <stdio.h>
+#       include <stdlib.h>
+#       include <string.h>
+
 #       include <assert.h>
 #       include <ctype.h>
 #       include <errno.h>
 #       include <fcntl.h>
 #       include <inttypes.h>
 #       include <ltdl.h>
-#       include <math.h>
+#       include <omp.h>
 #       include <signal.h>
 #       include <stdalign.h>
 #       include <stdarg.h>
 #       include <stdbool.h>
 #       include <stddef.h>
-#       include <stdint.h>
-#       include <stdio.h>
-#       include <stdlib.h>
 #       include <sys/stat.h>
 #       if defined(__linux__)
 #              include <features.h>

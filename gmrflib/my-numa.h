@@ -1,10 +1,6 @@
 #ifndef __GMRFLib_MY_NUMA_H__
 #       define __GMRFLib_MY_NUMA_H__
 
-#       include <stdlib.h>
-#       include <stddef.h>
-#       include <math.h>
-
 #       undef __BEGIN_DECLS
 #       undef __END_DECLS
 #       ifdef __cplusplus

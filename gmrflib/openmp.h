@@ -1,6 +1,7 @@
 #ifndef __GMRFLib_OPENMP_H__
 #       define __GMRFLib_OPENMP_H__
 #       include <assert.h>
+#       include <omp.h>
 
 #       undef __BEGIN_DECLS
 #       undef __END_DECLS
@@ -12,22 +13,10 @@
 #              define __END_DECLS			       /* empty */
 #       endif
 
-// workaround for g++-15.2: do not know exactly which g++ version causing the issue
-#       if defined(INLA_OMP_GCC15_2_WORKAROUND)
-#              if defined(__cplusplus)
-#                     define TMP_ __cplusplus
-#                     undef __cplusplus
-#                     include <omp.h>
-#                     define __cplusplus TMP_
-#                     undef TMP_
-#              else
-#                     include <omp.h>
-#              endif
-#       else
-#              include <omp.h>
-#       endif
 
-__BEGIN_DECLS typedef struct {
+__BEGIN_DECLS
+//*
+typedef struct {
 	char *tag;
 	int max_nt;
 	int best_nt;
