@@ -694,12 +694,9 @@ typedef enum {
 		double ** work__ = Calloc(nt__, double *);		\
 		Assert(work__);						\
 									\
-		if (nt__ > 1) {						\
-                        _Pragma("omp parallel for num_threads(nt__)")	\
-				CODE_BLOCK;				\
-		} else {						\
+                _Pragma("omp parallel for num_threads(nt__) if(nt__ > 1)") \
 			CODE_BLOCK;					\
-		}							\
+									\
 		for (int i_ = 0; i_ < nt__; i_++) {			\
 			Free(work__[i_]);				\
 		}							\
@@ -720,12 +717,9 @@ typedef enum {
 		double ** work__ = Calloc(nt__, double *);		\
 		Assert(work__);						\
 									\
-		if (nt__ > 1) {						\
-                        _Pragma("omp parallel for num_threads(nt__) schedule(guided, GMRFLib_openmp->chunk_size)") \
-				CODE_BLOCK;				\
-		} else {						\
+                _Pragma("omp parallel for num_threads(nt__) if (nt__ > 1) schedule(guided, GMRFLib_openmp->chunk_size)") \
 			CODE_BLOCK;					\
-		}							\
+									\
 		for (int i_ = 0; i_ < nt__; i_++) {			\
 			Free(work__[i_]);				\
 		}							\
@@ -752,12 +746,8 @@ typedef enum {
 		double ** work__ = Calloc(nt__, double *);		\
 		Assert(work__);						\
 									\
-		if (nt__ > 1) {						\
-			_Pragma("omp parallel for num_threads(nt__)")   \
-				CODE_BLOCK;				\
-		} else {						\
+		_Pragma("omp parallel for num_threads(nt__) if(nt__ > 1)") \
 			CODE_BLOCK;					\
-		}							\
 									\
 		for (int i_ = 0; i_ < nt__; i_++) {			\
 			CODE_BLOCK_WORK_TP_FREE(work_t__[i_]);		\
