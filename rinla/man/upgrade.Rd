@@ -19,7 +19,7 @@ way.}
 \code{inla.upgrade} returns nothing
 }
 \description{
-Function to upgrade the \code{INLA}-package to the most recent version
+Upgrades the \code{INLA} R package and then the inla-program.
 }
 \seealso{
 \code{update.packages}

@@ -15,7 +15,8 @@ control.expert(
   opt.storage = FALSE,
   opt.num.threads = TRUE,
   memory.alignment = -1,
-  blas.num.threads = NULL
+  blas.num.threads = NULL,
+  pin.to.pcores = FALSE
 )
 
 inla.set.control.expert.default(...)
@@ -54,6 +55,11 @@ only). One of -1 (no alignment correction done),  0 (chose automatically),
 for BLAS functions, most often 1. If set to 0, then it will be determined
 adaptively. If set to 'NULL' then its value it will be determined by
 'inla.getOption("blas.num.threads")' (which defaults to 0).}
+
+\item{pin.to.pcores}{Experimental option and work-in-progress: do not use.
+This logical option determine if we should pin some parallel loops to
+p-cores only. This require a spesific 'num.threads' argument that are NOT checked
+for. (This option is currently disabled.)}
 
 \item{...}{Named arguments passed on to the main function}
 }

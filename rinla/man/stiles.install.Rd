@@ -17,11 +17,14 @@ inla.stiles.install(
 inla.stiles.status(ping = TRUE, verbose = TRUE)
 }
 \arguments{
-\item{dir}{Where to unpack. By default the installed package, so the
-binary travels with it, or a per-user cache when the package directory is
-not writable. Those two are the only places INLA searches, so a binary put
-anywhere else has to be named with \code{inla.setOption(inla.call = ...)}
-before anything uses it; the function prints that line.}
+\item{dir}{Where to unpack. By default the per-user cache, which
+\code{R_USER_CACHE_DIR} relocates; the installed package is never
+written to. Each version gets its own directory, so an
+upgrade adds a binary rather than replacing one. The cache
+and the installed package are the only places INLA searches,
+so a binary put anywhere else has to be named with
+\code{inla.setOption(inla.call = ...)} before anything uses it;
+the function prints that line.}
 
 \item{force}{Re-download even when the binary is already installed.}
 
@@ -41,13 +44,15 @@ pre-releases included.}
 The path of the installed binary, invisibly.
 
 Invisibly, a list with \code{inla.call}, \code{smtp}, \code{release}, \code{alive},
-\code{buildinfo} (character vector) and \code{cache} (installed releases).
+\code{buildinfo} (character vector) and \code{installed} (every release found,
+in the cache and in the package).
 }
 \description{
 \code{inla.stiles.install()} works out which pre-built binary matches this
-machine, downloads it from the releases page, unpacks it into a cache
-directory, checks that it runs, and points \code{inla.call} at it. One call
-instead of the manual download, un-pack and \code{inla.setOption()} steps.
+machine, downloads the release this package version needs, unpacks it
+beside the package, and checks that it runs. Nothing to configure
+afterwards: \code{inla.call} stays unset and the binary is found where it was
+put.
 
 The binaries are portable: six of them cover Linux (x86-64 baseline and
 x86-64-v3), Linux arm64, macOS (Intel and Apple silicon) and Windows, so the
@@ -65,7 +70,7 @@ an earlier install intended.
 }
 \examples{
 \dontrun{
-inla.stiles.install()                  # newest release
+inla.stiles.install()   # the binary this package version needs
 }
 
 }
