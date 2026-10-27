@@ -30,6 +30,11 @@ on:
       - 'rinla/R/**'
       - 'rinla/man/**'
       - 'rinla/NEWS.md'
+      ## The "Version X" commit of ci/release.sh touches only DESCRIPTION,
+      ## NEWS.md and package/. Its tag builds right after, so a branch build
+      ## of the same commit would be thrown away.
+      - 'rinla/DESCRIPTION'
+      - 'package/**'
       - '.github/workflows/r-package.yml'
   workflow_dispatch:
 
