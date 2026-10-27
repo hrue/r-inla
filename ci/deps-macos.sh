@@ -4,6 +4,8 @@
 ## have, including libR/libRmath/libRblas/libRlapack). metis has no
 ## reliable Homebrew formula, so it is built static from source.
 set -e
+## Retries for every download below; see net-retry.sh.
+. "$(dirname "$0")/net-retry.sh"
 
 ## gnu-sed: gmrflib's dependency-file rule uses GNU sed syntax, which BSD
 ## sed silently mangles into an unparsable .d file.
@@ -100,10 +102,12 @@ if [ ! -f "$DEPS/lib/libmetis.a" ]; then
     ## GKlib; the policy flag keeps any old cmake_minimum_required lines
     ## acceptable to current CMake.
     git clone --depth 1 https://github.com/scivision/METIS /tmp/metis
-    ## GitHub throttles anonymous downloads (cmake's FetchContent pulls
-    ## GKlib from there), so retry rather than fail the whole lane.
+    ## GitHub throttles anonymous downloads, and cmake's FetchContent pulls
+    ## GKlib as one, so hand it a git checkout instead; the configure retry
+    ## stays for when that is not possible.
+    GKFLAG=$(gklib_for_metis /tmp/metis)
     for attempt in 1 2 3; do
-        cmake -S /tmp/metis -B /tmp/metis/build \
+        cmake -S /tmp/metis -B /tmp/metis/build $GKFLAG \
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
         -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
             -DCMAKE_INSTALL_PREFIX="$DEPS" && break
