@@ -31,9 +31,13 @@ __BEGIN_DECLS
 #                     define Assert(condition) ((void)0)
 #              else
 #                     define Assert(condition) ((void)((condition) ? 0 : \
-						 (GMRFLib_color_start_error(), \
-						  assert(condition), \
-						  0)))
+						       (fprintf(stderr, "\n"), \
+							GMRFLib_color_start_error(), \
+							fprintf(stderr, "\n\n"), \
+							assert(condition), \
+							GMRFLib_color_reset(), \
+							fprintf(stderr, "\n"), \
+							0)))
 #              endif
 #       else
 #              define Assert(...) assert(__VA_ARGS__)
@@ -47,52 +51,61 @@ void GMRFLib_color_reset(void);
 #       define LOG_ERROR(fmt, ...)					\
 	do {								\
 		GMRFLib_color_start_error();				\
+		fprintf(stderr, "\n");					\
 		fprintf(stderr, "*** ERROR *** [%1d] %s:%1d (%s)\n",	\
 			omp_get_thread_num(), __FILE__,  __LINE__, __GMRFLib_FuncName); \
 		fprintf(stderr, "*** ERROR *** " fmt "", ##__VA_ARGS__); \
-		fprintf(stderr, "\n");					\
 		GMRFLib_color_reset();					\
+		fprintf(stderr, "\n");					\
 	} while(0)
 
 #       define LOG_WARNING(fmt, ...)					\
 	do {								\
 		GMRFLib_color_start_warning();				\
+		fprintf(stderr, "\n");					\
 		fprintf(stderr, "*** WARNING *** [%1d] %s:%1d (%s)\n", omp_get_thread_num(), \
 			__FILE__,  __LINE__, __GMRFLib_FuncName);	\
 		fprintf(stderr, "*** WARNING *** " fmt "", ##__VA_ARGS__); \
-		fprintf(stderr, "\n");					\
 		GMRFLib_color_reset();					\
+		fprintf(stderr, "\n");					\
 	} while(0)
 
 #       define LOG_INFO(fmt, ...)					\
 	do {								\
 		GMRFLib_color_start_info();				\
+		fprintf(stderr, "\n");					\
 		fprintf(stderr, "*** INFO *** [%1d] %s:%1d (%s)\n", omp_get_thread_num(), \
 			__FILE__,  __LINE__, __GMRFLib_FuncName);	\
 		fprintf(stderr, "*** INFO *** " fmt "", ##__VA_ARGS__);	\
-		fprintf(stderr, "\n");					\
 		GMRFLib_color_reset();					\
+		fprintf(stderr, "\n");					\
 	} while(0)
 
-#       define LOG_ERROR_WRAPPER(...) \
+#       define LOG_ERROR_WRAPPER(...)	     \
 	do {				     \
 		GMRFLib_color_start_error(); \
+		fprintf(stderr, "\n\n");     \
 		__VA_ARGS__;		     \
 		GMRFLib_color_reset();	     \
+		fprintf(stderr, "\n");	     \
 	} while (0)
 
-#       define LOG_INFO_WRAPPER(...) \
-	do {				     \
-		GMRFLib_color_start_info(); \
-		__VA_ARGS__;		     \
-		GMRFLib_color_reset();	     \
+#       define LOG_INFO_WRAPPER(...)					\
+	do {								\
+		GMRFLib_color_start_info();				\
+		fprintf(stderr, "\n\n");				\
+		__VA_ARGS__;						\
+		GMRFLib_color_reset();					\
+		fprintf(stderr, "\n");					\
 	} while (0)
 
-#       define LOG_WARNING_WRAPPER(...) \
-	do {				     \
-		GMRFLib_color_start_warning();	\
-		__VA_ARGS__;			\
-		GMRFLib_color_reset();	     \
+#       define LOG_WARNING_WRAPPER(...)					\
+	do {								\
+		GMRFLib_color_start_warning();				\
+		fprintf(stderr, "\n\n");				\
+		__VA_ARGS__;						\
+		GMRFLib_color_reset();					\
+		fprintf(stderr, "\n");					\
 	} while (0)
 
 void GMRFLib_color_init(void);

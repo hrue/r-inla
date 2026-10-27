@@ -132,7 +132,6 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 #pragma omp critical (Name_e4b888063524c281c8bef772bc2579873731fa49)
 		if (!storage) {
 			storage_t **tmp = Calloc(GMRFLib_CACHE_LEN(), storage_t *);
-
 			storage = tmp;
 		}
 	}
@@ -144,7 +143,6 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 	}
 	if (storage[id]->m != m) {
 		Free(storage[id]->ii);
-
 		int K = m * (m + 1) / 2;
 		int *ii = Calloc(2 * K, int);
 		int *jj = ii + K;
@@ -161,13 +159,42 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 		storage[id]->jj = jj;
 	}
 
-	for (int k = 0; k < storage[id]->K; k++) {
-		int i = storage[id]->ii[k];
-		int j = storage[id]->jj[k];
-		double value = GMRFLib_sparse_ddot_(constr->idxval[i], B + j * n);
-		C[i + j * m] = C[j + i * m] = value;
+	int num_threads = GMRFLib_openmp->max_threads_inner, tnum = 0, level = 0, nt = num_threads;
+	char *tag = NULL;
+	double tref = 0.0;
+	
+	// often, num_threads=1, then we do not need any adaptation
+	if (num_threads > 1) {
+		GMRFLib_sprintf(&tag, "%s:%1d:%1d:%1d", __FILE__, __LINE__, m, n);
+		tnum = omp_get_thread_num();
+		level = omp_get_level();
+		nt = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
+		tref = -GMRFLib_timer();
 	}
 
+	if (nt > 1) {
+#pragma omp parallel for num_threads(nt) schedule(static)
+		for (int k = 0; k < storage[id]->K; k++) {
+			int i = storage[id]->ii[k];
+			int j = storage[id]->jj[k];
+			double value = GMRFLib_sparse_ddot_(constr->idxval[i], B + j * n);
+			C[i + j * m] = C[j + i * m] = value;
+		}
+	} else {
+		for (int k = 0; k < storage[id]->K; k++) {
+			int i = storage[id]->ii[k];
+			int j = storage[id]->jj[k];
+			double value = GMRFLib_sparse_ddot_(constr->idxval[i], B + j * n);
+			C[i + j * m] = C[j + i * m] = value;
+		}
+	}
+	
+	if (num_threads > 1) {
+		tref += GMRFLib_timer();
+		GMRFLib_adapt_nt_update(tag, tnum, level, tref);
+		Free(tag);
+	}
+	
 	return GMRFLib_SUCCESS;
 }
 
@@ -325,7 +352,6 @@ int GMRFLib_Qsolves(double *x, int nrhs, GMRFLib_problem_tp *problem, GMRFLib_st
 	GMRFLib_solve_llt_sparse_matrix(x, nrhs, &(problem->sub_sm_fact), problem->sub_graph, problem, stiles_idx);
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		double alpha = -1.0, beta = 1.0, t_vector[nc * nrhs];
-
 		GMRFLib_eval_constr0_many(nrhs, t_vector, x, problem->sub_constr, problem->sub_graph);
 		dgemm_("N", "N", &n, &nrhs, &nc, &alpha, problem->constr_m, &n, t_vector, &nc, &beta, x, &n, F_ONE, F_ONE);
 	}
@@ -696,6 +722,7 @@ int GMRFLib_init_problem_store(int thread_id,
 			}
 
 			if (GMRFLib_aqat_m_diag_add > 0.0) {
+#pragma omp simd
 				for (int i = 0; i < nc; i++) {
 					aqat_m[i + i * nc] += GMRFLib_aqat_m_diag_add;
 				}
@@ -722,7 +749,6 @@ int GMRFLib_init_problem_store(int thread_id,
 			for (int j = 0; j < nc; j++) {
 				double *yy = tmp_vector + j;
 				double *xx = (*problem)->qi_at_m + j * sub_n;
-
 #pragma omp simd
 				for (int i = 0; i < sub_n; i++) {
 					yy[i * nc] = xx[i];
@@ -730,11 +756,9 @@ int GMRFLib_init_problem_store(int thread_id,
 			}
 
 			GMRFLib_solveAxb_posdef(tmp_vector, (*problem)->l_aqat_m, tmp_vector, nc, sub_n);
-
 			for (int j = 0; j < nc; j++) {
 				double *yy = (*problem)->constr_m + j * sub_n;
 				double *xx = tmp_vector + j;
-
 #pragma omp simd
 				for (int i = 0; i < sub_n; i++) {
 					yy[i] = xx[i * nc];
@@ -775,6 +799,8 @@ int GMRFLib_init_problem_store(int thread_id,
 				tmp_vector = NULL;
 				retval = GMRFLib_comp_chol_general(&tmp_vector, aat_m, nc, &((*problem)->logdet_aat), GMRFLib_ESINGCONSTR2);
 				if (retval != GMRFLib_SUCCESS) {
+					// we can get the log_det from _ensure_spd but its a little messy and its done once only,
+					// so...
 					GMRFLib_WARNING("Matrix AA^t is numerical singular, remove singularity and move on");
 					GMRFLib_ensure_spd(aat_m, nc, GSL_SQRT_DBL_EPSILON, NULL);
 					GMRFLib_EWRAP1(GMRFLib_comp_chol_general
@@ -812,19 +838,19 @@ int GMRFLib_init_problem_store(int thread_id,
 		 * compute the mean after correcting for the constraint. this is the same as if the sample itself is
 		 * sub_mean! i have copied parts of code from GMRFLib_sample into here...
 		 */
-		int nc = constr->nc, inc = 1;
-		double alpha, beta, *t_vector = NULL;
+		double *t_vector = NULL;
+		int nc = constr->nc;
 
 		Free((*problem)->sub_constr_value);
 		(*problem)->sub_constr_value = t_vector = Calloc(nc, double);
-
 		GMRFLib_eval_constr(t_vector, NULL, (*problem)->sub_mean, (*problem)->sub_constr, (*problem)->sub_graph);
 
 		/*
 		 * sub_mean_constr is pr.default equal to sub_mean 
 		 */
-		alpha = -1.0;
-		beta = 1.0;				       /* mean_constr = mean - cond_m*t_vector */
+		double alpha = -1.0;
+		double beta = 1.0;				       /* mean_constr = mean - cond_m*t_vector */
+		int inc = 1;
 		dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr, &inc, F_ONE);
 	}
 

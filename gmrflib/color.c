@@ -12,8 +12,6 @@
 void GMRFLib_color_core(GMRFLib_color_tp color)
 {
 	GMRFLib_color_set(color);
-	fprintf(stderr, "\n\n");
-	fflush(stderr);
 }
 
 void GMRFLib_color_start_error(void)
