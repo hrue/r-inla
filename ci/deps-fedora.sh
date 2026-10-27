@@ -3,6 +3,8 @@
 ## Used by the newest-toolchain CI canary (Fedora tracks the newest GCC and
 ## current R), and runnable as-is on any Fedora machine.
 set -e
+## Retries for every download below; see net-retry.sh.
+. "$(dirname "$0")/net-retry.sh"
 
 SUDO=""
 [ "$(id -u)" != 0 ] && SUDO=sudo

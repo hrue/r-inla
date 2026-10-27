@@ -3,6 +3,8 @@
 ## builds link statically. Works on both apt (Ubuntu runner) and dnf/yum
 ## (the manylinux container) hosts.
 set -e
+## Retries for every download below; see net-retry.sh.
+. "$(dirname "$0")/net-retry.sh"
 
 SUDO=""
 [ "$(id -u)" != 0 ] && SUDO=sudo
@@ -17,8 +19,8 @@ if command -v apt-get >/dev/null 2>&1; then
         | gpg --dearmor | $SUDO tee /usr/share/keyrings/oneapi.gpg > /dev/null
     echo "deb [signed-by=/usr/share/keyrings/oneapi.gpg] https://apt.repos.intel.com/oneapi all main" \
         | $SUDO tee /etc/apt/sources.list.d/oneAPI.list > /dev/null
-    $SUDO apt-get update
-    $SUDO apt-get install -y intel-oneapi-mkl-devel
+    apt_get update
+    apt_get install -y intel-oneapi-mkl-devel
 else
     $SUDO tee /etc/yum.repos.d/oneAPI.repo > /dev/null <<'EOF'
 [oneAPI]

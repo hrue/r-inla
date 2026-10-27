@@ -3,6 +3,8 @@
 ## glibc 2.28) used by the portable-binary CI job. Not meant for ordinary
 ## machines: use ci/deps-ubuntu.sh or ci/deps-fedora.sh there.
 set -e
+## Retries for every download below; see net-retry.sh.
+. "$(dirname "$0")/net-retry.sh"
 
 ## Shared versions come from one file the maintainer owns, so this project and
 ## sTiles build with the same compiler rather than each picking its own.
