@@ -1,3 +1,6 @@
+# INLA 26.10.26-1
+* Update install scripts
+
 # INLA 26.10.26
 * Minor code edits
 
