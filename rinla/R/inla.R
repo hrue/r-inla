@@ -2225,7 +2225,7 @@
     }
 
     my.time.used[2] <- Sys.time()
-    Sys.setenv(INLA_VERSION = paste0("Version_", packageVersion("INLA")))
+    Sys.setenv(INLA_VERSION = paste0("Version_", packageDescription("INLA")$Version))
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (ownfun || nchar(inla.call) > 0) {
         try_catch_result <- tryCatch({

@@ -71,11 +71,16 @@
     ## this function replaced it, so an unset inla.call means no binary at all.
     path <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
 
-    ## "remote" and "submit" are names inla() translates into its own scripts,
-    ## not binaries, so they are neither warned about nor returned as a path.
-    special <- c("remote", "inla.remote", "submit", "inla.submit")
-    if (!is.null(path) && is.character(path) && tolower(path[1]) %in% special) {
-        return(path[1])
+    ## "remote", "submit" are names inla() translates into its own scripts, not binaries, so
+    ## they are translated into the path to the scripts in the installation. not sure if 'get'
+    ## and 'q' should be added to the list, as maybe this functionality should not be brought
+    ## forward. for now (Oct 2026), they are not longer included
+    special <- list(c("inla.remote", "remote"), c("inla.submit", "submit"))
+                                        # c("inla.get", "get"), c("inla.q", "q"))
+    for(i in seq_along(special)) {
+        s <- special[[i]]
+        if (!is.null(path) && is.character(path) && tolower(path[1]) %in% s)
+            return(system.file(paste0("remote/", s[1]), package="INLA"))
     }
 
     ## A binary set here is used as given, with no version check. Say so once.
@@ -105,7 +110,7 @@
     ## Same order the installer writes in: inside the package first, so the
     ## binary found is the one that shipped with this version, then the cache.
     if (is.null(path) || !is.character(path) || !nzchar(path[1])) {
-        exe <- if (.Platform$OS.type == "windows") "inla.exe" else "inla*"
+        exe <- if (.Platform$OS.type == "windows") "inla.exe" else "inla.run"
         ## The release this package asks for comes FIRST. Globbing the install
         ## directories and taking the first hit sorts alphabetically, so with
         ## Version_26.08.31 and Version_26.09.19 both installed the older one
@@ -113,8 +118,8 @@
         need <- tryCatch(utils::packageDescription("INLA")[["Config/INLA/BinaryVersion"]],
                          error = function(e) NULL)
         want <- if (!is.null(need) && nzchar(need)) {
-            c(paste0("Version_", need), paste0("v", need))
-        } else character(0)
+                    c(paste0("Version_", need), paste0("v", need))
+                } else character(0)
         ## The declared version in ANY location beats a mismatch in any other,
         ## so the exact match is searched everywhere before any fallback.
         bases <- inla.binary.bases()
