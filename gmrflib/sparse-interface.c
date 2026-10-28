@@ -229,7 +229,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			int nt_loc = num_threads;
 			char *tag = NULL;
 			if (num_threads > 1) {
-				GMRFLib_sprintf(&tag, "%s:%1d:%1d:%1d", __FILE__, __LINE__, graph->n, M->s->n);
+				GMRFLib_sprintf(&tag, "%s:%1d:%1d:%1d", __FILE__, __LINE__, graph->n, M->s->na);
 				nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 				tref = -GMRFLib_timer();
 			}
@@ -252,7 +252,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 			int nt_loc = num_threads;
 			char *tag = NULL;
 			if (num_threads > 1) {
-				GMRFLib_sprintf(&tag, "%s:%1d:%1d:%1d", __FILE__, __LINE__, graph->n, M->s->n);
+				GMRFLib_sprintf(&tag, "%s:%1d:%1d:%1d", __FILE__, __LINE__, graph->n, M->s->na);
 				nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 				tref = -GMRFLib_timer();
 			}

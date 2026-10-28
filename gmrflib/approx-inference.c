@@ -825,11 +825,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		}
 
 		static char *tag = NULL;
-
 		if (!tag) {
 #pragma omp critical (Name_f1960abe894993a101b52417d792ba11a8bb3595)
 			if (!tag) {
-				GMRFLib_sprintf(&tag, "%s:%1d", __FILE__, __LINE__);
+				GMRFLib_sprintf(&tag, "%s:%1d:%1d", __FILE__, __LINE__, d_idx->n);
 			}
 		}
 		int nt_opt = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
@@ -5563,7 +5562,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, x_mean, num_threads);
 		}
 		static char *tag0 = NULL;
-
 		if (!tag0) {
 #pragma omp critical (Name_74f6df2c6fdf60a5d97b7425d4dece6a2a8f85e1)
 			if (!tag0) {
@@ -5605,7 +5603,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 
 		static char *tag1 = NULL;
-
 		if (!tag1) {
 #pragma omp critical (Name_cac84abf93b64cff64efe5594606fcb7cd184cba)
 			if (!tag1) {
@@ -5624,7 +5621,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #undef CODE_BLOCK_WORK_TP_FREE
 
 		static char *tag2 = NULL;
-
 		if (!tag2) {
 #pragma omp critical (Name_52981f1efc676db84ff4fa65de8c45e37fff72a3)
 			if (!tag2) {
