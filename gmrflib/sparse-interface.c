@@ -234,20 +234,11 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 				tref = -GMRFLib_timer();
 			}
 
-			if (nt_loc > 1) {
-#pragma omp parallel for num_threads(nt_loc) schedule(static)
-				for (int i = 0; i < M->s->n; i++) {
-					for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) {
-						int j = M->s->ja[k];
-						M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
-					}
-				}
-			} else {
-				for (int i = 0; i < M->s->n; i++) {
-					for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) {
-						int j = M->s->ja[k];
-						M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
-					}
+#pragma omp parallel for num_threads(nt_loc) schedule(static) if(nt_loc > 1)
+			for (int i = 0; i < M->s->n; i++) {
+				for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) {
+					int j = M->s->ja[k];
+					M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
 				}
 			}
 
@@ -266,17 +257,10 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 				tref = -GMRFLib_timer();
 			}
 
-			if (nt_loc > 1) {
-#pragma omp parallel for num_threads(nt_loc) schedule(static)
-				for (int i = 0; i < M->s->n; i++) {
-					int k = M->s->ia[i];
-					Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);
-				}
-			} else {
-				for (int i = 0; i < M->s->n; i++) {
-					int k = M->s->ia[i];
-					Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);
-				}
+#pragma omp parallel for num_threads(nt_loc) schedule(static) if(nt_loc > 1)
+			for (int i = 0; i < M->s->n; i++) {
+				int k = M->s->ia[i];
+				Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);
 			}
 
 			if (num_threads > 1) {

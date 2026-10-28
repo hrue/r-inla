@@ -128,7 +128,7 @@ int GMRFLib_tabulate_Qfunc_core(int thread_id,
 			nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 			tref = -GMRFLib_timer();
 		}
-#pragma omp parallel for num_threads(nt_loc) schedule(static)
+#pragma omp parallel for num_threads(nt_loc) schedule(static) if(nt_loc > 1)
 		for (int i = 0; i < graph->n; i++) {
 			map_id_init_hint(arg->values[i], graph->lnnbs[i] + 1);
 			map_id_set(arg->values[i], i, (*Qfunc) (thread_id, i, i, NULL, Qfunc_arg));	/* diagonal */

@@ -172,23 +172,14 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 		tref = -GMRFLib_timer();
 	}
 
-	if (nt > 1) {
-#pragma omp parallel for num_threads(nt) schedule(static)
-		for (int k = 0; k < storage[id]->K; k++) {
-			int i = storage[id]->ii[k];
-			int j = storage[id]->jj[k];
-			double value = GMRFLib_sparse_ddot_(constr->idxval[i], B + j * n);
-			C[i + j * m] = C[j + i * m] = value;
-		}
-	} else {
-		for (int k = 0; k < storage[id]->K; k++) {
-			int i = storage[id]->ii[k];
-			int j = storage[id]->jj[k];
-			double value = GMRFLib_sparse_ddot_(constr->idxval[i], B + j * n);
-			C[i + j * m] = C[j + i * m] = value;
-		}
+#pragma omp parallel for num_threads(nt) schedule(static) if(nt > 1)
+	for (int k = 0; k < storage[id]->K; k++) {
+		int i = storage[id]->ii[k];
+		int j = storage[id]->jj[k];
+		double value = GMRFLib_sparse_ddot_(constr->idxval[i], B + j * n);
+		C[i + j * m] = C[j + i * m] = value;
 	}
-	
+
 	if (num_threads > 1) {
 		tref += GMRFLib_timer();
 		GMRFLib_adapt_nt_update(tag, tnum, level, tref);

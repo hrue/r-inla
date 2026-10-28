@@ -11,6 +11,8 @@
 ##   STILES_TAG      a release tag, or "latest" (default)
 ##   STILES_ASSET    override the asset name for this platform
 set -e -o pipefail
+## Retries for every download below; see net-retry.sh.
+. "$(dirname "$0")/net-retry.sh"
 
 ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
 PREFIX=${PREFIX:-$ROOT/local}
@@ -41,13 +43,13 @@ fi
 echo "== fetching $STILES_ASSET from $STILES_REPO ($STILES_TAG) =="
 rm -rf "$DEST" /tmp/stiles-dl
 mkdir -p "$DEST/lib" "$DEST/include" /tmp/stiles-dl
-if ! EFFECTIVE=$(curl -fL --retry 3 --retry-delay 10 -o /tmp/stiles-dl/asset.zip \
+if ! EFFECTIVE=$(curl -fL --retry 6 --retry-delay 15 --retry-max-time 600 -o /tmp/stiles-dl/asset.zip \
                  -w '%{url_effective}' "$URL"); then
     ## older releases may carry the asset under its previous name
     if [ -n "${STILES_ASSET_FALLBACK:-}" ]; then
         echo "  $STILES_ASSET not in this release; trying $STILES_ASSET_FALLBACK"
         URL=${URL/$STILES_ASSET/$STILES_ASSET_FALLBACK}
-        EFFECTIVE=$(curl -fL --retry 3 --retry-delay 10 -o /tmp/stiles-dl/asset.zip \
+        EFFECTIVE=$(curl -fL --retry 6 --retry-delay 15 --retry-max-time 600 -o /tmp/stiles-dl/asset.zip \
                      -w '%{url_effective}' "$URL") \
             || { echo "ERROR: cannot download $URL"; exit 1; }
     else

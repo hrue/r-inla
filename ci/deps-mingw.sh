@@ -6,6 +6,8 @@
 ## standalone Rmath library from the R sources (the code uses
 ## MATHLIB_STANDALONE, whose unprefixed symbols R.dll does not export).
 set -e
+## Retries for every download below; see net-retry.sh.
+. "$(dirname "$0")/net-retry.sh"
 
 ## Versions are pinned in one file the maintainer owns.
 _ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)
@@ -275,10 +277,12 @@ if [ ! -f "$DEPS/lib/libmetis.a" ]; then
     ## The scivision mirror carries a modern cmake build that also handles
     ## GKlib and cross-compilation.
     git clone --depth 1 https://github.com/scivision/METIS /tmp/metis
-    ## GitHub throttles anonymous downloads (cmake's FetchContent pulls
-    ## GKlib from there), so retry rather than fail the whole lane.
+    ## GitHub throttles anonymous downloads, and cmake's FetchContent pulls
+    ## GKlib as one, so hand it a git checkout instead; the configure retry
+    ## stays for when that is not possible.
+    GKFLAG=$(gklib_for_metis /tmp/metis)
     for attempt in 1 2 3; do
-        cmake -S /tmp/metis -B /tmp/metis/build \
+        cmake -S /tmp/metis -B /tmp/metis/build $GKFLAG \
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
         -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_C_COMPILER=$MINGW_CC \
         -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \

@@ -24,7 +24,8 @@
 ##
 ## If it stops:
 ##   r-package red     fix, commit, push, run again (same version)
-##   build-inla red    gh run rerun <id> --failed (or fix and commit), run again
+##   build-inla red    retried once by itself (rerun-failed workflow); red again:
+##                     gh run rerun <id> --failed (or fix and commit), run again
 ##   Ctrl-C, closed    run again; it resumes and never pushes anything twice
 ##
 ## On the release page: "Latest" is what inla.update() installs, a
@@ -259,10 +260,22 @@ wait_run() {   # wait_run <workflow> <sha> <branch or tag> <minutes to appear> <
     done
     [ -n "$id" ] || die "no $wf run appeared for $ref at ${sha:0:9}"
     say "watching $wf run $id (https://github.com/$REPO/actions/runs/$id)"
-    gh run watch "$id" -R "$REPO" --exit-status --interval 30 >/dev/null \
-        || die "$wf is red for ${sha:0:9}: $hint"
+    local att new k
+    while ! gh run watch "$id" -R "$REPO" --exit-status --interval 30 >/dev/null; do
+        ## The rerun-failed workflow gives a red board one more attempt of
+        ## the failed jobs. Follow it rather than stop at the first red.
+        att=$(run_attempt "$id")
+        for k in $(seq 1 20); do
+            sleep 15
+            new=$(run_attempt "$id")
+            [ "$new" -gt "$att" ] 2>/dev/null && break
+        done
+        [ "$new" -gt "$att" ] 2>/dev/null || die "$wf is red for ${sha:0:9}: $hint"
+        say "$wf failed jobs are being retried (attempt $new)"
+    done
     say "$wf is green"
 }
+run_attempt() { gh api "repos/$REPO/actions/runs/$1" --jq .run_attempt 2>/dev/null || echo 0; }
 
 SHA=$(git rev-parse HEAD)
 if [ "$RESUME" = 0 ]; then

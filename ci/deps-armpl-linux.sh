@@ -8,6 +8,8 @@
 ##   ARMPL_PKG       rpm (RHEL/Alma/manylinux) or deb (Debian/Ubuntu)
 ##   ARMPL_URL       full tarball URL, when the permalink pattern changes
 set -e
+## Retries for every download below; see net-retry.sh.
+. "$(dirname "$0")/net-retry.sh"
 
 ## default from the shared toolchain file when the caller does not pin one
 _ROOT=$(cd "$(dirname "$0")/.." >/dev/null && pwd)

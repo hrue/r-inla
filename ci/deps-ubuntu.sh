@@ -10,6 +10,8 @@
 ## requirements of the sf/units R packages, which current fmesher imports,
 ## and the INLA package imports fmesher.
 set -e
+## Retries for every download below; see net-retry.sh.
+. "$(dirname "$0")/net-retry.sh"
 
 ## No sudo when already root (e.g. inside a container).
 SUDO=""
@@ -34,8 +36,8 @@ if [ "${ID:-}" = "ubuntu" ]; then
     fi
 fi
 
-$SUDO apt-get update
-$SUDO apt-get install -y --no-install-recommends \
+apt_get update
+apt_get install -y --no-install-recommends \
     gcc g++ gfortran make \
     libopenblas-dev \
     libgsl-dev \
@@ -67,13 +69,13 @@ $SUDO apt-get install -y --no-install-recommends \
 ## back to their own probe if it is unset), so exporting it here is enough;
 ## nothing downstream needs to change.
 if [ "${ID:-}" = "ubuntu" ]; then
-    $SUDO apt-get install -y --no-install-recommends software-properties-common
+    apt_get install -y --no-install-recommends software-properties-common
     $SUDO add-apt-repository -y ppa:ubuntu-toolchain-r/test 2>/dev/null || true
-    $SUDO apt-get update || true
+    apt_get update || true
     _R=$(cd "$(dirname "$0")/.." && pwd); [ -f "$_R/ci/toolchain.env" ] && . "$_R/ci/toolchain.env"
 
     _install_gcc() {
-        $SUDO apt-get install -y --no-install-recommends \
+        apt_get install -y --no-install-recommends \
             "gcc-$1" "g++-$1" "gfortran-$1" 2>/dev/null
     }
     _export_gcc() {
