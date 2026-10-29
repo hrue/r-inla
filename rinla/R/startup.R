@@ -79,116 +79,19 @@ inla.print.version <- function() {
 .onLoad <- function(...) {
     ## nothing for the moment
 }
-## No binary yet? Say so, once per session, and stop there.
-##
-## The package ships launcher scripts (inst/bin/<platform>/64bit/inla.run is
-## ~2 KB, inla.mkl.run is 8 bytes), not a solver: that is a separate ~100 MB
-## download. So a fresh install cannot run a model, and the first sign of it
-## used to be an obscure failure inside inla(). This prints the one command
-## that fixes it.
-##
-## It NEVER prompts and NEVER downloads on its own. library(INLA) must behave
-## identically in a script, a container and a terminal, so nothing here can
-## block on stdin or start a large transfer the caller did not ask for.
-## Set options(inla.stiles.autoinstall = TRUE), or the environment variable
-## INLA_STILES_AUTOINSTALL, to have it install unattended instead: that is
-## opt-in precisely because it is the surprising behaviour.
-##
-## Existence is not the test. Those shipped launchers exist on every install,
-## so file.exists() is always TRUE and would silence this permanently. Ask the
-## binary whether it answers -V instead.
-`inla.first.run.binary` <- function() {
-    ## Resolve, do not read the option: inla.call is NULL on a healthy
-    ## installation, so reading it reported "no binary" with one sitting
-    ## next to the package.
-    call <- tryCatch(inla.binary.path(check = FALSE), error = function(e) NULL)
-    if (length(call) != 1L || is.na(call) || !nzchar(call)) call <- NULL
-    if (!is.null(call) && is.character(call) && nzchar(call) && file.exists(call)) {
-        out <- suppressWarnings(tryCatch(
-            system2(call, "-V", stdout = TRUE, stderr = TRUE, timeout = 20),
-            error = function(e) character(0)))
-        if (any(grepl("version", out, ignore.case = TRUE))) {
-            ## A binary is there and runs. Is it the one this package expects?
-            ## The build stamps DESCRIPTION's Version into the binary, and R
-            ## normalises that same string for packageVersion(), so the two
-            ## are directly comparable: "26.9.3" from `inla -V` must equal
-            ## packageVersion("INLA"). They drift when a user upgrades the R
-            ## package and keeps an older cached binary, which then fails in
-            ## ways that look like modelling errors rather than a version
-            ## mismatch. Report it; do not act on it.
-            bv <- sub(".*version:[[:space:]]*", "",
-                      grep("version", out, ignore.case = TRUE, value = TRUE)[1])
-            bv <- trimws(bv)
-            ## Getting here means inla.call is set, so somebody named this
-            ## binary deliberately. Use it as given, do not compare it against
-            ## the package, and report it: a chosen binary is the first thing
-            ## to look at when results differ from a colleague's.
-            ## Leave inla.call unset to get the binary for this package version.
-            need <- tryCatch(utils::packageDescription("INLA")[["Config/INLA/BinaryVersion"]],
-                             error = function(e) NULL)
-            if (!is.null(need) && nzchar(need) && nzchar(bv) &&
-                !identical(bv, need)) {
-                ## Two different situations, and calling both "you selected"
-                ## was wrong: a NULL inla.call means the resolver fell back
-                ## past the declared release to whatever was installed, which
-                ## the user did not choose and should be told to fix.
-                chosen <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
-                chosen <- !is.null(chosen) && is.character(chosen) && nzchar(chosen[1])
-                if (chosen) {
-                    packageStartupMessage(
-                        " - Using the binary you selected: ", bv,
-                        " (this package was built for ", need, ").")
-                } else {
-                    packageStartupMessage(
-                        " - No binary for ", need, "; using ", bv,
-                        ". Run inla.stiles.install() to get the matching one.")
-                }
-            }
-            return(invisible(NULL))
-        }
-    }
-
-    if (isTRUE(getOption("inla.stiles.autoinstall")) ||
-        nzchar(Sys.getenv("INLA_STILES_AUTOINSTALL"))) {
-        ## Opt-in only. Failure is reported and the session continues: an
-        ## unreachable network must not stop library(INLA) from loading.
-        res <- tryCatch(inla.stiles.install(), error = function(e) e)
-        if (inherits(res, "error")) {
-            packageStartupMessage("Could not install a binary: ", conditionMessage(res))
-            packageStartupMessage("Run inla.stiles.install() to retry.")
-        }
-        return(invisible(NULL))
-    }
-
-    packageStartupMessage(
-        " - No inla binary is installed yet; run inla.stiles.install() to fetch one.")
-    invisible(NULL)
-}
 
 .onAttach <- function(...) {
-    ## R CMD INSTALL starts helper R sessions (byte-compile, package indices,
-    ## the load test) and each of them runs the user's ~/.Rprofile. A profile
-    ## containing library(INLA) therefore attaches INLA three times while the
-    ## package's own files are being replaced underneath it. Reading options
-    ## out of a half-written lazy-load DB is not something this code can make
-    ## safe, and it has segfaulted in exactly that window. So stay out of it
-    ## entirely: there is nothing useful to say or do during an install anyway.
-    ##
-    ## R_CMD is the discriminator, verified by dumping the environment from a
-    ## .Rprofile in both cases: it is set for any "R CMD ..." and absent in a
-    ## normal session. R_INSTALL_PKG is NOT set at profile-read time, so it
-    ## cannot be used here (nor in a .Rprofile, where it is often suggested).
     if (nzchar(Sys.getenv("R_CMD"))) {
         return(invisible(NULL))
     }
     if (interactive()) {
         inla.print.version()
+        if (is.null(inla.binary.path(check = FALSE))) {
+            packageStartupMessage(" - No inla binary is installed yet; run inla.stiles.install() to fetch one.")
+        }
     } else {
         packageStartupMessage(appendLF=FALSE)
     }
-    ## Not wrapped in try(): a version mismatch must reach the user. Anything
-    ## else in here is best-effort and reports itself.
-    inla.first.run.binary()
 }
 
 .onUnload <- function(libpath) {

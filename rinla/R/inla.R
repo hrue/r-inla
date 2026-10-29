@@ -91,7 +91,7 @@
 #' @param control.numa See `?control.numa`
 #' @param only.hyperparam If `TRUE`, then only the hyperparameters are
 #' computed.
-#' @param inla.call The path to, or the name of, the `inla`-program. This
+#' @param inla.call The full path to, or the name of, the `inla`-program. This
 #' is program is installed together with the `R`-package, but, for
 #' example, a native compiled version can be used instead to improve the
 #' performance.
@@ -354,6 +354,7 @@
         }
     }
 
+    inla.call <- inla.remote.script(inla.call)
     if (safe) {
         return (inla.core.safe(
             formula = formula, 
@@ -546,55 +547,9 @@
         }
     }
 
-    ## if the user specify inla.call="remote" or "inla.remote" then
-    ## use the internal inlaprogram
-    remote <- FALSE
-    submit <- FALSE
-    ownfun <- FALSE
-    submit.id <- ""
-
-    ## A NULL or NA reaches inla.strcasecmp() below as "argument is of length
-    ## zero", so refuse it here. The file.exists() check waits until after the
-    ## special names are translated.
-    if (!is.function(inla.call) && (is.null(inla.call) || is.na(inla.call))) {
-        stop("No inla binary is installed. Run 'inla.stiles.install()' to install one.",
-             call. = FALSE)
-    }
-
-    if (is.function(inla.call)) {
-        ## in this case, the responsibility is with the user
-        ownfun <- TRUE
-    } else if (inla.strcasecmp(inla.call, "remote") ||
-               inla.strcasecmp(inla.call, "inla.remote")) {
-        ## The name translates to the script this package ships.
-        remote <- TRUE
-        inla.call <- inla.remote.script("inla.remote")
-        if (is.null(inla.call)) {
-            stop("inla.call = \"remote\" is not supported on Windows.", call. = FALSE)
-        }
-    } else if (inla.strcasecmp(inla.call, "submit") ||
-               inla.strcasecmp(inla.call, "inla.submit")) {
-        remote <- TRUE
-        submit <- TRUE
-        submit.id <- paste(gsub("[ :]", "-", date()), "---", as.integer(runif(1, min = 1E8, max = 1E9 - 1)), sep = "")
-        inla.call <- inla.remote.script("inla.submit")
-        if (is.null(inla.call)) {
-            stop("inla.call = \"submit\" is not supported on Windows.", call. = FALSE)
-        }
-    } else if (length(grep("/inla.remote$", inla.call)) > 0) {
-        ## A path you set yourself. Use it as given: overwriting it here is how
-        ## a deliberately chosen script got replaced, or emptied.
-        remote <- TRUE
-    } else if (length(grep("/inla.submit$", inla.call)) > 0) {
-        remote <- TRUE
-        submit <- TRUE
-        submit.id <- paste(gsub("[ :]", "-", date()), "---", as.integer(runif(1, min = 1E8, max = 1E9 - 1)), sep = "")
-    }
-
-    ## Now that "remote" and "submit" have become real script paths, the file
-    ## must exist. Before the translation this refused inla.call="remote".
-    if (!ownfun && nzchar(inla.call) && !file.exists(inla.call)) {
-        stop("No inla binary is installed. Run 'inla.stiles.install()' to install one.",
+    if (is.null(inla.call) || is.na(inla.call) || (nzchar(inla.call) &&
+        file.access(inla.call) != 0)) {
+        stop("No inla binary found. Run 'inla.stiles.install()' to install one.",
              call. = FALSE)
     }
 
@@ -2181,7 +2136,7 @@
         stop("Unknown 'inla.mode'")
     }
 
-    ## collect all. we might add '-p' later if inla.call="submit"
+    ## collect all
     all.args <- paste(arg.arg, arg.s, arg.v, arg.nt, arg.P, sep = " ")
     if (debug) {
         print(paste("all.args: ", all.args))
@@ -2190,19 +2145,6 @@
     vars <- NULL
     if (debug) {
         vars <- c(vars, INLA_DEBUG = 1)
-    }
-    if (remote || submit) {
-        if (submit) {
-            all.args <- paste(all.args, "-p") ## need this option
-            vars <- c(vars,
-                      INLA_SUBMIT_ID = submit.id
-                      )
-        }
-        if (inla.os("windows")) {
-            ## nothing
-        } else {
-            vars <- c(vars, INLA_HOME = inla.get.HOME())
-        }
     }
     if (!is.null(vars)) {
         do.call("Sys.setenv", as.list(vars))
@@ -2225,19 +2167,11 @@
     }
 
     my.time.used[2] <- Sys.time()
-    Sys.setenv(INLA_VERSION = paste0("Version_", packageDescription("INLA")$Version))
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
-    if (ownfun || nchar(inla.call) > 0) {
+    if (nchar(inla.call) > 0 &&
+        length(grep("inla.keep$", inla.binary.path(check = FALSE))) == 0) {
         try_catch_result <- tryCatch({
-            if (ownfun) {
-                ## undocumented feature for PB
-                echoc <- inla.call(
-                    file.ini = file.ini,
-                    file.log = if (verbose) NULL else file.log,
-                    results.dir = results.dir,
-                    inla.call.args = all.args
-                )
-            } else if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
+            if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
                 if (verbose) {
                     echoc <- system(paste(shQuote(inla.call), all.args, shQuote(file.ini)), timeout = timeout)
                 } else {
@@ -2249,7 +2183,6 @@
                 timeout.used <- Sys.time() - timeout.used
                 inla.inlaprogram.timeout(timeout.used, timeout)
             } else if (inla.os("windows")) {
-                if (!remote && !submit) {
                     if (verbose) {
                         echoc <- try(system2(inla.call,
                                              args = paste(all.args, shQuote(file.ini)),
@@ -2264,13 +2197,12 @@
                     inla.inlaprogram.timeout(timeout.used, timeout)
                     if (echoc != 0L) {
                         if (!verbose && (silent != 2L)) {
+                            inla.run.environment.unset(env)
                             inla.inlaprogram.has.crashed()
                         }
                     }
-                } else {
-                    stop("'remote/submit' is not supported for Windows")
-                }
             } else {
+                inla.run.environment.unset(env)
                 stop("\n\tNot supported architecture.")
             }
 
@@ -2281,40 +2213,38 @@
             NULL  
         },
         error = function(e) {
+            inla.run.environment.unset(env)
             errorCondition("The inla program call crashed.",
                            class = "inlaCrashError")
         })
         if (inherits(try_catch_result, "error")) {
+            inla.run.environment.unset(env)
             stop(try_catch_result)
         }
         
+        inla.run.environment.unset(env)
         my.time.used[3] <- Sys.time()
         if (echoc == 0L) {
-            if (!submit) {
-                ret <- tryCatch(inla.collect.results(inla.dir,
-                                                     only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2, 
-                                                     silent = silent),
-                                error = function(e) {
-                    errorCondition("The inla result collection failed.",
-                                   class = "inlaCollectError")
-                })
-                if (inherits(ret, "error")) {
-                    stop(ret)
-                }
-                if (!is.list(ret)) {
-                    ret <- list()
-                }
-
-                ## this is a special case using 'inla.dryrun()'. return the dryrun object and
-                ## exit after a cleanup
-                if (inherits(ret, "inla.dryrun")) {
-                    try(unlink(inla.dir, recursive = TRUE), silent = TRUE)
-                    idx <- which(unlist(lapply(ret$dryrun, function(x) (nchar(x) > 0))))
-                    return (ret$dryrun[idx])
-                }
-
-            } else {
+            ret <- tryCatch(inla.collect.results(inla.dir,
+                                                 only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2, 
+                                                 silent = silent),
+                            error = function(e) {
+                errorCondition("The inla result collection failed.",
+                               class = "inlaCollectError")
+            })
+            if (inherits(ret, "error")) {
+                stop(ret)
+            }
+            if (!is.list(ret)) {
                 ret <- list()
+            }
+
+            ## this is a special case using 'inla.dryrun()'. return the dryrun object and
+            ## exit after a cleanup
+            if (inherits(ret, "inla.dryrun")) {
+                try(unlink(inla.dir, recursive = TRUE), silent = TRUE)
+                idx <- which(unlist(lapply(ret$dryrun, function(x) (nchar(x) > 0))))
+                return (ret$dryrun[idx])
             }
 
             my.time.used[4] <- Sys.time()
@@ -2381,7 +2311,7 @@
         if (debug && !keep) {
             cat("clean up\n")
         }
-        if (!keep && !submit) {
+        if (!keep) {
             try(unlink(inla.dir, recursive = TRUE), silent = TRUE)
         }
     } else {
@@ -2398,129 +2328,126 @@
     }
 
     ##
-    if (submit) {
-        ret$misc$inla.dir <- inla.dir
-        ret.sub <- list(ret = ret, id = submit.id)
-    } else {
-        ## post-processign part. first the 'selection'. add the missing part and remove the
-        ## 'selection' results from the other results
-        if (!is.null(selection)) {
-            tag.base <- gsub("\\.", "\\\\.", formals(inla.selection2lincombs)$tag.base)
-            cmat <- ret$misc$lincomb.derived.covariance.matrix
-            idx <- grep(paste0("^", tag.base, "..*:[0-9]+$"), colnames(cmat))
-            snames <- gsub(paste0("^", tag.base), "", colnames(cmat)[idx])
-            covmat <- cmat[idx, idx, drop = FALSE]
-            colnames(covmat) <- rownames(covmat) <- NULL
-            mean <- ret$summary.lincomb.derived[idx, "mean"]
+    ## post-processign part. first the 'selection'. add the missing part and remove the
+    ## 'selection' results from the other results
+    if (!is.null(selection)) {
+        tag.base <- gsub("\\.", "\\\\.", formals(inla.selection2lincombs)$tag.base)
+        cmat <- ret$misc$lincomb.derived.covariance.matrix
+        idx <- grep(paste0("^", tag.base, "..*:[0-9]+$"), colnames(cmat))
+        snames <- gsub(paste0("^", tag.base), "", colnames(cmat)[idx])
+        covmat <- cmat[idx, idx, drop = FALSE]
+        colnames(covmat) <- rownames(covmat) <- NULL
+        mean <- ret$summary.lincomb.derived[idx, "mean"]
 
-            ## note that this ordering might be different than in the selection above, which
-            ## depends on the ordering of the lincomb. so we need to make sure they are aligned!
+        ## note that this ordering might be different than in the selection above, which
+        ## depends on the ordering of the lincomb. so we need to make sure they are aligned!
 
-            if (inla.mode %in% "compact") {
-                ct <- ret$misc$configs$contents
-                for(nm in c("APredictor", "Predictor")) {
-                    if (ct$tag[1] == nm) {
-                        ct$tag <- ct$tag[-1]
-                        ct$start <- ct$start[-1] - ct$start[2] + 1
-                        ct$length <- ct$length[-1]
-                    }
-                }
-                rfake <- list(misc = list(configs = list(contents = ct)))
-                sel.idx <- which(inla.posterior.sample.interpret.selection(selection, rfake))
-            } else {
-                sel.idx <- which(inla.posterior.sample.interpret.selection(selection, ret))
-            }
-            nc <- ret$misc$configs$nconfig
-            ns <- length(idx)
-            m <- list()
-
-            m[[1]] <- matrix(unlist(lapply(ret$misc$configs$config,
-                                           function(x, sel.idx) {
-                return(x$improved.mean[sel.idx])
-            },
-            sel.idx = sel.idx
-            )), nrow = ns, ncol = nc)
-
-            m[[2]] <- (matrix(unlist(lapply(ret$misc$configs$config,
-                                            function(x, sel.idx) {
-                 return(diag(x$Qinv)[sel.idx])
-             },
-             sel.idx = sel.idx
-             )), nrow = ns, ncol = nc)
-                + m[[1]][, , drop = FALSE]^2)
-
-            m[[3]] <- (matrix(unlist(lapply(ret$misc$configs$config,
-             (function(x, sel.idx) {
-                 skew <- x$skewness[sel.idx]
-                 skew[is.na(skew)] <- 0
-                 return(skew * diag(x$Qinv)[sel.idx]^1.5)
-             }),
-             sel.idx = sel.idx
-             )), nrow = ns, ncol = nc)
-                + 3 * m[[2]][, , drop = FALSE] * m[[1]][, , drop = FALSE] - 2 * m[[1]][, , drop = FALSE]^3)
-
-            for (i in seq_along(m)) {
-                rownames(m[[i]]) <- names(sel.idx)
-                m[[i]] <- m[[i]][snames, , drop = FALSE] ## put them in the correct order
-            }
-            prob <- exp(unlist(lapply(ret$misc$configs$config, function(x) x$log.posterior)))
-            prob <- prob / sum(prob)
-            mm <- list()
-            for (i in seq_along(m)) {
-                mm[[i]] <- numeric(nrow(m[[i]]))
-            }
-            for (i in seq_len(ncol(m[[3]]))) {
-                for (j in seq_along(m)) {
-                    mm[[j]] <- mm[[j]] + prob[i] * m[[j]][, i]
+        if (inla.mode %in% "compact") {
+            ct <- ret$misc$configs$contents
+            for(nm in c("APredictor", "Predictor")) {
+                if (ct$tag[1] == nm) {
+                    ct$tag <- ct$tag[-1]
+                    ct$start <- ct$start[-1] - ct$start[2] + 1
+                    ct$length <- ct$length[-1]
                 }
             }
-            skewness <- as.numeric((mm[[3]] - 3 * mm[[2]] * mm[[1]] + 2 * mm[[1]]^3)
-                                   / (mm[[2]] - mm[[1]]^2)^1.5)
-            ret$selection <- list(
-                names = snames,
-                mean = mean,
-                cov.matrix = covmat,
-                skewness = skewness,
-                marginal.sn.par = inla.sn.par(mean, diag(covmat), skewness),
-                .private = list(moments = mm, selection = selection)
-            )
-            class(ret$selection) <- "inla.jmarginal"
+            rfake <- list(misc = list(configs = list(contents = ct)))
+            sel.idx <- which(inla.posterior.sample.interpret.selection(selection, rfake))
+        } else {
+            sel.idx <- which(inla.posterior.sample.interpret.selection(selection, ret))
+        }
+        nc <- ret$misc$configs$nconfig
+        ns <- length(idx)
+        m <- list()
 
-            ## remove the 'selection' results from other places
-            if (!is.null(ret$marginals.lincomb.derived)) {
-                mnames <- names(ret$marginals.lincomb.derived)
-                new.names <- c()
-                new <- list()
-                j <- 1
-                for (i in seq_along(ret$marginals.lincomb.derived)) {
-                    if (!(mnames[i] %in% snames)) {
-                        new[[j]] <- ret$marginals.lincomb.derived[[i]]
-                        new.names <- c(new.names, mnames[i])
-                        j <- j + 1
-                    }
+        m[[1]] <- matrix(unlist(lapply(ret$misc$configs$config,
+                                       function(x, sel.idx) {
+            return(x$improved.mean[sel.idx])
+        },
+        sel.idx = sel.idx
+        )), nrow = ns, ncol = nc)
+
+        m[[2]] <- (matrix(unlist(lapply(ret$misc$configs$config,
+                                        function(x, sel.idx) {
+             return(diag(x$Qinv)[sel.idx])
+         },
+         sel.idx = sel.idx
+         )), nrow = ns, ncol = nc)
+            + m[[1]][, , drop = FALSE]^2)
+
+        m[[3]] <- (matrix(unlist(lapply(ret$misc$configs$config,
+         (function(x, sel.idx) {
+             skew <- x$skewness[sel.idx]
+             skew[is.na(skew)] <- 0
+             return(skew * diag(x$Qinv)[sel.idx]^1.5)
+         }),
+         sel.idx = sel.idx
+         )), nrow = ns, ncol = nc)
+            + 3 * m[[2]][, , drop = FALSE] * m[[1]][, , drop = FALSE] - 2 * m[[1]][, , drop = FALSE]^3)
+
+        for (i in seq_along(m)) {
+            rownames(m[[i]]) <- names(sel.idx)
+            m[[i]] <- m[[i]][snames, , drop = FALSE] ## put them in the correct order
+        }
+        prob <- exp(unlist(lapply(ret$misc$configs$config, function(x) x$log.posterior)))
+        prob <- prob / sum(prob)
+        mm <- list()
+        for (i in seq_along(m)) {
+            mm[[i]] <- numeric(nrow(m[[i]]))
+        }
+        for (i in seq_len(ncol(m[[3]]))) {
+            for (j in seq_along(m)) {
+                mm[[j]] <- mm[[j]] + prob[i] * m[[j]][, i]
+            }
+        }
+        skewness <- as.numeric((mm[[3]] - 3 * mm[[2]] * mm[[1]] + 2 * mm[[1]]^3)
+                               / (mm[[2]] - mm[[1]]^2)^1.5)
+        ret$selection <- list(
+            names = snames,
+            mean = mean,
+            cov.matrix = covmat,
+            skewness = skewness,
+            marginal.sn.par = inla.sn.par(mean, diag(covmat), skewness),
+            .private = list(moments = mm, selection = selection)
+        )
+        class(ret$selection) <- "inla.jmarginal"
+
+        ## remove the 'selection' results from other places
+        if (!is.null(ret$marginals.lincomb.derived)) {
+            mnames <- names(ret$marginals.lincomb.derived)
+            new.names <- c()
+            new <- list()
+            j <- 1
+            for (i in seq_along(ret$marginals.lincomb.derived)) {
+                if (!(mnames[i] %in% snames)) {
+                    new[[j]] <- ret$marginals.lincomb.derived[[i]]
+                    new.names <- c(new.names, mnames[i])
+                    j <- j + 1
                 }
-                names(new) <- new.names
-                ret$marginals.lincomb.derived <- new
             }
+            names(new) <- new.names
+            ret$marginals.lincomb.derived <- new
+        }
 
-            ret$summary.lincomb.derived <- ret$summary.lincomb.derived[-idx, , drop = FALSE]
-            ret$misc$lincomb.derived.covariance.matrix <-
-                ret$misc$lincomb.derived.covariance.matrix[-idx, -idx, drop = FALSE]
-            ret$misc$lincomb.derived.correlation.matrix <-
-                ret$misc$lincomb.derived.correlation.matrix[-idx, -idx, drop = FALSE]
-            if (all(dim(ret$misc$lincomb.derived.correlation.matrix)) == 0) {
-                ret$misc$lincomb.derived.covariance.matrix <- NULL
-                ret$misc$lincomb.derived.correlation.matrix <- NULL
-                ret$summary.lincomb.derived <- data.frame()
-            }
-            
-            if (!is.null(ret$misc$configs$lite) && ret$misc$configs$lite && !lite.is.set) {
-                ret$misc$configs <- NULL
-            }
+        ret$summary.lincomb.derived <- ret$summary.lincomb.derived[-idx, , drop = FALSE]
+        ret$misc$lincomb.derived.covariance.matrix <-
+            ret$misc$lincomb.derived.covariance.matrix[-idx, -idx, drop = FALSE]
+        ret$misc$lincomb.derived.correlation.matrix <-
+            ret$misc$lincomb.derived.correlation.matrix[-idx, -idx, drop = FALSE]
+        if (all(dim(ret$misc$lincomb.derived.correlation.matrix)) == 0) {
+            ret$misc$lincomb.derived.covariance.matrix <- NULL
+            ret$misc$lincomb.derived.correlation.matrix <- NULL
+            ret$summary.lincomb.derived <- data.frame()
+        }
+        
+        if (!is.null(ret$misc$configs$lite) && ret$misc$configs$lite && !lite.is.set) {
+            ret$misc$configs <- NULL
         }
 
         return(ret)
     }
+
+    return(ret)
 }
 
 ## the call will be changed to the same as 'inla' later
@@ -2826,7 +2753,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     vars <- list(
         INLA_PATH = system.file("bin", package = "INLA"),
         INLA_OS = inla.os.type(),
-        INLA_VERSION = inla.version("version"),
+        INLA_VERSION = paste0("Version_", inla.version("version")), 
         INLA_RVERSION = R.Version()$version.string, 
         INLA_RHOME = R.home(),
         INLA_MALLOC_LIB = inla.getOption("malloc.lib")
@@ -2866,13 +2793,15 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     return (list(vars = env.vars, values = env.vars.value))
 }
 
-`inla.run.environment.unset` <- function(env) {
+`inla.run.environment.unset` <- function(env = NULL) {
     ## set environment values back to user-state
-    for(i in seq_along(env$vars)) {
-        if (nchar(env$values[i]) > 0) {
-            a <- list(env$values[i])
-            names(a) <- env$vars[i]
-            do.call(Sys.setenv, args = a)
+    if (!is.null(env)) {
+        for(i in seq_along(env$vars)) {
+            if (nchar(env$values[i]) > 0) {
+                a <- list(env$values[i])
+                names(a) <- env$vars[i]
+                do.call(Sys.setenv, args = a)
+            }
         }
     }
 }
@@ -2898,8 +2827,8 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
                             cleanup = FALSE
                             )
 {
-    inla.call <- inla.getOption('inla.call')
-    stopifnot(inla.call != "remote")
+    inla.call <- inla.binary.path(check = TRUE)
+    stopifnot(inla.call != inla.remote.script())
 
     stopifnot(!is.null(working.directory))
     silent <- inla.getOption('silent')
@@ -2912,7 +2841,6 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     mfiles <- shQuote(models)
     timeout.used <- Sys.time()
 
-    Sys.setenv(INLA_VERSION = paste0("Version_", packageVersion("INLA")))
     env <- inla.run.environment.set()
     try_catch_result <- tryCatch({
         if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {

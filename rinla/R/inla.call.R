@@ -1,16 +1,19 @@
-`inla.remote.script` <- function(what = c("inla.remote", "inla.submit")) {
-    ## What inla.call="remote" and "submit" translate into: the scripts in
-    ## inst/remote/, not inst/bin/remote/, which does not exist and so returned
-    ## "" and ran nothing. They are bash over ssh, so NULL on Windows.
-    what <- match.arg(what)
-    if (inla.os("windows")) {
-        return(NULL)
+`inla.remote.script` <- function(what = NULL) {
+    if (is.null(what) || inla.os("windows")) {
+        return (NULL)
     }
+
+    f <- system.file(file.path("remote", paste0("inla.", what)), package = "INLA")
+    if (nzchar(f)) {
+        return(f)
+    } 
+
     f <- system.file(file.path("remote", what), package = "INLA")
-    if (!nzchar(f)) {
-        stop("Missing from the installation: inst/remote/", what, call. = FALSE)
-    }
-    return(f)
+    if (nzchar(f)) {
+        return(f)
+    } 
+
+    return(what)
 }
 
 `inla.call.no.remote` <- function() {
@@ -20,7 +23,7 @@
     ## literal string "NA".
     inla.call <- inla.getOption("inla.call")
     if (is.null(inla.call) || any(inla.strcasecmp(inla.call, c("remote", "inla.remote")))) {
-        inla.call <- inla.binary.path(check = FALSE, must = TRUE)
+        inla.call <- inla.binary.path(check = TRUE)
     }
     return(inla.call)
 }
@@ -43,15 +46,9 @@
 #' A model directory containing `Model.ini` comes from
 #' `inla(..., keep = TRUE, working.directory = <dir>)`.
 #'
-#' @param check Verify the file exists and answers `-V`. On failure the reason
-#'        is returned as the `"error"` attribute rather than thrown, so a
-#'        script can test the path without a `tryCatch`.
-#' @param must Raise instead of returning `NA_character_` when no binary can be
-#'        resolved. Use it where the path is about to be executed, so that a
-#'        missing binary is reported as such rather than reaching `system()` as
-#'        the string `"NA"`.
-#'
-#' @returns The path, invisibly when `check` fails. `NA_character_` when no
+#' @param check Check that the binary exists and return `NULL` if not.
+#'        
+#' @returns The path to the inla-binary. `NULL` when no 
 #'        binary can be resolved at all.
 #'
 #' @examples
@@ -63,129 +60,66 @@
 #' @seealso [inla.stiles.install()], [inla.stiles.status()]
 #' @export inla.binary.path
 
-`inla.binary.path` <- function(check = TRUE, must = FALSE) {
-    ## The active setting, which inla.stiles.install() and any inla.setOption()
-    ## write to: this is what an inla() call would actually execute. There is no
-    ## second place to look any more. The package used to ship a binary and
-    ## inla.call.builtin() found it; those builds moved to inst/obsolete/ and
-    ## this function replaced it, so an unset inla.call means no binary at all.
-    path <- tryCatch(inla.getOption("inla.call"), error = function(e) NULL)
+`inla.binary.path` <- function(check = TRUE) {
+    ## return the path to the inla-binary or an internal script. environment variable
+    ## 'INLA_CALL' is checked first (expert use only, not documented), then 'inla.call' in
+    ## inla-options, then local cache, and at last the bin-directory in the installed package.
+    ## and error is issued if the binary is not found and 'check' is TRUE
 
-    ## "remote", "submit" are names inla() translates into its own scripts, not binaries, so
-    ## they are translated into the path to the scripts in the installation. not sure if 'get'
-    ## and 'q' should be added to the list, as maybe this functionality should not be brought
-    ## forward. for now (Oct 2026), they are not longer included
-    special <- list(c("inla.remote", "remote"), c("inla.submit", "submit"))
-                                        # c("inla.get", "get"), c("inla.q", "q"))
-    for(i in seq_along(special)) {
-        s <- special[[i]]
-        if (!is.null(path) && is.character(path) && tolower(path[1]) %in% s)
-            return(system.file(paste0("remote/", s[1]), package="INLA"))
+    path <- Sys.getenv("INLA_CALL")
+    if (nchar(path) == 0) {
+        path <- NULL
+    }
+    if (is.null(path)) {
+        path <- inla.getOption("inla.call")
     }
 
-    ## A binary set here is used as given, with no version check. Say so once.
-    if (!is.null(path) && is.character(path) && nzchar(path[1])) {
-        key <- paste0(".binary.set.warned:", path[1])
-        e <- inla.get.inlaEnv()
-        if (!(exists(key, envir = e) && isTRUE(get(key, envir = e)))) {
-            assign(key, TRUE, envir = e)
-            warning("using the inla binary set in inla.call: ", path[1],
-                    "\n  Its version is not checked against the R package.",
-                    call. = FALSE)
-        }
+    if (!is.null(path)) {
+        ## this will translate 'remote', 'inla.remote', 'keep', ....
+        path <- inla.remote.script(path)
+        path <- normalizePath(path, mustWork = FALSE)
     }
+
+    user.defined <- if (is.null(path)) FALSE else TRUE
 
     ## Nothing set? Look where inla.stiles.install() puts it.
-    ##
-    ## The option is normally set at attach time, or from the block the
-    ## installer writes into ~/.Rprofile. Neither happens in a VANILLA session,
-    ## and R CMD build runs vignettes with --vanilla: no profile is read at all,
-    ## and .onAttach returns early because R_CMD is set. So every vignette that
-    ## fits a model failed with "No inla binary is installed" even though one
-    ## was installed and working, which is why releases shipped without them.
-    ##
-    ## The binary lives at a known path, so look there rather than depend on a
-    ## profile having run. Same layouts the installer searches: <root>/bin/inla*
-    ## on unix, and the flat Windows bundle where inla.exe sits at the top.
-    ## Same order the installer writes in: inside the package first, so the
-    ## binary found is the one that shipped with this version, then the cache.
-    if (is.null(path) || !is.character(path) || !nzchar(path[1])) {
+    if (is.null(path) || !is.character(path) || !nzchar(path)) {
         exe <- if (.Platform$OS.type == "windows") "inla.exe" else "inla.run"
-        ## The release this package asks for comes FIRST. Globbing the install
-        ## directories and taking the first hit sorts alphabetically, so with
-        ## Version_26.08.31 and Version_26.09.19 both installed the older one
-        ## won and became the default silently.
-        need <- tryCatch(utils::packageDescription("INLA")[["Config/INLA/BinaryVersion"]],
-                         error = function(e) NULL)
-        want <- if (!is.null(need) && nzchar(need)) {
-                    c(paste0("Version_", need), paste0("v", need))
-                } else character(0)
-        ## The declared version in ANY location beats a mismatch in any other,
-        ## so the exact match is searched everywhere before any fallback.
-        bases <- inla.binary.bases()
-        exact <- as.vector(t(outer(bases, want, file.path)))
-        ## Newest first: taking the first hit gave the OLDEST. Tags are
-        ## zero-padded, so decreasing name order is version order.
-        other <- sort(unlist(lapply(bases, inla.binary.dirs)), decreasing = TRUE)
-        ## Then "latest", where the release build unpacks the binary it renders
-        ## the vignettes with, and where older installs put it.
-        other <- c(other, file.path(bases, "latest"))
-        pick <- function(dirs) {
-            ## as.character: with no dirs unlist() gives NULL, and
-            ## file.exists(NULL) is an error, not FALSE.
-            cand <- as.character(unlist(lapply(dirs, function(d)
-                c(Sys.glob(file.path(d, "bin", exe)), Sys.glob(file.path(d, exe))))))
-            cand <- cand[file.exists(cand) & !dir.exists(cand)]
-            if (length(cand)) cand[1] else NULL
-        }
-        path <- pick(exact)
-        if (is.null(path)) {
-            ## No binary for the declared version: warn once. The attach
-            ## message is not enough, it is skipped when R_CMD is set.
-            path <- pick(other)
-            if (!is.null(path) && !is.null(need) && nzchar(need)) {
-                key <- paste0(".binary.mismatch.warned:", path)
-                e <- inla.get.inlaEnv()
-                if (!(exists(key, envir = e) && isTRUE(get(key, envir = e)))) {
-                    assign(key, TRUE, envir = e)
-                    warning("no inla binary for INLA ", need, "; using ", path,
-                            ".\n  Run inla.stiles.install() to get the matching one.",
-                            call. = FALSE)
-                }
+        want <- file.path(paste0("Version_", inla.version("version")), "bin", exe)
+        for (b in inla.binary.bases()) {
+            full.path <- file.path(b, want)
+            if (file.access(full.path) == 0) {
+                path <- full.path
+                break
             }
         }
     }
 
-
-    if (is.null(path) || !is.character(path) || !nzchar(path[1])) {
-        if (isTRUE(must)) {
-            stop("No inla binary is installed. Run 'inla.stiles.install()' to install one.",
+    if ((is.null(path) || file.access(path) != 0) && isTRUE(check)) {
+        if (user.defined) {
+            stop("User-defined inla-binary not found, try 'inla.setOption(inla.call=NULL)' or remove 'inla.call'-argument",
                  call. = FALSE)
+        } else {
+            stop("No inla-binary found. Run 'inla.stiles.install()' to install one.", call. = FALSE)
         }
-        return(NA_character_)
     }
-    path <- path[1]
 
-    ## Absolute, so the value stays correct after a setwd() -- a Model.ini run
-    ## is usually done from inside the model directory.
-    abs <- suppressWarnings(normalizePath(path, mustWork = FALSE))
-    if (nzchar(abs)) path <- abs
+    if (!is.null(path)) {
+        abs <- suppressWarnings(normalizePath(path, mustWork = check))
+        if (nzchar(abs)) path <- abs
+        if (isTRUE(check)) {
+            stopifnot(file.access(path) == 0)
+        }
+    }
 
-    if (!isTRUE(check)) {
-        return(path)
+    return(path)
+}
+
+`inla.call.check` <- function(inla.call = NULL) {
+    ## that that 'inla.call' exists
+    stopifnot(!is.null(inla.call))
+
+    if (file.access(inla.call) != 0) {
+        stop(paste0("inla-binary not found: [", inla.call, "]"))
     }
-    if (!file.exists(path)) {
-        attr(path, "error") <- "no such file"
-        return(invisible(path))
-    }
-    out <- suppressWarnings(tryCatch(
-        system2(path, "-V", stdout = TRUE, stderr = TRUE),
-        error = function(e) NULL))
-    if (is.null(out) || !any(grepl("version", out, ignore.case = TRUE))) {
-        attr(path, "error") <- "did not answer -V"
-        return(invisible(path))
-    }
-    attr(path, "version") <- sub(".*version:[[:space:]]*", "",
-                                 grep("version", out, ignore.case = TRUE, value = TRUE)[1])
-    path
 }
