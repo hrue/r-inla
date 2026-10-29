@@ -163,7 +163,7 @@ See also \code{?inla.rjmarginal} and the approriate vignette.}
 \item{only.hyperparam}{If \code{TRUE}, then only the hyperparameters are
 computed.}
 
-\item{inla.call}{The path to, or the name of, the \code{inla}-program. This
+\item{inla.call}{The full path to, or the name of, the \code{inla}-program. This
 is program is installed together with the \code{R}-package, but, for
 example, a native compiled version can be used instead to improve the
 performance.}
