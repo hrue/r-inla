@@ -103,8 +103,8 @@
 #' layer for nested parallelism, and with 'C>1',  with C threads at selected places which
 #' otherwise would run serial. 
 #' @param keep A boolean variable indicating that the working files (ini file,
-#' data files and results files) should be kept. If TRUE and no
-#' `working.directory` is specified, the model-files are stored in the
+#' data files and results files) should be kept. If TRUE and also
+#' `working.directory="."` is set, the model-files are stored in the
 #' current directory called "inla.model" or "inla.model-NUMBER".
 #' @param working.directory A string giving the name of an non-existing
 #' directory where to store the model-files. Sometimes this argument is

@@ -178,8 +178,8 @@ layer for nested parallelism, and with 'C>1',  with C threads at selected places
 otherwise would run serial.}
 
 \item{keep}{A boolean variable indicating that the working files (ini file,
-data files and results files) should be kept. If TRUE and no
-\code{working.directory} is specified, the model-files are stored in the
+data files and results files) should be kept. If TRUE and also
+\code{working.directory="."} is set, the model-files are stored in the
 current directory called "inla.model" or "inla.model-NUMBER".}
 
 \item{working.directory}{A string giving the name of an non-existing
