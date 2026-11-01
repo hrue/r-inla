@@ -28,7 +28,7 @@
 #' \item{safe}{Run in safe-mode (ie try to automatically fix convergence errors)
 #' (default `TRUE`)}
 #' 
-#' \item{keep}{Keep temporary files?}
+#' \item{keep}{Keep temporary files? If so, you likely also want to set `working.directory="."`}
 #' 
 #' \item{verbose}{Verbose output?}
 #' 

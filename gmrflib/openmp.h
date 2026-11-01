@@ -101,8 +101,8 @@ typedef struct {
 	int likelihood_nt;
 } GMRFLib_openmp_tp;
 
-#       define GMRFLib_MAX_THREADS() (GMRFLib_openmp->max_threads)
-#       define GMRFLib_MAX_THREADS2() (GMRFLib_openmp->max_threads2)
+#       define GMRFLib_MAX_THREADS() IMAX(1, GMRFLib_openmp->max_threads)
+#       define GMRFLib_MAX_THREADS2() IMAX(1, GMRFLib_openmp->max_threads2)
 
 #       define GMRFLib_ADAPTIVE_NUM_THREADS() (GMRFLib_openmp->adaptive ? GMRFLib_openmp->adaptive : GMRFLib_openmp->max_threads_nested[1])
 

@@ -225,54 +225,49 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 		double val = Qfunc(thread_id, 0, -1, &(M->a[0]), Qfunc_arg);
 
 		if (ISNAN(val)) {
+			double tref = 0.0;
+			int nt_loc = num_threads;
 			char *tag = NULL;
-			GMRFLib_sprintf(&tag, "%s:%1d:%1d", __FILE__, __LINE__, M->s->n);
-			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
-			double tref = -GMRFLib_timer();
+			if (num_threads > 1) {
+				GMRFLib_sprintf(&tag, "%s:%1d:%1d:%1d", __FILE__, __LINE__, graph->n, M->s->na);
+				nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
+				tref = -GMRFLib_timer();
+			}
 
-			if (nt_loc == 1) {
-				for (int i = 0; i < M->s->n; i++) {
-					for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) {
-						int j = M->s->ja[k];
-						M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
-					}
-				}
-			} else {
-#pragma omp parallel for num_threads(nt_loc)
-				for (int i = 0; i < M->s->n; i++) {
-					for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) {
-						int j = M->s->ja[k];
-						M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
-					}
+#pragma omp parallel for num_threads(nt_loc) schedule(static) if(nt_loc > 1)
+			for (int i = 0; i < M->s->n; i++) {
+				for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) {
+					int j = M->s->ja[k];
+					M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
 				}
 			}
 
-			tref += GMRFLib_timer();
-			GMRFLib_adapt_nt_update(tag, tnum, level, tref);
-			Free(tag);
+			if (num_threads > 1) {
+				tref += GMRFLib_timer();
+				GMRFLib_adapt_nt_update(tag, tnum, level, tref);
+				Free(tag);
+			}
 		} else {
-
+			double tref = 0.0;
+			int nt_loc = num_threads;
 			char *tag = NULL;
-			GMRFLib_sprintf(&tag, "%s:%1d:%1d", __FILE__, __LINE__, M->s->n);
-			int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
-			double tref = -GMRFLib_timer();
-
-			if (nt_loc == 1) {
-				for (int i = 0; i < M->s->n; i++) {
-					int k = M->s->ia[i];
-					Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);
-				}
-			} else {
-#pragma omp parallel for num_threads(nt_loc)
-				for (int i = 0; i < M->s->n; i++) {
-					int k = M->s->ia[i];
-					Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);
-				}
+			if (num_threads > 1) {
+				GMRFLib_sprintf(&tag, "%s:%1d:%1d:%1d", __FILE__, __LINE__, graph->n, M->s->na);
+				nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
+				tref = -GMRFLib_timer();
 			}
 
-			tref += GMRFLib_timer();
-			GMRFLib_adapt_nt_update(tag, tnum, level, tref);
-			Free(tag);
+#pragma omp parallel for num_threads(nt_loc) schedule(static) if(nt_loc > 1)
+			for (int i = 0; i < M->s->n; i++) {
+				int k = M->s->ia[i];
+				Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);
+			}
+
+			if (num_threads > 1) {
+				tref += GMRFLib_timer();
+				GMRFLib_adapt_nt_update(tag, tnum, level, tref);
+				Free(tag);
+			}
 		}
 	}
 #if 0
@@ -288,7 +283,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 #endif
 
 	char *tag = NULL;
-	GMRFLib_sprintf(&tag, "%s:%1d:%1d", __FILE__, __LINE__, M->s->na);
+	GMRFLib_sprintf(&tag, "%s:%1d:%1d:%1d", __FILE__, __LINE__, graph->n, M->s->na);
 	int nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 	double tref = -GMRFLib_timer();
 

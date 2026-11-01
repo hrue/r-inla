@@ -34,7 +34,7 @@ or \code{default}}
 \item{safe}{Run in safe-mode (ie try to automatically fix convergence errors)
 (default \code{TRUE})}
 
-\item{keep}{Keep temporary files?}
+\item{keep}{Keep temporary files? If so, you likely also want to set \code{working.directory="."}}
 
 \item{verbose}{Verbose output?}
 
