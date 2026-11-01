@@ -163,7 +163,7 @@ See also \code{?inla.rjmarginal} and the approriate vignette.}
 \item{only.hyperparam}{If \code{TRUE}, then only the hyperparameters are
 computed.}
 
-\item{inla.call}{The path to, or the name of, the \code{inla}-program. This
+\item{inla.call}{The full path to, or the name of, the \code{inla}-program. This
 is program is installed together with the \code{R}-package, but, for
 example, a native compiled version can be used instead to improve the
 performance.}
@@ -178,8 +178,8 @@ layer for nested parallelism, and with 'C>1',  with C threads at selected places
 otherwise would run serial.}
 
 \item{keep}{A boolean variable indicating that the working files (ini file,
-data files and results files) should be kept. If TRUE and no
-\code{working.directory} is specified, the model-files are stored in the
+data files and results files) should be kept. If TRUE and also
+\code{working.directory="."} is set, the model-files are stored in the
 current directory called "inla.model" or "inla.model-NUMBER".}
 
 \item{working.directory}{A string giving the name of an non-existing

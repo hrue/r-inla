@@ -28,8 +28,7 @@
     cache <- inla.cache.dir()
     pkg <- tryCatch(find.package("INLA"), error = function(e) "")
     c(cache,
-      file.path(cache, "stiles-binary"),
-      if (nzchar(pkg)) file.path(pkg, "stiles-binary") else character(0))
+      if (nzchar(pkg)) file.path(pkg, "bin") else character(0))
 }
 
 ## Version directories under one base. Named, not globbed with "*": the cache
