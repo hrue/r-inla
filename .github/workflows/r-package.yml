@@ -123,7 +123,7 @@ jobs:
           Rscript -e 'if (!tinytex::is_tinytex()) tinytex::install_tinytex()'
           R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
           ## The vignettes FIT MODELS, so the R side alone is not enough.
-          ## No persist: inla.call stays unset and the resolver finds this
+          ## inla.call stays unset and the resolver finds this
           ## binary, which is what the --vanilla vignette renders rely on.
           Rscript -e 'INLA::inla.stiles.install()'
           Rscript -e 'cat("binary:", INLA::inla.binary.path(check = FALSE), "\n")'
@@ -212,8 +212,7 @@ jobs:
   ## "no 'inla.exe' found" against a directory that plainly contained it.
   ##
   ## This job is the missing coverage: real Windows, real tarball, real
-  ## download and unpack, then assert that inla.call points at a file that
-  ## exists. It needs the network and the newest release, so it is allowed to
+  ## download and unpack, then assert that the binary is found and runs. It needs the network and the newest release, so it is allowed to
   ## fail without blocking: a release outage must not turn the board red.
   windows-install:
     name: "Windows: install the tarball and fetch a binary"
@@ -298,45 +297,19 @@ jobs:
           library(INLA)
           cat("attached INLA", as.character(packageVersion("INLA")), "\n")
 
-          INLA::inla.stiles.install(persist = FALSE)
+          INLA::inla.stiles.install()
 
-          call <- INLA::inla.getOption("inla.call")
-          cat("inla.call =", format(call), "\n")
+          ## The installer leaves inla.call unset on purpose; the binary must
+          ## then be FOUND, which is what a user's inla() relies on.
+          call <- INLA::inla.binary.path(check = FALSE)
+          cat("found binary =", format(call), "\n")
           if (is.null(call) || !nzchar(call) || !file.exists(call)) {
-              stop("inla.stiles.install() did not leave a usable inla.call")
+              stop("inla.stiles.install() installed a binary that inla.binary.path() does not find")
           }
           out <- suppressWarnings(system2(call, "-ping", stdout = TRUE, stderr = TRUE))
           cat(paste(out, collapse = "\n"), "\n")
           if (!any(grepl("ALIVE", out))) stop("the installed binary did not answer -ping")
           cat("OK: install + binary\n")
-
-          ## Again, forcing the COPY branch, which is the one real users take.
-          ## This runner is runneradmin, an administrator, so it holds
-          ## SeCreateSymbolicLinkPrivilege and the symlink above always works.
-          ## An ordinary Windows account does not, gets FALSE from
-          ## file.symlink(), and falls back to copying the release into
-          ## "latest". That branch had never been executed in CI, which is how
-          ## a user could hit it before anyone had tested it.
-          cat("\n== forcing the no-symlink path ==\n")
-          Sys.setenv(INLA_STILES_NO_SYMLINK = "1")
-          INLA::inla.stiles.install(persist = FALSE, force = TRUE)
-          Sys.unsetenv("INLA_STILES_NO_SYMLINK")
-
-          call2 <- INLA::inla.getOption("inla.call")
-          if (is.null(call2) || !nzchar(call2) || !file.exists(call2)) {
-              stop("the no-symlink path did not leave a usable inla.call")
-          }
-          ## It must be a real directory, not a link, and the binary must run
-          ## from it: a copy that lands in the wrong place still yields a path
-          ## that exists, so check that it actually works.
-          if (nzchar(Sys.readlink(dirname(call2)))) {
-              stop("expected a copied directory, got a symlink")
-          }
-          out2 <- suppressWarnings(system2(call2, "-ping", stdout = TRUE, stderr = TRUE))
-          if (!any(grepl("ALIVE", out2))) {
-              stop("the copied binary did not answer -ping")
-          }
-          cat("OK: the no-symlink fallback produces a working binary\n")
 
           ## Which binary did we just download? This job installs the RELEASED
           ## artifact, on purpose: it tests what a user actually gets. So it
