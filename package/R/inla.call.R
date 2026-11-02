@@ -1,6 +1,10 @@
 `inla.remote.script` <- function(what = NULL) {
-    if (is.null(what) || inla.os("windows")) {
+    if (is.null(what)) {
         return (NULL)
+    }
+    ## no remote scripts on Windows: a path is used as given
+    if (inla.os("windows")) {
+        return (what)
     }
 
     f <- system.file(file.path("remote", paste0("inla.", what)), package = "INLA")
