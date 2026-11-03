@@ -123,10 +123,15 @@ jobs:
           Rscript -e 'if (!tinytex::is_tinytex()) tinytex::install_tinytex()'
           R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
           ## The vignettes FIT MODELS, so the R side alone is not enough.
-          ## inla.call stays unset and the resolver finds this
-          ## binary, which is what the --vanilla vignette renders rely on.
+          ## On a new tag this version is not released yet, so the installer
+          ## falls back to the newest release, which the lookup (exact version
+          ## only) does not find. Name it in INLA_CALL, which --vanilla
+          ## renders read too.
           Rscript -e 'INLA::inla.stiles.install()'
-          Rscript -e 'cat("binary:", INLA::inla.binary.path(check = FALSE), "\n")'
+          CACHE=$(Rscript -e 'cat(tools::R_user_dir("INLA", "cache"))')
+          BIN=$(ls -1 "$CACHE"/Version_*/bin/inla.run | sort -V | tail -1)
+          echo "INLA_CALL=$BIN" >> "$GITHUB_ENV"
+          INLA_CALL="$BIN" Rscript -e 'cat("binary:", INLA::inla.binary.path(check = TRUE), "\n")'
 
       - name: Build the package
         env:

@@ -1326,13 +1326,15 @@ jobs:
           ## older than the package driving it. That mismatch is what made
           ## multinomial.Rmd fail while the other 18 passed.
           ## dist/ already holds this run's bundles, so unpack one where a
-          ## --vanilla render looks: inla.binary.path() falls back to this cache
-          ## path when no option and no profile can reach it.
+          ## --vanilla render looks: inla.binary.path() finds only
+          ## <cache>/Version_<package version>/bin when no option is set.
           CACHE=$(Rscript -e 'cat(tools::R_user_dir("INLA", "cache"))')
-          rm -rf "$CACHE/stiles-binary/latest"
-          mkdir -p "$CACHE/stiles-binary/latest"
-          tar xzf dist/inla-linux-x86_64-portable.tar.gz -C "$CACHE/stiles-binary/latest"
-          "$CACHE/stiles-binary/latest/bin/inla" -V
+          VER=$(Rscript -e 'cat(INLA::inla.version("version"))')
+          rm -rf "$CACHE/Version_$VER"
+          mkdir -p "$CACHE/Version_$VER"
+          tar xzf dist/inla-linux-x86_64-portable.tar.gz -C "$CACHE/Version_$VER"
+          "$CACHE/Version_$VER/bin/inla" -V
+          Rscript -e 'cat("binary:", INLA::inla.binary.path(check = TRUE), "\n")'
 
       - name: Build the R package tarball
         run: |

@@ -326,7 +326,7 @@ NULL
             ## at all impossible on a fresh install. check = FALSE because the
             ## binary must not be executed just to set an option.
             base <- inla.binary.path(check = FALSE)
-            base <- if (is.na(base)) NULL else dirname(base)
+            base <- if (length(base) != 1L || is.na(base)) NULL else dirname(base)
             if (is.null(base)) {
                 inla.setOption.core("malloc.lib", "default")
             } else {
