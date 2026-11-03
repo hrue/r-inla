@@ -1,3 +1,6 @@
+# INLA 26.11.03
+* Windows: inla.call fix
+
 # INLA 26.10.27-1
 * some compiling improvements
 
