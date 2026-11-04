@@ -1328,50 +1328,63 @@ int inla_output_linkfunctions(const char *dir, inla_tp *mb)
 	for (j = 0; j < mb->nds; j++) {
 		link_func_tp *lf = mb->data_sections[j].predictor_invlinkfunc;
 
-		if (lf == link_probit) {
-			fprintf(fp, "probit\n");
-		} else if (lf == link_tan) {
-			fprintf(fp, "tan\n");
-		} else if (lf == link_cloglog) {
-			fprintf(fp, "cloglog\n");
+		if (lf == link_cauchit) {
+			fprintf(fp, "link_cauchit\n");
 		} else if (lf == link_ccloglog) {
-			fprintf(fp, "ccloglog\n");
-		} else if (lf == link_log) {
-			fprintf(fp, "log\n");
-		} else if (lf == link_logit) {
-			fprintf(fp, "logit\n");
+			fprintf(fp, "link_ccloglog\n");
+		} else if (lf == link_cloglog) {
+			fprintf(fp, "link_cloglog\n");
 		} else if (lf == link_identity) {
-			fprintf(fp, "identity\n");
+			fprintf(fp, "link_identity\n");
 		} else if (lf == link_inverse) {
-			fprintf(fp, "inverse\n");
-		} else if (lf == link_sslogit) {
-			fprintf(fp, "sslogit\n");
-		} else if (lf == link_robit) {
-			fprintf(fp, "robit\n");
-		} else if (lf == link_sn) {
-			fprintf(fp, "sn\n");
-		} else if (lf == link_logoffset) {
-			fprintf(fp, "logoffset\n");
-		} else if (lf == link_logitoffset) {
-			fprintf(fp, "logitoffset\n");
-		} else if (lf == link_qpoisson) {
-			fprintf(fp, "quantile\n");
-		} else if (lf == link_qbinomial) {
-			fprintf(fp, "quantile\n");
-		} else if (lf == link_pqbinomial) {
-			fprintf(fp, "pquantile\n");
-		} else if (lf == link_qweibull) {
-			fprintf(fp, "quantile\n");
-		} else if (lf == link_qweibull) {
-			fprintf(fp, "quantile\n");
-		} else if (lf == link_qgamma) {
-			fprintf(fp, "quantile\n");
+			fprintf(fp, "link_inverse\n");
+		} else if (lf == link_log) {
+			fprintf(fp, "link_log\n");
 		} else if (lf == link_loga) {
-			fprintf(fp, "loga\n");
+			fprintf(fp, "link_loga\n");
+		} else if (lf == link_logit) {
+			fprintf(fp, "link_logit\n");
+		} else if (lf == link_logitoffset) {
+			fprintf(fp, "link_logitoffset\n");
+		} else if (lf == link_loglog) {
+			fprintf(fp, "link_loglog\n");
+		} else if (lf == link_logoffset) {
+			fprintf(fp, "link_logoffset\n");
+		} else if (lf == link_neglog) {
+			fprintf(fp, "link_neglog\n");
 		} else if (lf == link_power_logit) {
-			fprintf(fp, "powerlogit\n");
+			fprintf(fp, "link_power_logit\n");
+		} else if (lf == link_pqbinomial) {
+			fprintf(fp, "link_pqbinomial\n");
+		} else if (lf == link_probit) {
+			fprintf(fp, "link_probit\n");
+		} else if (lf == link_qbinomial) {
+			fprintf(fp, "link_qbinomial\n");
+		} else if (lf == link_qexppower) {
+			fprintf(fp, "link_qexppower\n");
+		} else if (lf == link_qpoisson) {
+			fprintf(fp, "link_qpoisson\n");
+		} else if (lf == link_qweibull) {
+			fprintf(fp, "link_qweibull\n");
+		} else if (lf == link_robit) {
+			fprintf(fp, "link_robit\n");
+		} else if (lf == link_sn) {
+			fprintf(fp, "link_sn\n");
+		} else if (lf == link_special1) {
+			fprintf(fp, "link_special1\n");
+		} else if (lf == link_special2) {
+			fprintf(fp, "link_special2\n");
+		} else if (lf == link_sslogit) {
+			fprintf(fp, "link_sslogit\n");
+		} else if (lf == link_test1) {
+			fprintf(fp, "link_test1\n");
+		} else if (lf == link_gev) {
+			fprintf(fp, "link_gev\n");
+		} else if (lf == link_cgev) {
+			fprintf(fp, "link_cgev\n");
 		} else {
-			fprintf(fp, "invalid-linkfunction\n");
+			fprintf(fp, "unknown-linkfunction\n");
+			LOG_WARNING("unknown link-function: code missing, please add...");
 		}
 	}
 	fclose(fp);
