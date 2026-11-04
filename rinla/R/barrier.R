@@ -37,7 +37,7 @@
 #' * `inla.barrier.fem` is an internal method producing the Finite Element
 #' matrices.
 #' @author Haakon Bakka \email{bakka@@r-inla.org}
-#' @seealso inla.spde2.pcmatern
+#' @seealso [inla.spde2.pcmatern()]
 #'
 #' @export
 #' @rdname inla.barrier

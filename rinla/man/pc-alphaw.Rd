@@ -57,7 +57,7 @@ likelihood, where \code{alpha=1} is the base model.
  
 }
 \seealso{
-inla.doc("pc.alphaw")
+\code{\link[=inla.doc]{inla.doc()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

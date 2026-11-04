@@ -62,7 +62,7 @@ given, or \code{u} AND \code{alpha}. The density is symmetric around zero.
  
 }
 \seealso{
-inla.doc("pc.rho0")
+\code{\link[=inla.doc]{inla.doc()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

@@ -47,7 +47,7 @@ The 'r' and 'q' functions are quite slow as the quantile-function needs to be co
  
 }
 \seealso{
-inla.doc("pc.prw2.range")
+\code{\link[=inla.doc]{inla.doc()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

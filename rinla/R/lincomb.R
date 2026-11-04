@@ -9,7 +9,6 @@
 #' @return A structure to be passed on to [inla()] argument
 #' `lincomb`
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso TODO
 #' @examples
 #' 
 #' ##See the worked out examples and description in the OLD-FAQ

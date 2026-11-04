@@ -2,8 +2,6 @@
 % Please edit documentation in R/binary.install.R
 \name{inla.binary.install}
 \alias{inla.binary.install}
-\alias{binary.install}
-\alias{inla.stiles.install}
 \title{Install the inla-binary}
 \usage{
 inla.binary.install(...)

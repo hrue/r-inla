@@ -20,7 +20,7 @@
 #' gives the distribution function, `inla.pc.qalphaw` gives the quantile
 #' function, and `inla.pc.ralphaw` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso inla.doc("pc.alphaw")
+#' @seealso [inla.doc()]
 #' @examples
 #' 
 #'  x = inla.pc.ralphaw(100,  lambda = 5)

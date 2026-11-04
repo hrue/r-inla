@@ -11,7 +11,7 @@
 #'   way.
 #' @return `inla.upgrade` returns nothing
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso `update.packages`
+#' @seealso [update.packages()]
 #' @rdname upgrade
 #' @export
 `inla.update` <- function(...) {

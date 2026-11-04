@@ -25,9 +25,6 @@ View documentation of latent, prior and likelihood models.
 \dontrun{inla.doc("gaussian", section = "prior")}
 
 }
-\seealso{
-\code{www.r-inla.org}
-}
 \author{
 Havard Rue \email{hrue@r-inla.org}
 }

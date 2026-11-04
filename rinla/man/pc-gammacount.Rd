@@ -58,7 +58,7 @@ base model.
  
 }
 \seealso{
-inla.doc("pc.gammacount")
+\code{\link[=inla.doc]{inla.doc()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

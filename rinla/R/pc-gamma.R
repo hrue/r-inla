@@ -18,7 +18,7 @@
 #' gives the distribution function, `inla.pc.qgamma` gives the quantile
 #' function, and `inla.pc.rgamma` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso inla.doc("pc.gamma")
+#' @seealso [inla.doc()]
 #' @examples
 #' 
 #'  x = inla.pc.rgamma(100,  lambda = 1)
