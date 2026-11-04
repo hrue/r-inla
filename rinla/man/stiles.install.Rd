@@ -6,13 +6,7 @@
 \alias{inla.stiles.status}
 \title{Install a pre-built INLA binary with sTiles support}
 \usage{
-inla.stiles.install(
-  dir = NULL,
-  force = FALSE,
-  channel = NULL,
-  smtp = TRUE,
-  verbose = TRUE
-)
+inla.stiles.install(dir = NULL, force = FALSE, channel = NULL, verbose = TRUE)
 
 inla.stiles.status(ping = TRUE, verbose = TRUE)
 }
@@ -33,8 +27,6 @@ the function prints that line.}
 marked Latest on GitHub; \code{"testing"} for the newest release,
 pre-releases included.}
 
-\item{smtp}{Also select the sTiles sparse-matrix backend (default \code{TRUE}).}
-
 \item{verbose}{Print the report (default \code{TRUE}).}
 
 \item{ping}{Also run the binary with \code{-ping} to prove it starts (default
@@ -43,7 +35,7 @@ pre-releases included.}
 \value{
 The path of the installed binary, invisibly.
 
-Invisibly, a list with \code{inla.call}, \code{smtp}, \code{release}, \code{alive},
+Invisibly, a list with \code{inla.call}, \code{release}, \code{alive},
 \code{buildinfo} (character vector) and \code{installed} (every release found,
 in the cache and in the package).
 }

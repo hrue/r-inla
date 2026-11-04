@@ -94,7 +94,6 @@
 #'                (`Config/INLA/BinaryVersion`); `"stable"` for the release
 #'                marked Latest on GitHub; `"testing"` for the newest release,
 #'                pre-releases included.
-#' @param smtp    Also select the sTiles sparse-matrix backend (default `TRUE`).
 #' @param verbose Report each step.
 #'
 #' @return The path of the installed binary, invisibly.
@@ -113,7 +112,6 @@
 `inla.stiles.install` <- function(dir = NULL,
                                   force = FALSE,
                                   channel = NULL,
-                                  smtp = TRUE,
                                   verbose = TRUE) {
     say <- function(...) if (verbose) cat("*", paste0(..., collapse = ""), "\n")
     repo <- inla.repo()
@@ -390,8 +388,7 @@
     ## above and which stays right after an upgrade. Storing the path here made
     ## every install an override pinned to one release. Setting it is the
     ## expert's choice, not the installer's.
-    if (isTRUE(smtp)) inla.setOption(smtp = "stiles")
-    say("installed: ", bin[1], if (isTRUE(smtp)) "   smtp = stiles" else "")
+    say("installed: ", bin[1])
 
     ## BUILDINFO sits at the bundle root, which is the binary's grandparent for
     ## a <root>/bin/inla layout but the binary's OWN directory for the flat
@@ -438,7 +435,7 @@
 #'             `TRUE`; costs about a second).
 #' @param verbose Print the report (default `TRUE`).
 #'
-#' @return Invisibly, a list with `inla.call`, `smtp`, `release`, `alive`,
+#' @return Invisibly, a list with `inla.call`, `release`, `alive`,
 #'         `buildinfo` (character vector) and `installed` (every release found,
 #'         in the cache and in the package).
 #'
@@ -457,7 +454,6 @@
     set <- if (is.null(set) || !is.character(set) || !nzchar(set[1])) NULL else set[1]
     call <- tryCatch(inla.binary.path(check = FALSE), error = function(e) NA_character_)
     if (length(call) != 1L || is.na(call) || !nzchar(call)) call <- NULL
-    smtp <- tryCatch(inla.getOption("smtp"), error = function(e) NULL)
 
     ## Every place a binary can live, and everything installed in each.
     bases <- inla.binary.bases()
@@ -494,7 +490,6 @@
 
     say("inla.call: ", if (is.null(call)) "(no binary found)" else call)
     if (!is.na(release)) say("release:   ", release)
-    say("smtp:      ", if (is.null(smtp)) "(default)" else smtp)
 
     alive <- NA
     if (isTRUE(ping) && !is.null(call) && is.character(call) && file.exists(call)) {
@@ -560,7 +555,7 @@
     }
     if (length(installed)) say("installed releases: ", paste(installed, collapse = ", "))
 
-    invisible(list(inla.call = call, smtp = smtp, release = release,
+    invisible(list(inla.call = call, release = release,
                    stiles.version = stiles.version,
                    r.version = r.version,
                    binary.version = binary.version,
