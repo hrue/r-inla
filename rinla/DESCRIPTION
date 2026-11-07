@@ -29,7 +29,8 @@ Imports:
     stats,
     utils,
     withr,
-    MatrixModels
+    MatrixModels,
+    sTiles
 Suggests:
     compositions,
     Deriv,
@@ -64,7 +65,6 @@ Suggests:
     sp (>= 1.6-0),
     spdep,
     splancs,
-    sTiles,
     terra,
     tidyterra,
     testthat,
