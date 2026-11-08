@@ -302,7 +302,15 @@ jobs:
           library(INLA)
           cat("attached INLA", as.character(packageVersion("INLA")), "\n")
 
-          INLA::inla.stiles.install()
+          bin <- INLA::inla.stiles.install()
+
+          ## On a tag this version is not released yet, so the installer takes
+          ## the newest release, which the exact-version lookup skips. Name it
+          ## in INLA_CALL then; otherwise test the lookup a user relies on.
+          if (!grepl(paste0("Version_", INLA::inla.version("version")), bin, fixed = TRUE)) {
+              Sys.setenv(INLA_CALL = bin)
+              cat("no release for this version yet; INLA_CALL =", bin, "\n")
+          }
 
           ## The installer leaves inla.call unset on purpose; the binary must
           ## then be FOUND, which is what a user's inla() relies on.
