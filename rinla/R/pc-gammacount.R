@@ -21,7 +21,7 @@
 #' `inla.pc.qgammacount` gives the quantile function, and
 #' `inla.pc.rgammacount` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso inla.doc("pc.gammacount")
+#' @seealso [inla.doc()]
 #' @examples
 #' 
 #'  x = inla.pc.rgammacount(100,  lambda = 1)

@@ -20,13 +20,11 @@
 #       include <unistd.h>
 #       include <omp.h>
 
-
 __BEGIN_DECLS
 //
 #       if !defined(_GNU_SOURCE)
 #              define _GNU_SOURCE
 #       endif
-
 #       include "fast-math/special-functions.h"
 #       include "iniparser.h"
 #       include "dictionary.h"
@@ -49,7 +47,6 @@ __BEGIN_DECLS
 #       include "spde3.h"
 #       include "tweedie.h"
 #       include "tweedie2.h"
-
 #       define ONE_mexp(_x) (-expm1(_x))		       /* 1-exp(_x) */
 #       define LOG_1mp(_x) log1p(-(_x))			       /* log(1-(_x)) */
 #       define LOG_p(_x) log1p((_x) - 1.0)
@@ -202,8 +199,8 @@ typedef enum {
 	L_LOGGAMMA_FRAILTY,
 	L_IID_GAMMA,
 	L_IID_LOGITBETA,
-	L_CIRCULAR_NORMAL,
-	L_WRAPPED_CAUCHY,
+	L_CIRCULAR_NORMAL__REMOVED,
+	L_WRAPPED_CAUCHY__REMOVED,
 	L_TEST_BINOMIAL_1__REMOVED,
 	L_SIMPLEX,
 	L_GAMMACOUNT,
@@ -411,7 +408,6 @@ typedef enum {
 	LINK_PROBIT,
 	LINK_CLOGLOG,
 	LINK_LOGIT,
-	LINK_TAN,
 	LINK_TEST1,
 	LINK_SPECIAL1,
 	LINK_SPECIAL2,					       /* exp(eta)*((1-x) + x*exp(beta)) for Poisson (JW) */
@@ -432,9 +428,7 @@ typedef enum {
 	LINK_CCLOGLOG,
 	LINK_GEVIT,
 	LINK_CGEVIT,
-	LINK_QEXPPOWER,
-	LINK_CIRCULAR,
-	LINK_TANPI
+	LINK_QEXPPOWER
 } inla_component_tp;
 
 typedef enum {
@@ -743,18 +737,6 @@ typedef struct {
 	double **sas_kurt;
 
 	/*
-	 * y ~ Circular Normal, with precision parameter: weight*prec
-	 */
-	double **log_prec_circular_normal;
-	double *weight_circular_normal;
-
-	/*
-	 * y ~ Circular Cauchy, with precision parameter: weight*prec, related to the rho-parameter; see doc. 0<weight<=1
-	 */
-	double **log_prec_wrapped_cauchy;
-	double *weight_wrapped_cauchy;
-
-	/*
 	 * generalised poisson
 	 */
 	double **gpoisson_overdispersion;
@@ -925,10 +907,6 @@ typedef struct {
 	double **egp_intern_tail;			       /* xi */
 	double **egp_intern_shape;			       /* kappa */
 	double *egp_tail_interval;			       /* interval for the 'xi' */
-
-	// vm
-	double **vm_lprec;
-	double *vm_scale;
 
 	double ***cloglike_theta;
 	inla_cloglike_func_tp *cloglike_func;
@@ -1982,7 +1960,6 @@ double link_bgev(int thread_id, double x, map_arg_tp typ, void *param, double *c
 double link_cauchit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_ccloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_cloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
-double link_circular(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_identity(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_inverse(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_log(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
@@ -2052,7 +2029,6 @@ double map_invloglog(double arg, map_arg_tp typ, void *param);
 double map_invprobit(double arg, map_arg_tp typ, void *param);
 double map_invrobit(double arg, map_arg_tp typ, void *param);
 double map_invsn(double arg, map_arg_tp typ, void *param);
-double map_invtan_pi(double x, map_arg_tp typ, void *UNUSED(param));
 double map_negexp(double arg, map_arg_tp typ, void *param);
 double map_phi(double arg, map_arg_tp typ, void *param);
 double map_prec_qkumar(double arg, map_arg_tp typ, void *param);
@@ -2346,8 +2322,6 @@ int loglikelihood_cbinomial(int thread_id, int *lcache_idx, double *logll, doubl
 int loglikelihood_cenpoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_cenpoisson2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_cloglike(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_circular_normal(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
-				  void *arg);
 int loglikelihood_contpoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_dgompertz(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_dgompertzsurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -2434,13 +2408,9 @@ int loglikelihood_testit3(int thread_id, int *lcache_idx, double *logll, double 
 int loglikelihood_tpoisson(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
 			   void *arg);
 int loglikelihood_tstrata(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_lavm(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_vm(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_nvm(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_tweedie(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibull(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibullsurv(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_wrapped_cauchy(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_xbinomial(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
 			    void *arg);
 int loglikelihood_zero_n_inflated_binomial2(int thread_id, int *lcache_idx, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf,
@@ -2584,6 +2554,7 @@ typedef struct {
 
 // needs inla_tp definition
 #       include "param-constr.h"
+#       include "link-gevit.h"
 
 __END_DECLS
 #endif

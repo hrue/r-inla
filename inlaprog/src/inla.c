@@ -1815,26 +1815,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			}
 				break;
 
-			case L_CIRCULAR_NORMAL:
-			{
-				if (!ds->data_fixed) {
-					log_precision = theta[count];
-					val += PRIOR_EVAL(ds->data_prior, &log_precision);
-					count++;
-				}
-			}
-				break;
-
-			case L_WRAPPED_CAUCHY:
-			{
-				if (!ds->data_fixed) {
-					log_precision = theta[count];
-					val += PRIOR_EVAL(ds->data_prior, &log_precision);
-					count++;
-				}
-			}
-				break;
-
 			case L_TWEEDIE:
 			{
 				if (!ds->data_fixed0) {
@@ -2793,18 +2773,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			case L_FL:
 				break;
 
-			case L_LAVM:
-			case L_VM:
-			case L_NVM:
-			{
-				if (!ds->data_fixed) {
-					log_precision = theta[count];
-					val += PRIOR_EVAL(ds->data_prior, &log_precision);
-					count++;
-				}
-			}
-				break;
-
 			default:
 				break;
 			}
@@ -2831,14 +2799,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument, GMRFLib_s
 			case LINK_LOGLOG:
 			case LINK_CAUCHIT:
 			case LINK_LOGIT:
-			case LINK_TAN:
-			case LINK_TANPI:
 			case LINK_QPOISSON:
 			case LINK_QBINOMIAL:
 			case LINK_QWEIBULL:
 			case LINK_QGAMMA:
 			case LINK_QEXPPOWER:
-			case LINK_CIRCULAR:
 				break;
 
 			case LINK_LOGOFFSET:

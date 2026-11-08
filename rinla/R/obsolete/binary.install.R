@@ -1,0 +1,247 @@
+#' Install alternative binary builds. (OBSOLETE: use 'inla.stiles.install()' instead)
+#' 
+#' Install a new binary for `os` unless `missing(os)`, for which the
+#' `os` is chosen interactively among the available builds.
+#' 
+#' @aliases inla.binary.install binary.install
+#' @param os If `os` is given, install binary build for this `os`.
+#' If `os` is not given, chose `os` interactively among available
+#' builds.
+#' @param path character. The install path. If `NULL` the path is derived
+#' from the installed `INLA` package
+#' @param verbose Logical. Verbose output if `TRUE`
+#' @param md5.check Logical. If `TRUE`, stop if md5-checksum-file is not
+#' present or md5-checksum fail. If `FALSE`, ignore md5-checksum check.
+#' @param secure.http Logical. Use secure http (ie `https://`) or
+#' `http://`
+#' @param list.only Logical. If `TRUE`, only return character vector of
+#'   available builds and exit. Default is `FALSE`.
+#' @param version character. The version of INLA binaries to install. If `NULL`
+#'   (default) then the version matching the currently installed INLA package
+#'   is used.
+#' @return By default, return `TRUE` if installation was successful and `FALSE`
+#'   if not. If `list.only = TRUE` return character vector of available builds
+#'   (invisibly).
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @examples
+#' 
+#'    \dontrun{
+#'      inla.binary.install()
+#'      inla.binary.install(os = "CentOS Linux-7")
+#'      inla.binary.install(os = "CentOS Linux-7",  path = "~/local/bin/inla.binary")
+#'      inla.binary.install(list.only = TRUE)
+#'    }
+#'  
+#' @rdname binary.install
+#' @export inla.binary.install
+`inla.binary.install` <- function(os = c("CentOS Linux-6",
+                                         "CentOS Linux-7", 
+                                         "CentOS Linux-8", 
+                                         "CentOS Stream-8", 
+                                         "Rocky Linux-8", 
+                                         "Rocky Linux-9", 
+                                         "Rocky Linux-10", 
+                                         "Manjaro Linux-", 
+                                         "Fedora-33", 
+                                         "Fedora-34", 
+                                         "Fedora Linux-35", 
+                                         "Fedora Linux-36", 
+                                         "Fedora Linux-37", 
+                                         "Fedora Linux-38", 
+                                         "Fedora Linux-39", 
+                                         "Fedora Linux-40", 
+                                         "Fedora Linux-41", 
+                                         "Fedora Linux-42", 
+                                         "Fedora Linux-43", 
+                                         "Fedora Linux-44", 
+                                         "Ubuntu-16.04", 
+                                         "Ubuntu-18.04", 
+                                         "Ubuntu-20.04", 
+                                         "Ubuntu-22.04",
+                                         "Ubuntu-24.04",
+                                         "Ubuntu-25.04", 
+                                         "Ubuntu-26.04"), 
+                                  path = NULL, 
+                                  verbose = TRUE,
+                                  md5.check = TRUE,
+                                  secure.http = TRUE,
+                                  list.only = FALSE,
+                                  version = NULL)
+{
+    stop("This function is obsolete, please use 'inla.stiles.install()' instead")
+
+    show <- function(...) {
+        if (verbose) {
+            msg <- paste(unlist(list(...)), sep = "", collapse = "")
+            cat("* ", msg, "\n", sep = "")
+        }
+    }
+
+    map.filename <- function(fnm) {
+        return(gsub(" ", "%20", fnm))
+    }
+
+    random.num <- gsub("\\.", "", as.character(abs(rnorm(1))))
+    os <- if (missing(os)) NULL else match.arg(os)
+    stopifnot(inla.os.type() == "linux")
+    
+    if (is.null(version)) {
+        version <- inla.version("version")
+    }
+    version <- paste("Version_", version, sep = "")
+    show("Looking for ", version, " and os=", if (!is.null(os)) os else "'<choose interactively>'")
+
+    address <- paste0("http", if (secure.http) "s", "://inla.r-inla-download.org/Linux-builds")
+    Files <- paste0(address, "/FILES")
+    fp <- url(Files, open = "r")
+    ff <- readLines(fp)
+    ff <- ff[grep(version, ff)]
+    aa <- "aarch64"
+    if (inla.one.of(R.version$arch, aa)) {
+        ff <- ff[grep(aa, ff)]
+        } else {
+            if (length(grep(aa, ff)) > 0) {
+                ff <- ff[-grep(aa, ff)]
+            }
+        }
+    nf <- length(ff)
+    close(fp)
+    
+    if (is.null(os) || list.only) {
+        if (nf == 0) {
+            cat("  Sorry, no alternative binary builds available for ", version)
+            if (list.only) {
+                return(invisible(character(0)))
+            }
+            return (invisible(FALSE))
+        }
+        
+        cat("  Available alternatives:\n")
+        for (i in seq_len(nf)) {
+            cat("  \t", paste0("Alternative ", i), " is ", ff[i], "\n")
+        }
+        if (list.only) {
+            return(invisible(ff))
+        }
+        cat("  ", "Choose alternative [", 1, ":", nf, "]", sep = "", "\n\t")
+        ans <- scan(file = "", what = integer(), n = 1, quiet = TRUE)
+        if (length(ans) == 0) {
+            return (invisible(FALSE))
+        }
+    } else {
+        ans <- grep(os, ff)
+        if (length(ans) == 0) {
+            stop(paste0("Sorry, os=", os, " is not available for ", version))
+        }
+        if (length(ans) > 1) {
+            stop("Internal error. Please report to <help@r-inla.org>")
+        }
+    }
+    if (!(ans %in% seq_len(nf))) stop("Not a valid choice. Exit.")
+
+    fnm <- paste0(address, "/", ff[ans])
+    show("Install file [", fnm, "]")
+    external.path <- FALSE
+    if (is.null(path)) {
+        pa <- system.file(package = "INLA")
+        if (!nzchar(pa)) {
+            stop(paste0(
+                "I cannot find the INLA package via ",
+                'system.file(package = "INLA")',
+                ". Please retry after installing."
+            ))
+        }
+        stopifnot(file.info(pa)$isdir)
+        show("INLA is installed in [", pa, "]")
+        pa <- paste0(pa, "/bin/linux")
+    } else {
+        external.path <- TRUE
+        pa <- normalizePath(path)
+        if (!file.info(pa)$isdir) {
+            stopifnot(dir.create(pa, recursive = TRUE))
+        }
+    }
+
+    show("Checking for write access...")
+    test.fnm <- paste0(pa, "/test-file---", random.num, ".txt")
+    test.result <- file.create(test.fnm, showWarnings = FALSE)
+    if (test.result) {
+        unlink(test.fnm, force = TRUE)
+    } else {
+        show(paste0("ERROR: No write access to [", pa, "]"))
+    }
+
+    show("Download file...")
+    to.file <- paste0(pa, "/64bit-download-", random.num, ".tgz")
+    ret <- download.file(map.filename(fnm), to.file, quiet = TRUE, mode = "wb")
+    
+    if (md5.check) {
+        fnm.md5 <- gsub("/64bit.tgz", "/md5sum.txt", fnm)
+        md5.file <- paste0(pa, "/64bit-download-md5sum-", random.num, ".txt")
+        ret.md5 <- try(download.file(
+            map.filename(fnm.md5), md5.file, quiet = TRUE, mode = "wb"),  silent = TRUE)
+        if (!inherits(ret.md5, "try-error")) {
+            md5.checksum <- scan(file=md5.file, what=character(), n=1, quiet = TRUE)
+            if (md5.checksum == tools::md5sum(to.file)) {
+                show("md5-checksum [", md5.checksum, "] OK")
+            } else {
+                stop(paste0("md5-checksum [", md5.checksum, "] FAILED. Stop."))
+            }
+        } else {
+            stop("No md5-checksum found. Run with 'md5.check=FALSE' to force install.")
+        }
+    }
+
+    if (ret == 0) {
+        ##
+    } else {
+        unlink(to.file, force = TRUE)
+        if (md5.check) {
+            unlink(md5.file, force = TRUE)
+        }
+        stop("Error downloading file. Abort.")
+    }
+
+    my.restore <- function() {
+        show("Error. Will try to restore old configuration.")
+        show("If unsuccessful, then reinstall R-INLA.")
+        unlink(from.dir, recursive = TRUE, force = TRUE)
+        unlink(to.file, force = TRUE)
+        file.rename(to.dir, from.dir)
+    }
+    
+    show("Rename old 64bit directory...")
+    from.dir <- paste0(pa, "/64bit")
+    to.dir <- paste0(pa, "/64bit-", random.num)
+    ret <- file.rename(from.dir, to.dir)
+    if (ret) {
+        ##
+    } else {
+        my.restore()
+        stop("Error renaming old 64bit directory. Abort.")
+    }
+    show("Unpack file...")
+    ret <- untar(to.file, exdir = dirname(to.file), verbose = FALSE)
+    if (ret == 0) {
+        ##
+    } else {
+        my.restore()
+        stop("Error unpacking file. Abort.")
+    }
+
+    show("Remove temporary file...")
+    unlink(to.file, force = TRUE)
+    if (md5.check) {
+        unlink(md5.file, force = TRUE)
+    }
+    show("Remove old 64bit directory...")
+    unlink(to.dir, recursive = TRUE, force = TRUE)
+    show("Done!")
+
+    if (external.path) {
+        cat("* Example of usage:\n")
+        cat("* \tinla.setOption(inla.call = \"", paste0(from.dir, "/inla.mkl.run"), "\")\n")
+    }
+
+    return(invisible(TRUE))
+}

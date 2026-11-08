@@ -22,7 +22,7 @@ way.}
 Upgrades the \code{INLA} R package and then the inla-program.
 }
 \seealso{
-\code{update.packages}
+\code{\link[=update.packages]{update.packages()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

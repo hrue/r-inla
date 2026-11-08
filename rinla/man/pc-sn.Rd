@@ -59,7 +59,7 @@ skewness range from -0.99527... to 0.99527....  ca.
  
 }
 \seealso{
-inla.doc("pc.sn")
+\code{\link[=inla.doc]{inla.doc()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

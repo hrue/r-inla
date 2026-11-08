@@ -1,18 +1,17 @@
 #' Compute the reordering using the GMRFLib implementation
 #' 
-#' This function compute the reordering (or find the best reordering) using the
-#' GMRFLib implementation
+#' This function compute the reordering (or find the best reordering) using the GMRFLib
+#' implementation. Note that the default sparse-solver, 'sTiles', does not use these reordering.
 #' 
 #' 
 #' @aliases inla.qreordering qreordering
 #' @param graph A `(inla-)graph` object
-#' @param reordering The name of the reordering algorithm to be used; either
-#' one of the names listed in `inla.reorderings()`.  The default is "auto"
-#' which try several reordering algorithm and use the best one for this
-#' particular matrix.
-#' @return `inla.qreordering` returns a list with the name of the
-#' reordering algorithm used or found, the reordering code for the reordering
-#' algorithm, the actual reordering and its inverse.
+#' @param reordering The name of the reordering algorithm to be used; either one of the names
+#'     listed in `inla.reorderings()`. The default is "auto" which (might) try several
+#'     reordering algorithm and use the best one for this particular matrix.
+#' @return `inla.qreordering` returns a list with the name of the reordering algorithm used or
+#'     found, the reordering code for the reordering algorithm, the actual reordering and its
+#'     inverse.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
 #' 
@@ -25,7 +24,8 @@
 #' @rdname qreordering
 #' @export
 
-`inla.qreordering` <- function(graph, reordering = inla.reorderings()) {
+`inla.qreordering` <- function(graph, reordering = inla.reorderings())
+{
     reordering <- match.arg(reordering)
 
     if (inla.is.matrix(graph)) {
@@ -63,8 +63,8 @@
     for (i in seq_along(s)) {
         ## the output contains this code, as there may be some other output before this
         if (as.character(s[i]) == "QREORDERING") {
-              break
-          }
+            break
+        }
     }
     s <- s[-(1:i)]
 

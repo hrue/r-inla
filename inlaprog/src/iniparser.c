@@ -26,17 +26,15 @@
 #include <strings.h>
 #if defined(__cplusplus)
 extern "C" {
-#endif	
+#endif
 #include "iniparser.h"
 #include "my-fix.h"
 #include "strlib.h"
 #if defined(__cplusplus)
 }
 #endif
-	
 #define INI_INVALID_KEY     ((char*)-1)
 #define MY_STRING_LOWERCASE(a) my_strlwc(a)
-
 static void iniparser_add_entry(dictionary *d, char *sec, char *key, char *val)
 {
 	char *longkey = NULL;

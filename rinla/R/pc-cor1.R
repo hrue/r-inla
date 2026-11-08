@@ -22,7 +22,7 @@
 #' gives the distribution function, `inla.pc.qcor1` gives the quantile
 #' function, and `inla.pc.rcor1` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso inla.doc("pc.rho1")
+#' @seealso [inla.doc()]
 #' @examples
 #' 
 #'  cor = inla.pc.rcor1(100,  lambda = 1)

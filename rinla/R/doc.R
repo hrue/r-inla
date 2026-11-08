@@ -10,7 +10,6 @@
 #' look for the documentation. If missing, all sections are used.
 #' @param verbose Logical If `TRUE` then run in verbose mode
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso `www.r-inla.org`
 #' @examples
 #' 
 #' \dontrun{inla.doc("rw2")}

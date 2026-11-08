@@ -85,8 +85,6 @@
                                 "sn",
                                 "gev",
                                 "logistic",
-                                "circularnormal",
-                                "wrappedcauchy",
                                 "iidgamma",
                                 "simplex",
                                 "gamma",
@@ -95,10 +93,7 @@
                                 "beta",
                                 "obeta", 
                                 "tweedie",
-                                "fmri",
-                                "lavm",
-                                "vm",
-                                "nvm"))) {
+                                "fmri"))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)
         }

@@ -19,7 +19,7 @@
 #'     generates random deviates.
 #' @note The 'r' and 'q' functions are quite slow as the quantile-function needs to be computed.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso inla.doc("pc.prw2.range")
+#' @seealso [inla.doc()]
 #' @examples
 #'
 #'     param <- c(10, 0.5, 1, 0)
