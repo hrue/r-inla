@@ -89,11 +89,14 @@
     ## Nothing set? Look where inla.stiles.install() puts it.
     if (is.null(path) || !is.character(path) || !nzchar(path)) {
         exe <- if (.Platform$OS.type == "windows") "inla.exe" else "inla.run"
-        want <- file.path(paste0("Version_", inla.version("version")), "bin", exe)
+        ver <- paste0("Version_", inla.version("version"))
+        ## the Windows zip is flat: inla.exe sits in Version_x itself
+        want <- c(file.path(ver, "bin", exe), file.path(ver, exe))
         for (b in inla.binary.bases()) {
             full.path <- file.path(b, want)
-            if (file.access(full.path) == 0) {
-                path <- full.path
+            full.path <- full.path[file.access(full.path) == 0]
+            if (length(full.path) > 0) {
+                path <- full.path[1]
                 break
             }
         }
