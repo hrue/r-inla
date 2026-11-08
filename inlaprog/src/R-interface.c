@@ -354,12 +354,14 @@ int inla_R_init_(void)
 					LOG_ERROR_WRAPPER(fprintf(stderr, "\n\n");
 							  fprintf(stderr, "*** ERROR: Environment variable R_HOME is not set or invalid.\n");
 							  fprintf(stderr, "*** ERROR: Evaluate this in R:  Sys.getenv(\"R_HOME\")\n");
-							  fprintf(stderr, "\n\n"););
+							  fprintf(stderr, "\n\n");
+					    );
 					exit(1);
 				}
 				LOG_ERROR_WRAPPER(fprintf(stderr, "\n\n");
 						  fprintf(stderr, "*** WARNING: Environment variable R_HOME is not set or invalid.\n");
-						  fprintf(stderr, "*** WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome););
+						  fprintf(stderr, "*** WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome);
+				    );
 				my_setenv(rhome, 0);
 			} else {
 				char *rrhome = NULL;

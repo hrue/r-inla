@@ -374,7 +374,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 
 	if (verbose) {
 		LOG_INFO_WRAPPER(fprintf(stderr, "inla_qsample: end post %.2fs\n", GMRFLib_timer() - t_ref);
-				 fprintf(stderr, "inla_qsample: total time %.2fs\n", GMRFLib_timer() - t_reff););
+				 fprintf(stderr, "inla_qsample: total time %.2fs\n", GMRFLib_timer() - t_reff);
+		    );
 	}
 
 	return 0;

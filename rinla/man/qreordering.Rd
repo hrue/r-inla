@@ -10,19 +10,18 @@ inla.qreordering(graph, reordering = inla.reorderings())
 \arguments{
 \item{graph}{A \verb{(inla-)graph} object}
 
-\item{reordering}{The name of the reordering algorithm to be used; either
-one of the names listed in \code{inla.reorderings()}.  The default is "auto"
-which try several reordering algorithm and use the best one for this
-particular matrix.}
+\item{reordering}{The name of the reordering algorithm to be used; either one of the names
+listed in \code{inla.reorderings()}. The default is "auto" which (might) try several
+reordering algorithm and use the best one for this particular matrix.}
 }
 \value{
-\code{inla.qreordering} returns a list with the name of the
-reordering algorithm used or found, the reordering code for the reordering
-algorithm, the actual reordering and its inverse.
+\code{inla.qreordering} returns a list with the name of the reordering algorithm used or
+found, the reordering code for the reordering algorithm, the actual reordering and its
+inverse.
 }
 \description{
-This function compute the reordering (or find the best reordering) using the
-GMRFLib implementation
+This function compute the reordering (or find the best reordering) using the GMRFLib
+implementation. Note that the default sparse-solver, 'sTiles', does not use these reordering.
 }
 \examples{
 

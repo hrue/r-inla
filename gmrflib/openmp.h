@@ -13,10 +13,9 @@
 #              define __END_DECLS			       /* empty */
 #       endif
 
-
 __BEGIN_DECLS
 //*
-typedef struct {
+    typedef struct {
 	char *tag;
 	int max_nt;
 	int best_nt;

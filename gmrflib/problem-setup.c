@@ -162,7 +162,7 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 	int num_threads = GMRFLib_openmp->max_threads_inner, tnum = 0, level = 0, nt = num_threads;
 	char *tag = NULL;
 	double tref = 0.0;
-	
+
 	// often, num_threads=1, then we do not need any adaptation
 	if (num_threads > 1) {
 		GMRFLib_sprintf(&tag, "%s:%1d:%1d:%1d", __FILE__, __LINE__, m, n);
@@ -171,7 +171,6 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 		nt = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 		tref = -GMRFLib_timer();
 	}
-
 #pragma omp parallel for num_threads(nt) schedule(static) if(nt > 1)
 	for (int k = 0; k < storage[id]->K; k++) {
 		int i = storage[id]->ii[k];
@@ -185,7 +184,7 @@ int dgemm_special(int m, int n, double *C, double *UNUSED(A), double *B, GMRFLib
 		GMRFLib_adapt_nt_update(tag, tnum, level, tref);
 		Free(tag);
 	}
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -840,7 +839,7 @@ int GMRFLib_init_problem_store(int thread_id,
 		 * sub_mean_constr is pr.default equal to sub_mean 
 		 */
 		double alpha = -1.0;
-		double beta = 1.0;				       /* mean_constr = mean - cond_m*t_vector */
+		double beta = 1.0;			       /* mean_constr = mean - cond_m*t_vector */
 		int inc = 1;
 		dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr, &inc, F_ONE);
 	}

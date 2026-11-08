@@ -151,7 +151,8 @@ void inla_eval_OnError(muParserHandle_t hParser)
 			  fprintf(stderr, "Message   :  \"%s\"\n", mupGetErrorMsg(hParser));
 			  fprintf(stderr, "Token     :    \"%s\"\n", mupGetErrorToken(hParser));
 			  fprintf(stderr, "Position  : %1d\n", mupGetErrorPos(hParser));
-			  fprintf(stderr, "Error Code:     %1d\n", mupGetErrorCode(hParser)););
+			  fprintf(stderr, "Error Code:     %1d\n", mupGetErrorCode(hParser));
+	    );
 	exit(1);
 }
 

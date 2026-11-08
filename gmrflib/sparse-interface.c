@@ -233,7 +233,6 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 				nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 				tref = -GMRFLib_timer();
 			}
-
 #pragma omp parallel for num_threads(nt_loc) schedule(static) if(nt_loc > 1)
 			for (int i = 0; i < M->s->n; i++) {
 				for (int k = M->s->ia[i]; k < M->s->ia[i + 1]; k++) {
@@ -256,7 +255,6 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, 
 				nt_loc = GMRFLib_adapt_nt_get(tag, tnum, level, num_threads);
 				tref = -GMRFLib_timer();
 			}
-
 #pragma omp parallel for num_threads(nt_loc) schedule(static) if(nt_loc > 1)
 			for (int i = 0; i < M->s->n; i++) {
 				int k = M->s->ia[i];

@@ -721,7 +721,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 				  fprintf(stderr, "\tThis binary does not know them and will IGNORE them.\n");
 				  fprintf(stderr, "\tUsually this means the R-package is newer than this binary [%s];\n",
 					  __GMRFLib_symbol_to_string(GITCOMMIT));
-				  fprintf(stderr, "\tPlease upgrade the binary with 'inla.stiles.install()'"););
+				  fprintf(stderr, "\tPlease upgrade the binary with 'inla.stiles.install()'");
+		    );
 	}
 
 	if (0) {
@@ -827,7 +828,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	if (need_link && !GMRFLib_gaussian_data) {
 		LOG_WARNING_WRAPPER(fprintf(stderr, "*** Warning *** You might want to consider to setting ``control.predictor=list(link=...)''\n");
 				    fprintf(stderr,
-					    "*** Warning *** otherwise the identity link will be used to compute the fitted values for NA data"););
+					    "*** Warning *** otherwise the identity link will be used to compute the fitted values for NA data");
+		    );
 	}
 
 	// register 'mb'
@@ -7592,7 +7594,8 @@ int main(int argc, char **argv)
 								  fprintf(stderr, "*** ERROR *** Parse num.threads argument %1d: [%s]\n", ii + 1,
 									  token);
 								  fprintf(stderr, "              No 'muparser'-library in this build, so\n");
-								  fprintf(stderr, "              expressions cannot use 'P' or 'C'\n\n"););
+								  fprintf(stderr, "              expressions cannot use 'P' or 'C'\n\n");
+						    );
 						exit(1);
 					}
 				}
