@@ -205,19 +205,19 @@ Simple example:
 #       endif
 
 #       if defined(__cplusplus)
-//extern "C" {
+extern "C" {
 #       endif
 
-typedef enum {
-	MAPKIT_OK = 0,
-	MAPKIT_ETOOBIG = 1,
-	MAPKIT_ENOMEM = 2,
-	MAPKIT_EBADKEY = 3,
-	MAPKIT_EKEYNOTFOUND = 4
-} mapkit_error;
+	typedef enum {
+		MAPKIT_OK = 0,
+		MAPKIT_ETOOBIG = 1,
+		MAPKIT_ENOMEM = 2,
+		MAPKIT_EBADKEY = 3,
+		MAPKIT_EKEYNOTFOUND = 4
+	} mapkit_error;
 
 /* Constants */
-extern const char *mapkit_error_msg[5];
+	extern const char *mapkit_error_msg[5];
 
 /* Macros */
 
@@ -261,46 +261,44 @@ extern const char *mapkit_error_msg[5];
 #       define MAPKIT_SIZE_T_MAX __INTPTR_MAX__
 
 /* find the lowest number in mapkit_primes greater than n */
-extern mapkit_size_t mapkit_nextprime(const mapkit_size_t n);
+	extern mapkit_size_t mapkit_nextprime(const mapkit_size_t n);
 
 /* string hash function */
-extern mapkit_hash_t mapkit_strhash(const char *string);
+	extern mapkit_hash_t mapkit_strhash(const char *string);
 
 /* memory hash function */
-extern mapkit_hash_t mapkit_memhash(const void *data, const size_t len);
+	extern mapkit_hash_t mapkit_memhash(const void *data, const size_t len);
 
 /* integer hash function */
-INLINE mapkit_hash_t mapkit_hash(mapkit_hash_t key);
+	INLINE mapkit_hash_t mapkit_hash(mapkit_hash_t key);
 
 /* Thomas Wang's integer hash function */
 #       if MAPKIT_SIZE_T_MAX <= 0x7fffffff
 
 /* 32 bits version */
-mapkit_hash_t mapkit_hash(mapkit_hash_t key)
-{
-	key += ~(key << 15);
-	key ^= (key >> 10);
-	key += (key << 3);
-	key ^= (key >> 6);
-	key += ~(key << 11);
-	key ^= (key >> 16);
-	return key;
-}
+	mapkit_hash_t mapkit_hash(mapkit_hash_t key) {
+		key += ~(key << 15);
+		key ^= (key >> 10);
+		key += (key << 3);
+		key ^= (key >> 6);
+		key += ~(key << 11);
+		key ^= (key >> 16);
+		return key;
+	}
 #       else
 
 /* 64 bits version */
-mapkit_hash_t mapkit_hash(mapkit_hash_t key)
-{
-	key += ~(key << 32);
-	key ^= (key >> 22);
-	key += ~(key << 13);
-	key ^= (key >> 8);
-	key += (key << 3);
-	key ^= (key >> 15);
-	key += ~(key << 27);
-	key ^= (key >> 31);
-	return key;
-}
+	mapkit_hash_t mapkit_hash(mapkit_hash_t key) {
+		key += ~(key << 32);
+		key ^= (key >> 22);
+		key += ~(key << 13);
+		key ^= (key >> 8);
+		key += (key << 3);
+		key ^= (key >> 15);
+		key += ~(key << 27);
+		key ^= (key >> 31);
+		return key;
+	}
 #       endif
 #       if defined(__cplusplus)
 }
@@ -5502,7 +5500,7 @@ extern "C" {
 	}
 
 #       if defined(__cplusplus)
-//}
+}
 #       endif
 
 #endif							       /* _MAPKIT_ */
