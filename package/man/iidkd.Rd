@@ -27,7 +27,7 @@ This function provide samples of the \code{iidkd} component using more
 interpretable parameters
 }
 \seealso{
-\code{inla.doc("iidkd")}
+\code{\link[=inla.doc]{inla.doc()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

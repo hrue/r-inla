@@ -27,7 +27,7 @@ g = inla.debug.graph("g.dat")
 
 }
 \seealso{
-inla.read.graph
+\code{\link[=inla.read.graph]{inla.read.graph()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

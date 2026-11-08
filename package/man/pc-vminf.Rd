@@ -68,7 +68,7 @@ large or very close to zero.
 
 }
 \seealso{
-inla.doc("pc.vminf")
+\code{\link[=inla.doc]{inla.doc()}}
 }
 \author{
 Xiang Ye \email{xiang.ye@kaust.edu.sa}

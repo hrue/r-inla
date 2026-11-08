@@ -28,7 +28,7 @@
 #' gives the distribution function, `inla.pc.qvm0` gives the quantile
 #' function, and `inla.pc.rvm0` generates random deviates.
 #' @author Xiang Ye \email{xiang.ye@@kaust.edu.sa}
-#' @seealso inla.doc("pc.vm0")
+#' @seealso [inla.doc()]
 #' @examples
 #' 
 #'  k = inla.pc.rvm0(100,  lambda = 1)

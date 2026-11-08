@@ -14,7 +14,7 @@
 #' @return A list of sampled matrices, with (default) correlations on the
 #' off-diagonal and standard-deviations on the diagonal
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso `inla.doc("iidkd")`
+#' @seealso [inla.doc()]
 #' @rdname iidkd
 #' @export inla.iidkd.sample
 `inla.iidkd.sample` <- function(n = 10^4, result, name, return.cov = FALSE) 

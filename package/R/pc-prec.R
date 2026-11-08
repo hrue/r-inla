@@ -21,7 +21,7 @@
 #' gives the distribution function, `inla.pc.qprec` gives the quantile
 #' function, and `inla.pc.rprec` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso inla.doc("pc.prec")
+#' @seealso [inla.doc()]
 #' @examples
 #' 
 #'  prec = inla.pc.rprec(100,  lambda = 1)

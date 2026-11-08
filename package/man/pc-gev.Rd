@@ -58,7 +58,7 @@ likelihood, where \code{xi=0} is the base model.
  
 }
 \seealso{
-inla.doc("pc.gevtail")
+\code{\link[=inla.doc]{inla.doc()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

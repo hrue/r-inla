@@ -8941,18 +8941,6 @@
                     hyper = list()
                 ),
 
-                tan = list(
-                    doc = "The tan-link",
-                    hyper = list(),
-                    pdf = "circular"
-                ),
-
-                tanpi = list(
-                    doc = "The tanpi-link",
-                    hyper = list(), 
-                    pdf = "circular"
-                ),
-
                 quantile = list(
                     doc = "The quantile-link",
                     hyper = list()
@@ -13569,54 +13557,6 @@
                     pdf = "tpoisson"
                 ), 
 
-                circularnormal = list(
-                    doc = "The circular Gaussian likelihoood",
-                    hyper = list(
-                        theta = list(
-                            hyperid = 67001,
-                            name = "log precision parameter",
-                            short.name = "prec",
-                            output.name = "Precision parameter for the Circular Normal observations",
-                            output.name.intern = "Log precision parameter for the Circular Normal observations",
-                            initial = 2,
-                            fixed = FALSE,
-                            prior = "loggamma",
-                            param = c(1, 0.01),
-                            to.theta = function(x) log(x),
-                            from.theta = function(x) exp(x)
-                        )
-                    ),
-                    survival = FALSE,
-                    discrete = FALSE,
-                    link = c("default", "tan", "tan.pi"),
-                    pdf = "circular-normal",
-                    status = "disabled"
-                ),
-
-                wrappedcauchy = list(
-                    doc = "The wrapped Cauchy likelihoood",
-                    hyper = list(
-                        theta = list(
-                            hyperid = 68001,
-                            name = "log precision parameter",
-                            short.name = "prec",
-                            output.name = "Precision parameter for the Wrapped Cauchy observations",
-                            output.name.intern = "Log precision parameter for the Wrapped Cauchy observations",
-                            initial = 2,
-                            fixed = FALSE,
-                            prior = "loggamma",
-                            param = c(1, 0.005),
-                            to.theta = function(x) log(x / (1 - x)),
-                            from.theta = function(x) exp(x) / (1 + exp(x))
-                        )
-                    ),
-                    survival = FALSE,
-                    discrete = FALSE,
-                    link = c("default", "tan", "tan.pi"),
-                    pdf = "wrapped-cauchy",
-                    status = "disabled"
-                ),
-
                 iidgamma = list(
                     doc = "(experimental)",
                     hyper = list(
@@ -16444,80 +16384,6 @@
                     discrete = FALSE,
                     link = c("default", "log", "neglog"),
                     pdf = "dgompertz"
-                ),
-
-                vm = list(
-                    doc = "von Mises circular distribution",
-                    hyper = list(
-                        theta = list(
-                            hyperid = 109101,
-                            name = "precision",
-                            short.name = "prec",
-                            output.name.intern = "prec_intern for vm", 
-                            output.name = "precision parameter for vm", 
-                            initial = 2,
-                            fixed = FALSE,
-                            prior = "loggamma",
-                            param = c(1, 0.01),
-                            to.theta = function(x) log(x), 
-                            from.theta = function(x) exp(x)
-                        )
-                    ),
-                    experimental = TRUE, 
-                    status = "disabled", 
-                    survival = FALSE,
-                    discrete = FALSE,
-                    link = c("default", "circular", "tan", "identity"),
-                    pdf = "vm"
-                ),
-
-                nvm = list(
-                    doc = "Normal approx of the von Mises circular distribution",
-                    hyper = list(
-                        theta = list(
-                            hyperid = 109201,
-                            name = "precision",
-                            short.name = "prec",
-                            output.name.intern = "prec_intern for nvm", 
-                            output.name = "precision parameter for nvm", 
-                            initial = 2,
-                            fixed = FALSE,
-                            prior = "loggamma",
-                            param = c(1, 0.01),
-                            to.theta = function(x) log(x), 
-                            from.theta = function(x) exp(x)
-                        )
-                    ),
-                    experimental = TRUE, 
-                    status = "disabled", 
-                    survival = FALSE,
-                    discrete = FALSE,
-                    link = c("default", "circular", "tan", "identity"),
-                    pdf = "vm"
-                ),
-
-                lavm = list(
-                    doc = "Link adjusted von Mises circular distribution",
-                    hyper = list(
-                        theta = list(
-                            hyperid = 109301,
-                            name = "precision",
-                            short.name = "prec",
-                            output.name.intern = "prec_intern for lavm", 
-                            output.name = "precision parameter for lavm", 
-                            initial = 2,
-                            fixed = FALSE,
-                            prior = "loggamma",
-                            param = c(1, 0.01),
-                            to.theta = function(x) log(x), 
-                            from.theta = function(x) exp(x)
-                        )
-                    ),
-                    experimental = TRUE, 
-                    survival = FALSE,
-                    discrete = FALSE,
-                    link = c("default", "circular", "tan", "identity"),
-                    pdf = "lavm"
                 ),
 
                 cloglike = list(

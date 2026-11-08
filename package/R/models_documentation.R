@@ -10758,28 +10758,6 @@
 #'          }
 #'         Number of hyperparmeters is 0.
 #'        }
-#'       \item{Model 'tan'.}{
-#'          \describe{
-#'           \item{Properties:}{
-#'             \describe{
-#'               \item{doc = }{\verb{The tan-link}}
-#'               \item{pdf = }{\verb{circular}}
-#'              }
-#'            }
-#'          }
-#'         Number of hyperparmeters is 0.
-#'        }
-#'       \item{Model 'tanpi'.}{
-#'          \describe{
-#'           \item{Properties:}{
-#'             \describe{
-#'               \item{doc = }{\verb{The tanpi-link}}
-#'               \item{pdf = }{\verb{circular}}
-#'              }
-#'            }
-#'          }
-#'         Number of hyperparmeters is 0.
-#'        }
 #'       \item{Model 'quantile'.}{
 #'          \describe{
 #'           \item{Properties:}{
@@ -16402,70 +16380,6 @@
 #'           }
 #'          }
 #'        }
-#'       \item{Model 'circularnormal'.}{
-#'          \describe{
-#'           \item{Properties:}{
-#'             \describe{
-#'               \item{doc = }{\verb{The circular Gaussian likelihoood}}
-#'               \item{survival = }{\verb{FALSE}}
-#'               \item{discrete = }{\verb{FALSE}}
-#'               \item{link = }{\verb{default tan tan.pi}}
-#'               \item{pdf = }{\verb{circular-normal}}
-#'               \item{status = }{\verb{disabled}}
-#'              }
-#'            }
-#'          }
-#'         Number of hyperparmeters is 1.
-#'          \describe{
-#'           \item{Hyperparameter 'theta'}{
-#'              \describe{
-#'             \item{hyperid = }{\verb{67001}}
-#'             \item{name = }{\verb{log precision parameter}}
-#'             \item{short.name = }{\verb{prec}}
-#'             \item{output.name = }{\verb{Precision parameter for the Circular Normal observations}}
-#'             \item{output.name.intern = }{\verb{Log precision parameter for the Circular Normal observations}}
-#'             \item{initial = }{\verb{2}}
-#'             \item{fixed = }{\verb{FALSE}}
-#'             \item{prior = }{\verb{loggamma}}
-#'             \item{param = }{\verb{1 0.01}}
-#'             \item{to.theta = }{\verb{function(x) log(x)}}
-#'             \item{from.theta = }{\verb{function(x) exp(x)}}
-#'             }
-#'           }
-#'          }
-#'        }
-#'       \item{Model 'wrappedcauchy'.}{
-#'          \describe{
-#'           \item{Properties:}{
-#'             \describe{
-#'               \item{doc = }{\verb{The wrapped Cauchy likelihoood}}
-#'               \item{survival = }{\verb{FALSE}}
-#'               \item{discrete = }{\verb{FALSE}}
-#'               \item{link = }{\verb{default tan tan.pi}}
-#'               \item{pdf = }{\verb{wrapped-cauchy}}
-#'               \item{status = }{\verb{disabled}}
-#'              }
-#'            }
-#'          }
-#'         Number of hyperparmeters is 1.
-#'          \describe{
-#'           \item{Hyperparameter 'theta'}{
-#'              \describe{
-#'             \item{hyperid = }{\verb{68001}}
-#'             \item{name = }{\verb{log precision parameter}}
-#'             \item{short.name = }{\verb{prec}}
-#'             \item{output.name = }{\verb{Precision parameter for the Wrapped Cauchy observations}}
-#'             \item{output.name.intern = }{\verb{Log precision parameter for the Wrapped Cauchy observations}}
-#'             \item{initial = }{\verb{2}}
-#'             \item{fixed = }{\verb{FALSE}}
-#'             \item{prior = }{\verb{loggamma}}
-#'             \item{param = }{\verb{1 0.005}}
-#'             \item{to.theta = }{\verb{function(x) log(x / (1 - x))}}
-#'             \item{from.theta = }{\verb{function(x) exp(x) / (1 + exp(x))}}
-#'             }
-#'           }
-#'          }
-#'        }
 #'       \item{Model 'iidgamma'.}{
 #'          \describe{
 #'           \item{Properties:}{
@@ -19930,104 +19844,6 @@
 #'             \item{param = }{\verb{0 10}}
 #'             \item{to.theta = }{\verb{function(x) x}}
 #'             \item{from.theta = }{\verb{function(x) x}}
-#'             }
-#'           }
-#'          }
-#'        }
-#'       \item{Model 'vm'.}{
-#'          \describe{
-#'           \item{Properties:}{
-#'             \describe{
-#'               \item{doc = }{\verb{von Mises circular distribution}}
-#'               \item{experimental = }{\verb{TRUE}}
-#'               \item{status = }{\verb{disabled}}
-#'               \item{survival = }{\verb{FALSE}}
-#'               \item{discrete = }{\verb{FALSE}}
-#'               \item{link = }{\verb{default circular tan identity}}
-#'               \item{pdf = }{\verb{vm}}
-#'              }
-#'            }
-#'          }
-#'         Number of hyperparmeters is 1.
-#'          \describe{
-#'           \item{Hyperparameter 'theta'}{
-#'              \describe{
-#'             \item{hyperid = }{\verb{109101}}
-#'             \item{name = }{\verb{precision}}
-#'             \item{short.name = }{\verb{prec}}
-#'             \item{output.name.intern = }{\verb{prec_intern for vm}}
-#'             \item{output.name = }{\verb{precision parameter for vm}}
-#'             \item{initial = }{\verb{2}}
-#'             \item{fixed = }{\verb{FALSE}}
-#'             \item{prior = }{\verb{loggamma}}
-#'             \item{param = }{\verb{1 0.01}}
-#'             \item{to.theta = }{\verb{function(x) log(x)}}
-#'             \item{from.theta = }{\verb{function(x) exp(x)}}
-#'             }
-#'           }
-#'          }
-#'        }
-#'       \item{Model 'nvm'.}{
-#'          \describe{
-#'           \item{Properties:}{
-#'             \describe{
-#'               \item{doc = }{\verb{Normal approx of the von Mises circular distribution}}
-#'               \item{experimental = }{\verb{TRUE}}
-#'               \item{status = }{\verb{disabled}}
-#'               \item{survival = }{\verb{FALSE}}
-#'               \item{discrete = }{\verb{FALSE}}
-#'               \item{link = }{\verb{default circular tan identity}}
-#'               \item{pdf = }{\verb{vm}}
-#'              }
-#'            }
-#'          }
-#'         Number of hyperparmeters is 1.
-#'          \describe{
-#'           \item{Hyperparameter 'theta'}{
-#'              \describe{
-#'             \item{hyperid = }{\verb{109201}}
-#'             \item{name = }{\verb{precision}}
-#'             \item{short.name = }{\verb{prec}}
-#'             \item{output.name.intern = }{\verb{prec_intern for nvm}}
-#'             \item{output.name = }{\verb{precision parameter for nvm}}
-#'             \item{initial = }{\verb{2}}
-#'             \item{fixed = }{\verb{FALSE}}
-#'             \item{prior = }{\verb{loggamma}}
-#'             \item{param = }{\verb{1 0.01}}
-#'             \item{to.theta = }{\verb{function(x) log(x)}}
-#'             \item{from.theta = }{\verb{function(x) exp(x)}}
-#'             }
-#'           }
-#'          }
-#'        }
-#'       \item{Model 'lavm'.}{
-#'          \describe{
-#'           \item{Properties:}{
-#'             \describe{
-#'               \item{doc = }{\verb{Link adjusted von Mises circular distribution}}
-#'               \item{experimental = }{\verb{TRUE}}
-#'               \item{survival = }{\verb{FALSE}}
-#'               \item{discrete = }{\verb{FALSE}}
-#'               \item{link = }{\verb{default circular tan identity}}
-#'               \item{pdf = }{\verb{lavm}}
-#'              }
-#'            }
-#'          }
-#'         Number of hyperparmeters is 1.
-#'          \describe{
-#'           \item{Hyperparameter 'theta'}{
-#'              \describe{
-#'             \item{hyperid = }{\verb{109301}}
-#'             \item{name = }{\verb{precision}}
-#'             \item{short.name = }{\verb{prec}}
-#'             \item{output.name.intern = }{\verb{prec_intern for lavm}}
-#'             \item{output.name = }{\verb{precision parameter for lavm}}
-#'             \item{initial = }{\verb{2}}
-#'             \item{fixed = }{\verb{FALSE}}
-#'             \item{prior = }{\verb{loggamma}}
-#'             \item{param = }{\verb{1 0.01}}
-#'             \item{to.theta = }{\verb{function(x) log(x)}}
-#'             \item{from.theta = }{\verb{function(x) exp(x)}}
 #'             }
 #'           }
 #'          }
