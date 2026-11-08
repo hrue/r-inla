@@ -56,7 +56,7 @@ This gives the PC prior for the \code{Gamma(1/a, 1/a)} case, where
  
 }
 \seealso{
-inla.doc("pc.gamma")
+\code{\link[=inla.doc]{inla.doc()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

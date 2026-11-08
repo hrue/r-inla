@@ -21,7 +21,7 @@
 #' `inla.pc.qgevtail` gives the quantile function, and
 #' `inla.pc.rgevtail` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso inla.doc("pc.gevtail")
+#' @seealso [inla.doc()]
 #' @examples
 #' 
 #'  xi = inla.pc.rgevtail(100,  lambda = 7)

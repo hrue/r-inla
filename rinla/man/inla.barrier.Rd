@@ -97,7 +97,7 @@ matrices that are needed to compute the precision matrix Q later
 }
 }
 \seealso{
-inla.spde2.pcmatern
+\code{\link[=inla.spde2.pcmatern]{inla.spde2.pcmatern()}}
 }
 \author{
 Haakon Bakka \email{bakka@r-inla.org}

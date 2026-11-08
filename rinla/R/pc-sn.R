@@ -21,7 +21,7 @@
 #' the distribution function, `inla.pc.qsn` gives the quantile function,
 #' and `inla.pc.rsn` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso inla.doc("pc.sn")
+#' @seealso [inla.doc()]
 #' @examples
 #' 
 #'  x = inla.pc.rsn(100,  lambda = 40)

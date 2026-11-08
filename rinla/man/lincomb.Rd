@@ -28,9 +28,6 @@ Create a linear combination or several linear combinations, as input to
 ##vignette {vignette("old-faq", package="INLA")}
 
 }
-\seealso{
-TODO
-}
 \author{
 Havard Rue \email{hrue@r-inla.org}
 }

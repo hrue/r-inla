@@ -1191,50 +1191,6 @@ double map_group_rho(double x, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double map_invtan(double x, map_arg_tp typ, void *UNUSED(param))
-{
-	/*
-	 * y = 2*atan(x), so that |y| <= Pi
-	 */
-	switch (typ) {
-	case MAP_FORWARD:
-		// extern = func(local) 
-		return 2.0 * atan(x);
-	case MAP_BACKWARD:
-		// local = func(extern) 
-		return tan(x / 2.0);
-	case MAP_DFORWARD:
-		return 2.0 / (1.0 + SQR(x));
-	case MAP_INCREASING:
-		return 1.0;
-	default:
-		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
-	}
-	return 0.0;
-}
-
-double map_invtan_pi(double x, map_arg_tp typ, void *UNUSED(param))
-{
-	/*
-	 * y = 2*atan(x)+pi, so that y is 0..2pi
-	 */
-	switch (typ) {
-	case MAP_FORWARD:
-		// extern = func(local) 
-		return 2.0 * atan(x) + M_PI;
-	case MAP_BACKWARD:
-		// local = func(extern) 
-		return tan((x - M_PI) / 2.0);
-	case MAP_DFORWARD:
-		return 2.0 / (1.0 + SQR(x));
-	case MAP_INCREASING:
-		return 1.0;
-	default:
-		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
-	}
-	return 0.0;
-}
-
 double link_this_should_not_happen(int UNUSED(thread_id), double UNUSED(x), map_arg_tp UNUSED(typ), void *UNUSED(param), double *UNUSED(cov))
 {
 	/*
@@ -1292,16 +1248,6 @@ double link_power_logit(int thread_id, double x, map_arg_tp typ, void *param, do
 	par[1] = &intercept;
 
 	return map_inv_powerlink_core(x, typ, (void *) par, NULL);
-}
-
-double link_tan(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
-{
-	return map_invtan(x, typ, param);
-}
-
-double link_tan_pi(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
-{
-	return map_invtan_pi(x, typ, param);
 }
 
 double link_cloglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
@@ -2104,37 +2050,6 @@ double link_special1(int thread_id, double x, map_arg_tp typ, void *param, doubl
 	}
 
 	abort();
-	return 0.0;
-}
-
-double link_circular(int UNUSED(thread_id), double x, map_arg_tp typ, void *UNUSED(param), double *UNUSED(cov))
-{
-	switch (typ) {
-	case MAP_FORWARD:
-	{
-		return 2.0 * M_PI * (1.0 / (1.0 + exp(-x)) - 0.5);
-	}
-		break;
-	case MAP_BACKWARD:
-	{
-		return log((M_PI + x) / (M_PI - x));
-	}
-		break;
-	case MAP_DFORWARD:
-	{
-		double ex = exp(-x);
-
-		return 2.0 * M_PI * ex / SQR(1.0 + ex);
-	}
-		break;
-	case MAP_INCREASING:
-	{
-		return 1.0;
-	}
-		break;
-	default:
-		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
-	}
 	return 0.0;
 }
 

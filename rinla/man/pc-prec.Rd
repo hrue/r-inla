@@ -61,7 +61,7 @@ given, or \code{u} AND \code{alpha}.
 
 }
 \seealso{
-inla.doc("pc.prec")
+\code{\link[=inla.doc]{inla.doc()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}
