@@ -1,3 +1,6 @@
+# INLA 26.11.08
+* a fix for the mac code with sTiles
+
 # INLA 26.11.03-1
 * Fixed inla.setOption without a matching binary
 
