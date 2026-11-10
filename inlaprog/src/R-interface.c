@@ -365,7 +365,6 @@ int inla_R_init_(void)
 				my_setenv(rhome, 0);
 			} else {
 				char *rrhome = NULL;
-
 				GMRFLib_sprintf(&rrhome, "R_HOME=%s", rhome);
 				my_setenv(rrhome, 0);
 			}

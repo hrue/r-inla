@@ -108,6 +108,7 @@ tar cfm - . 2>/dev/null | $COMPRESS | ssh -p$Port $sshArguments $RemoteUser@$Rem
     cd $rdir; \
     $UNCOMPRESS | tar xfm - 2>/dev/null ; \
     source $envfile; \
+    if type --path R >/dev/null 2>&1; then export R_HOME=\$(R RHOME); export INLA_R_HOME=\$R_HOME; fi;
     $RemoteINLA $args Model.ini < /dev/null"
 
 if [ $verbose == 1 ]; then
