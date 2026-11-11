@@ -1,22 +1,19 @@
 #' Computes (parts of) the inverse of a SPD sparse matrix
 #' 
-#' This routine use the GMRFLib implementation which compute parts of the
-#' inverse of a SPD sparse matrix.  The diagonal and values for the neighbours
-#' in the inverse, are provided.
+#' This routine use the GMRFLib implementation which compute parts of the inverse of a SPD
+#' sparse matrix. The diagonal and values for the neighbours in the inverse, are provided.
 #' 
 #' 
 #' @aliases inla.qinv qinv
 #' @param Q A SPD matrix, either as a (dense) matrix or sparseMatrix.
-#' @param constr Optional linear constraints; see `?INLA::f` and argument
-#' `extraconstr`
-#' @param reordering The type of reordering algorithm to be used for
-#' `TAUCS`; either one of the names listed in `inla.reorderings()` or
-#' the output from `inla.qreordering(Q)`.  The default is "auto" which try
-#' several reordering algorithm and use the best one for this particular
-#' matrix.
-#' @param num.threads Number of threads to be used
-#' @return `inla.qinv` returns a `sparseMatrix` of type
-#' `dgTMatrix` with the inverse of `Q`,  where `Q` itself is non-zero.
+#' @param constr Optional linear constraints; see `?INLA::f` and argument `extraconstr`
+#' @param reordering The type of reordering algorithm to be used for `TAUCS`; either one of the
+#'     names listed in `inla.reorderings()` or the output from `inla.qreordering(Q)`. The
+#'     default is "auto" which try several reordering algorithm and use the best one for this
+#'     particular matrix.
+#' @param num.threads Number of threads to use. If in format "A:B:C", then "A" is used.
+#' @return `inla.qinv` returns a `sparseMatrix` of type `dgTMatrix` with the inverse of `Q`,
+#'     where `Q` itself is non-zero.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
 #' 
@@ -38,16 +35,16 @@
 #' @export
 `inla.qinv` <- function(Q, constr = NULL, num.threads = NULL)
 {
-    if (!requireNamespace("sTiles", quietly = TRUE)) {
-        stop("package 'sTiles' is required")
+    Q <- inla.as.sparse(Q)
+    if (all(Q@i >= Q@j) || all(Q@i <= Q@j)) {
+        Q <- Q + t(Q)
+        diag(Q) <- diag(Q) / 2
     }
-    stopifnot(!missing(Q))
-    if (is.null(num.threads)) {
-        num.threads <- inla.getOption("num.threads")
-    }
-    num.threads <- strsplit(inla.parse.num.threads(num.threads), ":")[[1]][1]
 
-    s <- sTiles::sTiles(Q, inverse = TRUE, cores = num.threads)
+    if (is.null(num.threads)) num.threads <- inla.getOption("num.threads")
+    cores <- as.integer(max(1, strsplit(inla.parse.num.threads(num.threads), ":")[[1]][1]))
+
+    s <- sTiles::sTiles(Q, inverse = TRUE, cores = cores)
     Q.inv <- sTiles::sTiles_selinv_matrix(s)
     Q.inv <- inla.as.sparse(Q.inv)
     Q.graph <- Q
