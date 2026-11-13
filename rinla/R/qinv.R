@@ -14,62 +14,104 @@
 #' the output from `inla.qreordering(Q)`.  The default is "auto" which try
 #' several reordering algorithm and use the best one for this particular
 #' matrix.
-#' @param num.threads Number of threads to be used
+#' @param num.threads Maximum number of threads the `inla`-program will
+#' use, or as 'A:B' defining the number threads in the outer (A) and inner (B)
+#' layer for nested parallelism.
 #' @return `inla.qinv` returns a `sparseMatrix` of type
-#' `dgTMatrix` with the inverse of `Q`,  where `Q` itself is non-zero.
+#' `dgTMatrix` with the diagonal and values for the neigbours in the
+#' inverse. Note that the full inverse is NOT provided!
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
+#' 
 #' 
 #'  ## dense matrix example
 #'  n = 10
 #'  A = matrix(runif(n^2), n, n)
 #'  Q = A %*% t(A)
-#'  print(mean(abs(as.matrix(inla.qinv(Q)) - solve(Q))))
+#'  print(mean(abs(inla.qinv(Q) - solve(Q))))
 #' 
 #'  ## sparse matrix example
 #'  rho = 0.9
 #'  Q = toeplitz(c(1+rho^2, -rho,  rep(0, n-3), -rho)) / (1-rho^2)
 #'  Q = inla.as.dgTMatrix(Q)
 #'  Q.inv = inla.qinv(Q)
+#' 
+#'  ## compute the marginal variances as a vector from a precision matrix
 #'  marginal.variances = diag(inla.qinv(Q))
 #' 
+#'  ## read the sparse matrix from a file in the 'i, j, value' format
+#'  filename = tempfile()
+#'  write(t(cbind(Q@i+1L,  Q@j+1L,  Q@x)), ncol=3, file=filename)
+#'  Qinv = inla.qinv(filename)
+#'  unlink(filename)
+#'  
 #' @name qinv
 #' @rdname qinv
 #' @export
-`inla.qinv` <- function(Q, constr = NULL, num.threads = NULL)
-{
-    if (!requireNamespace("sTiles", quietly = TRUE)) {
-        stop("package 'sTiles' is required")
-    }
-    stopifnot(!missing(Q))
+`inla.qinv` <- function(Q, constr, reordering = INLA::inla.reorderings(),
+                        num.threads = NULL) {
+    t.dir <- inla.tempdir()
+    smtp <- match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "stiles"))
+    ## The sTiles backend serves the main inference program; these one-shot
+    ## helper runs gain nothing from it and predate its group setup, so fall
+    ## back the same way the binary itself does for classic mode. Without
+    ## this, ANY helper call dies in match.arg once the session has
+    ## inla.setOption(smtp = "stiles") -- found by the cgeneric smoke test
+    ## (fbesag scales its model, which calls inla.qinv).
+    if (identical(smtp, "stiles")) smtp <- "taucs"
     if (is.null(num.threads)) {
         num.threads <- inla.getOption("num.threads")
     }
-    num.threads <- strsplit(inla.parse.num.threads(num.threads), ":")[[1]][1]
+    num.threads <- inla.parse.num.threads(num.threads)
 
-    s <- sTiles::sTiles(Q, inverse = TRUE, cores = num.threads)
-    Q.inv <- sTiles::sTiles_selinv_matrix(s)
-    Q.inv <- inla.as.sparse(Q.inv)
-    Q.graph <- Q
-    Q.graph[Q.graph != 0.0] <- 1
-    Q.inv <- inla.as.sparse(Q.inv * Q.graph)
-
-    if (!is.null(constr)) {
-        stopifnot(is.matrix(constr$A))
-        Qinv_At <- as.matrix(sTiles::sTiles_solve(s, t(constr$A)))
-        LL <- t(chol(solve(constr$A %*% Qinv_At)))
-        BB <- Qinv_At %*% LL
-        ii <- Q.inv@i + 1L
-        jj <- Q.inv@j + 1L
-        d  <- numeric(length(ii))
-        for (l in seq_len(ncol(BB))) {
-            d <- d + BB[ii, l] * BB[jj, l]
-        }
-        Q.inv@x <- Q.inv@x - d
+    Q <- inla.sparse.check(Q)
+    if (is(Q, "dgTMatrix")) {
+        qinv.file <- inla.write.fmesher.file(Q, filename = inla.tempfile(tmpdir = t.dir))
+    } else if (is.character(Q)) {
+        qinv.file <- Q
+    } else {
+        stop("This chould not happen.")
     }
 
-    Q.graph <- NULL
-    sTiles::sTiles_close(s)
+    constr.file <- inla.tempfile(tmpdir = t.dir)
+    if (!missing(constr) && !is.null(constr)) {
+        stopifnot(is.list(constr))
+        A <- as.matrix(constr$A)
+        e <- as.numeric(constr$e)
+        stopifnot(ncol(A) == ncol(Q))
+        stopifnot(nrow(A) == length(e))
+        xx <- matrix(c(nrow(A), c(A), c(e)), ncol = 1)
+        inla.write.fmesher.file(xx, filename = constr.file)
+    }
 
-    return(Q.inv)
+    if (is.list(reordering)) {
+        ## argument is the output from inla.qreordering()
+        reordering <- reordering$name
+    }
+    reordering <- match.arg(reordering)
+
+    inla.set.environment()
+    env <- inla.run.environment.set()
+    out.file <- inla.tempfile(tmpdir = t.dir)
+    if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
+        s <- system(paste(
+            shQuote(inla.call.no.remote()), "-s -m qinv",
+            "-r", reordering, "-S", smtp, paste0("-t", num.threads),
+            qinv.file, constr.file, out.file
+        ), intern = TRUE)
+    } else if (inla.os("windows")) {
+        s <- system(paste(
+            shQuote(inla.call.no.remote()), "-s -m qinv",
+            "-r", reordering, "-S", smtp, paste0("-t", num.threads),
+            qinv.file, constr.file, out.file
+        ), intern = TRUE)
+    } else {
+        stop("\n\tNot supported architecture.")
+    }
+    inla.run.environment.unset(env)
+    
+    Qinv <- inla.read.fmesher.file(out.file)
+    unlink(t.dir, recursive = TRUE)
+
+    return(Qinv)
 }
