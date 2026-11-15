@@ -17,19 +17,28 @@
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
 #' 
+#' 
 #'  ## dense matrix example
 #'  n = 10
 #'  A = matrix(runif(n^2), n, n)
 #'  Q = A %*% t(A)
-#'  print(mean(abs(as.matrix(inla.qinv(Q)) - solve(Q))))
+#'  print(mean(abs(inla.qinv(Q) - solve(Q))))
 #' 
 #'  ## sparse matrix example
 #'  rho = 0.9
 #'  Q = toeplitz(c(1+rho^2, -rho,  rep(0, n-3), -rho)) / (1-rho^2)
 #'  Q = inla.as.dgTMatrix(Q)
 #'  Q.inv = inla.qinv(Q)
+#' 
+#'  ## compute the marginal variances as a vector from a precision matrix
 #'  marginal.variances = diag(inla.qinv(Q))
 #' 
+#'  ## read the sparse matrix from a file in the 'i, j, value' format
+#'  filename = tempfile()
+#'  write(t(cbind(Q@i+1L,  Q@j+1L,  Q@x)), ncol=3, file=filename)
+#'  Qinv = inla.qinv(filename)
+#'  unlink(filename)
+#'  
 #' @name qinv
 #' @rdname qinv
 #' @export
@@ -51,22 +60,45 @@
     Q.graph[Q.graph != 0.0] <- 1
     Q.inv <- inla.as.sparse(Q.inv * Q.graph)
 
-    if (!is.null(constr)) {
-        stopifnot(is.matrix(constr$A))
-        Qinv_At <- as.matrix(sTiles::sTiles_solve(s, t(constr$A)))
-        LL <- t(chol(solve(constr$A %*% Qinv_At)))
-        BB <- Qinv_At %*% LL
-        ii <- Q.inv@i + 1L
-        jj <- Q.inv@j + 1L
-        d  <- numeric(length(ii))
-        for (l in seq_len(ncol(BB))) {
-            d <- d + BB[ii, l] * BB[jj, l]
-        }
-        Q.inv@x <- Q.inv@x - d
+    constr.file <- inla.tempfile(tmpdir = t.dir)
+    if (!missing(constr) && !is.null(constr)) {
+        stopifnot(is.list(constr))
+        A <- as.matrix(constr$A)
+        e <- as.numeric(constr$e)
+        stopifnot(ncol(A) == ncol(Q))
+        stopifnot(nrow(A) == length(e))
+        xx <- matrix(c(nrow(A), c(A), c(e)), ncol = 1)
+        inla.write.fmesher.file(xx, filename = constr.file)
     }
 
-    Q.graph <- NULL
-    sTiles::sTiles_close(s)
+    if (is.list(reordering)) {
+        ## argument is the output from inla.qreordering()
+        reordering <- reordering$name
+    }
+    reordering <- match.arg(reordering)
 
-    return(Q.inv)
+    inla.set.environment()
+    env <- inla.run.environment.set()
+    out.file <- inla.tempfile(tmpdir = t.dir)
+    if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
+        s <- system(paste(
+            shQuote(inla.call.no.remote()), "-s -m qinv",
+            "-r", reordering, "-S", smtp, paste0("-t", num.threads),
+            qinv.file, constr.file, out.file
+        ), intern = TRUE)
+    } else if (inla.os("windows")) {
+        s <- system(paste(
+            shQuote(inla.call.no.remote()), "-s -m qinv",
+            "-r", reordering, "-S", smtp, paste0("-t", num.threads),
+            qinv.file, constr.file, out.file
+        ), intern = TRUE)
+    } else {
+        stop("\n\tNot supported architecture.")
+    }
+    inla.run.environment.unset(env)
+    
+    Qinv <- inla.read.fmesher.file(out.file)
+    unlink(t.dir, recursive = TRUE)
+
+    return(Qinv)
 }
