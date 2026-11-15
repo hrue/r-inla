@@ -2895,16 +2895,8 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
                    ",  which do not corresponds to the number of fitted models", length(models)))
     }
 
-    res <- rep(list(list()), length(models))
-    
-    if (inla.os("windows") || (interactive() && Sys.getenv("POSITRON") == "1")) {
-        for(i in seq_along(models)) {
-            res[[i]] <- inla.collect.results(models[i])
-        }
-    } else {
-        res <- parallel::mclapply(seq_along(models),
-                                  function(i) inla.collect.results(models[i]))
-    }
+    res <- inla.mclapply(seq_along(models), function(i) inla.collect.results(models[i]))
+
     if (!verbose) {
         if (file.exists(file.log)) res[[1]]$logfile <- readLines(file.log)
         if (file.exists(file.log2)) res[[1]]$logfile2 <- readLines(file.log2)
