@@ -36,7 +36,65 @@
 #' @rdname qsolve
 #' @export
 
-`inla.qsolve` <- function(Q, B, method = c("solve", "forward", "backward"), num.threads = "2L")
+`inla.qsolve` <- function(Q, B, reordering = inla.reorderings(),
+                               method = c("solve", "forward", "backward"))
+{
+    t.dir <- inla.tempdir()
+    smtp <- match.arg(inla.getOption("smtp"), c("stiles", "taucs", "band", "default"))
+    Q <- inla.sparse.check(Q)
+    if (is(Q, "dgTMatrix")) {
+        Qfile <- inla.write.fmesher.file(Q, filename = inla.tempfile(tmpdir = t.dir))
+    } else if (is.character(Q)) {
+        Qfile <- Q
+    } else {
+        stop("This should not happen.")
+    }
+
+    ## ensure B is a dense matrix if its a sparse
+    if (is(B, "Matrix")) {
+        B <- as.matrix(B)
+    }
+    if (is.matrix(B)) {
+        Bfile <- inla.write.fmesher.file(B, filename = inla.tempfile(tmpdir = t.dir))
+    } else if (is.character(B)) {
+        Bfile <- B
+    } else {
+        stop("This should not happen.")
+    }
+
+    if (is.list(reordering)) {
+        ## argument is the output from inla.qreordering()
+        reordering <- reordering$name
+    }
+    reordering <- match.arg(reordering)
+    method <- match.arg(method)
+
+    inla.set.environment()
+    env <- inla.run.environment.set()
+    Xfile <- inla.tempfile(tmpdir = t.dir)
+    if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
+        s <- system(paste(
+            shQuote(inla.call.no.remote()), "-s -m qsolve", "-r",
+            reordering, "-S", smtp, Qfile, Xfile, Bfile, method
+        ), intern = TRUE)
+    } else if (inla.os("windows")) {
+        s <- system(paste(
+            shQuote(inla.call.no.remote()), "-s -m qsolve", "-r",
+            reordering, "-S", smtp, Qfile, Xfile, Bfile, method
+        ), intern = TRUE)
+    } else {
+        stop("\n\tNot supported architecture.")
+    }
+
+    inla.run.environment.unset(env)
+    X <- inla.read.fmesher.file(Xfile)
+    unlink(t.dir, recursive = TRUE)
+
+    return(X)
+}
+
+`inla.qsolve.stiles` <- function(Q, B, method = c("solve", "forward", "backward"),
+                                 num.threads = NULL)
 {
     Q <- inla.as.sparse(Q)
     if (all(Q@i >= Q@j) || all(Q@i <= Q@j)) {
@@ -45,7 +103,10 @@
     }
 
     if (is.null(num.threads)) num.threads <- inla.getOption("num.threads")
-    cores <- as.integer(max(1, strsplit(inla.parse.num.threads(num.threads), ":")[[1]][1]))
+    cores <- numeric(2)
+    cores[1] <- max(1, as.integer(strsplit(inla.parse.num.threads(num.threads), ":")[[1]][1]))
+    cores[2] <- max(1, as.integer(strsplit(inla.parse.num.threads(num.threads), ":")[[1]][2]))
+    cores <- prod(cores)
 
     method <- match.arg(method)
     if (method == "solve") {

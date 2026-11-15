@@ -17,48 +17,43 @@
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
 #' 
-#' 
 #'  ## dense matrix example
 #'  n = 10
 #'  A = matrix(runif(n^2), n, n)
 #'  Q = A %*% t(A)
-#'  print(mean(abs(inla.qinv(Q) - solve(Q))))
+#'  print(mean(abs(as.matrix(inla.qinv(Q)) - solve(Q))))
 #' 
 #'  ## sparse matrix example
 #'  rho = 0.9
 #'  Q = toeplitz(c(1+rho^2, -rho,  rep(0, n-3), -rho)) / (1-rho^2)
 #'  Q = inla.as.dgTMatrix(Q)
 #'  Q.inv = inla.qinv(Q)
-#' 
-#'  ## compute the marginal variances as a vector from a precision matrix
 #'  marginal.variances = diag(inla.qinv(Q))
 #' 
-#'  ## read the sparse matrix from a file in the 'i, j, value' format
-#'  filename = tempfile()
-#'  write(t(cbind(Q@i+1L,  Q@j+1L,  Q@x)), ncol=3, file=filename)
-#'  Qinv = inla.qinv(filename)
-#'  unlink(filename)
-#'  
 #' @name qinv
 #' @rdname qinv
 #' @export
-`inla.qinv` <- function(Q, constr = NULL, num.threads = NULL)
+`inla.qinv` <- function(Q, constr, reordering = INLA::inla.reorderings(),
+                        num.threads = NULL)
 {
-    Q <- inla.as.sparse(Q)
-    if (all(Q@i >= Q@j) || all(Q@i <= Q@j)) {
-        Q <- Q + t(Q)
-        diag(Q) <- diag(Q) / 2
+    t.dir <- inla.tempdir()
+    smtp <- match.arg(inla.getOption("smtp"), c("stiles", "taucs", "band", "default"))
+    if (is.null(num.threads)) {
+        num.threads <- inla.getOption("num.threads")
     }
-
-    if (is.null(num.threads)) num.threads <- inla.getOption("num.threads")
-    cores <- as.integer(max(1, strsplit(inla.parse.num.threads(num.threads), ":")[[1]][1]))
-
-    s <- sTiles::sTiles(Q, inverse = TRUE, cores = cores)
-    Q.inv <- sTiles::sTiles_selinv_matrix(s)
-    Q.inv <- inla.as.sparse(Q.inv)
-    Q.graph <- Q
-    Q.graph[Q.graph != 0.0] <- 1
-    Q.inv <- inla.as.sparse(Q.inv * Q.graph)
+    cores <- numeric(2)
+    cores[1] <- max(1, as.integer(strsplit(inla.parse.num.threads(num.threads), ":")[[1]][1]))
+    cores[2] <- max(1, as.integer(strsplit(inla.parse.num.threads(num.threads), ":")[[1]][2]))
+    nt <- paste0("-t", prod(cores))
+    
+    Q <- inla.sparse.check(Q)
+    if (is(Q, "dgTMatrix")) {
+        qinv.file <- inla.write.fmesher.file(Q, filename = inla.tempfile(tmpdir = t.dir))
+    } else if (is.character(Q)) {
+        qinv.file <- Q
+    } else {
+        stop("This chould not happen.")
+    }
 
     constr.file <- inla.tempfile(tmpdir = t.dir)
     if (!missing(constr) && !is.null(constr)) {
@@ -83,13 +78,13 @@
     if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
         s <- system(paste(
             shQuote(inla.call.no.remote()), "-s -m qinv",
-            "-r", reordering, "-S", smtp, paste0("-t", num.threads),
+            "-r", reordering, "-S", smtp, nt, 
             qinv.file, constr.file, out.file
         ), intern = TRUE)
     } else if (inla.os("windows")) {
         s <- system(paste(
             shQuote(inla.call.no.remote()), "-s -m qinv",
-            "-r", reordering, "-S", smtp, paste0("-t", num.threads),
+            "-r", reordering, "-S", smtp, nt, 
             qinv.file, constr.file, out.file
         ), intern = TRUE)
     } else {
@@ -102,3 +97,42 @@
 
     return(Qinv)
 }
+
+`inla.qinv.stiles` <- function(Q, constr = NULL, num.threads = NULL)
+{
+    Q <- inla.as.sparse(Q)
+    if (all(Q@i >= Q@j) || all(Q@i <= Q@j)) {
+        Q <- Q + t(Q)
+        diag(Q) <- diag(Q) / 2
+    }
+
+    if (is.null(num.threads)) num.threads <- inla.getOption("num.threads")
+    cores <- max(1, as.integer(strsplit(inla.parse.num.threads(num.threads), ":")[[1]][1]))
+
+    s <- sTiles::sTiles(Q, inverse = TRUE, cores = cores)
+    Q.inv <- sTiles::sTiles_selinv_matrix(s)
+    Q.inv <- inla.as.sparse(Q.inv)
+    Q.graph <- Q
+    Q.graph[Q.graph != 0.0] <- 1
+    Q.inv <- inla.as.sparse(Q.inv * Q.graph)
+
+    if (!is.null(constr)) {
+        stopifnot(is.matrix(constr$A))
+        Qinv_At <- as.matrix(sTiles::sTiles_solve(s, t(constr$A)))
+        LL <- t(chol(solve(constr$A %*% Qinv_At)))
+        BB <- Qinv_At %*% LL
+        ii <- Q.inv@i + 1L
+        jj <- Q.inv@j + 1L
+        d  <- numeric(length(ii))
+        for (l in seq_len(ncol(BB))) {
+            d <- d + BB[ii, l] * BB[jj, l]
+        }
+        Q.inv@x <- Q.inv@x - d
+    }
+
+    Q.graph <- NULL
+    sTiles::sTiles_close(s)
+
+    return(Q.inv)
+}
+
