@@ -39,7 +39,7 @@ inla.sparse.det.bym <- function(Q,
                                 adjust.for.con.comp = TRUE,
                                 log = TRUE,
                                 constr = NULL,
-                                eps = 0.01 * sqrt(.Machine$double.eps))
+                                eps = 1.0 * sqrt(.Machine$double.eps))
 {
     ## compute the (log-)determinant. Assume a sum to zero constraint on each connected
     ## component >1. if 'constr' is given,  it is supposed to be the 'constr' that is
@@ -69,14 +69,14 @@ inla.sparse.det.bym <- function(Q,
     return(if (log) logdet else exp(logdet))
 }
 
-inla.scale.model.bym <- function(Q, eps = 0.01 * sqrt(.Machine$double.eps), adjust.for.con.comp = TRUE)
+inla.scale.model.bym <- function(Q, eps = 1.0 * sqrt(.Machine$double.eps), adjust.for.con.comp = TRUE)
 {
     ## the old version
     res <- inla.scale.model.bym.internal(Q = Q, adjust.for.con.comp = adjust.for.con.comp, eps = eps)
     return(res$Q)
 }
 
-inla.scale.model.bym.internal <- function(Q, eps = 0.01 * sqrt(.Machine$double.eps),
+inla.scale.model.bym.internal <- function(Q, eps = 1.0 * sqrt(.Machine$double.eps),
                                           adjust.for.con.comp = TRUE)
 {
     ## the new one which also return the (scaled) marginal variances
@@ -94,7 +94,10 @@ inla.scale.model.bym.internal <- function(Q, eps = 0.01 * sqrt(.Machine$double.e
         constr <- list(A = matrix(1, nrow = 1, ncol = n), e = 0)
 
         num.threads <- inla.getOption("num.threads")
-        cores <- as.integer(max(1, strsplit(inla.parse.num.threads(num.threads), ":")[[1]][1]))
+        cores <- numeric(2)
+        cores[1] <- as.integer(max(1, strsplit(inla.parse.num.threads(num.threads), ":")[[1]][1]))
+        cores[2] <- as.integer(max(1, strsplit(inla.parse.num.threads(num.threads), ":")[[1]][2]))
+        cores <- prod(cores)
 
         res <- inla.qinv(QQ + Diagonal(n) * mean(diag(QQ)) * eps, constr = constr,
                          num.threads = as.character(cores))
@@ -128,7 +131,7 @@ inla.pc.bym.phi <- function(graph,
                             return.as.table = FALSE,
                             adjust.for.con.comp = TRUE,
                             ## where to switch to alternative strategy
-                            eps = 0.01 * sqrt(.Machine$double.eps),
+                            eps = 1.0 * sqrt(.Machine$double.eps),
                             debug = FALSE)
 {
     my.debug <- function(...) if (debug) cat("*** debug *** inla.pc.bym.phi: ", ..., "\n")
