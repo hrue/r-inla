@@ -1,25 +1,23 @@
-#' Compute log-determinants for a GMRF 
-#' 
-#' Computes the log-determinant of (Q + d * I) with optional constraints, for a possible sequence of d's
-#' 
-#' @aliases inla.qsample qsample
-#' @param Q The precision matrix or a filename containing it.
-#' @param d A possible vector of values (default d=0)
-#' @param constr Optional linear constraints; see `?INLA::f` and argument `extraconstr`
-#' @param num.threads Number of threads to use. If in format "A:B:C", then "A" is used.
-#' @return The log-determinant of (Q + d * I) 
-#' 
-#' @author Havard Rue \email{hrue@@r-inla.org}
-#' @examples
-#' 
-#' @name qlogdet
-#' @rdname qlogdet
-#' @export
+### #' Compute log-determinants for a GMRF 
+### #' 
+### #' Computes the log-determinant of (Q + d * I) with optional constraints, for a possible sequence of d's
+### #' 
+### #' @aliases inla.qsample qsample
+### #' @param Q The precision matrix or a filename containing it.
+### #' @param d A possible vector of values (default d=0)
+### #' @param constr Optional linear constraints; see `?INLA::f` and argument `extraconstr`
+### #' @param num.threads Number of threads to use. If in format "A:B:C", then "A" is used.
+### #' @return The log-determinant of (Q + d * I) 
+### #' 
+### #' @author Havard Rue \email{hrue@@r-inla.org}
+### #' @examples
+### #' 
+### #' @name qlogdet
+### #' @rdname qlogdet
+### #' @export
 
 `inla.qlogdet` <- function(Q, d = 0, constr, num.threads = NULL)
 {
-    cat("Calling qlogdet\n")
-    
     t.dir <- inla.tempdir()
     smtp <- match.arg(inla.getOption("smtp"), c("stiles", "taucs", "band", "default"))
     stopifnot(!missing(Q))
