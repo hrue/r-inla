@@ -50,19 +50,19 @@ inla.sparse.det.bym <- function(Q,
     res <- NULL
 
     if (is.null(constr)) {
-        res <- inla.bym.constr.internal(Q, adjust.for.con.comp = adjust.for.con.comp)
-        constr <- res$constr
+        constr <- inla.bym.constr.internal(Q, adjust.for.con.comp = adjust.for.con.comp)$constr
     }
-    if (missing(rankdef)) {
-        if (!is.null(constr)) {
-            rankdef <- nrow(constr$A)
-        } else {
-            rankdef <- 0
-        }
+    if (missing(rankdef) || is.null(rankdef)) {
+        rankdef <- nrow(constr$A)
     }
+    
+    num.threads <- inla.getOption("num.threads")
+    cores <- as.integer(max(1, strsplit(inla.parse.num.threads(num.threads), ":")[[1]][2]))
+
     d <- diag(Q)
     diag(Q) <- d + mean(d) * eps
-    res <- inla.qsample(n = 1, Q = Q, sample = matrix(0, n, 1), constr = constr)
+    res <- inla.qsample(n = 1, Q = Q, sample = matrix(0, n, 1), constr = constr,
+                        num.threads = as.character(cores))
     logdet <- 2.0 * (res$logdens + (n - rankdef) / 2.0 * log(2.0 * pi))
     return(if (log) logdet else exp(logdet))
 }
@@ -87,7 +87,12 @@ inla.scale.model.bym.internal <- function(Q, eps = sqrt(.Machine$double.eps), ad
         QQ <- inla.as.sparse(QQ)
         n <- dim(QQ)[1]
         constr <- list(A = matrix(1, nrow = 1, ncol = n), e = 0)
-        res <- inla.qinv(QQ + Diagonal(n) * mean(diag(QQ)) * eps, constr = constr)
+
+        num.threads <- inla.getOption("num.threads")
+        cores <- as.integer(max(1, strsplit(inla.parse.num.threads(num.threads), ":")[[1]][1]))
+
+        res <- inla.qinv(QQ + Diagonal(n) * mean(diag(QQ)) * eps, constr = constr,
+                         num.threads = as.character(cores))
         fac <- exp(mean(log(diag(res))))
         QQ <- fac * QQ
         Q[idx, idx] <- QQ
@@ -141,7 +146,7 @@ inla.pc.bym.phi <- function(graph,
             stop("Only one of <Q> and <graph> can be given.")
         }
 
-        res <- inla.bym.constr.internal(Q, adjust.for.con.comp = adjust.for.con.comp)
+        res.constr <- inla.bym.constr.internal(Q, adjust.for.con.comp = adjust.for.con.comp)
         if (missing(rankdef)) {
             rankdef <- res$rankdef
         }
@@ -177,39 +182,84 @@ inla.pc.bym.phi <- function(graph,
         }
     } else {
         ## alternative strategy for larger matrices
-        phi.s <- 1 / (1 + exp(-c(seq(-15, 0, length.out = 40), 1:12)))
-        d <- numeric(length(phi.s))
-        log.q1.det <- inla.sparse.det.bym(Q,
-            adjust.for.con.comp = adjust.for.con.comp,
-            constr = res$constr, rankdef = rankdef
-        )
-        d <- c(unlist(
-            inla.mclapply(
-                phi.s,
-                function(phi) {
+        phi.s <- 1 / (1 + exp(-c(seq(-15, 0, length.out = 16), 1:12)))
+        if (FALSE) {
+            ## old code
+            d <- numeric(length(phi.s))
+            log.q1.det <- inla.sparse.det.bym(Q,
+                                              adjust.for.con.comp = adjust.for.con.comp,
+                                              constr = res.constr$constr, rankdef = rankdef
+                                              )
+            d <- c(unlist(
+                inla.mclapply(
+                    phi.s,
+                    function(phi) {
                     aa <- n * phi * f
                     bb <- (n * log((1.0 - phi) / phi) +
-                        inla.sparse.det.bym(Q + phi / (1 - phi) * Diagonal(n),
-                            adjust.for.con.comp = adjust.for.con.comp,
-                            constr = res$constr, rankdef = rankdef
-                        ) -
-                        (log.q1.det - n * log(phi)))
+                           inla.sparse.det.bym(Q + phi / (1 - phi) * Diagonal(n),
+                                               adjust.for.con.comp = adjust.for.con.comp,
+                                               constr = res.constr$constr, rankdef = rankdef
+                                               ) -
+                           (log.q1.det - n * log(phi)))
                     my.debug("aa=", aa, " bb=", bb, " sqrt(", aa - bb, ")")
                     return(if (aa >= bb) sqrt(aa - bb) else NA)
                 }
-            )
-        ))
+                )
+            ))
+        } else {
+            if (FALSE) {
+                diag(Q) <- diag(Q) + 1
+                S <- solve(Q)
+                S <- S / exp(mean(log(diag(S))))
+                Q <- solve(S)
+
+                constr <- list(A = matrix(1, 1, nrow(Q)), e = 0)
+                a <- inla.sparse.det.bym(Q, constr = constr, rankdef = 1, eps = 0)
+                b <- inla.qlogdet(Q, d = 0.0, constr = constr)
+
+                A <- constr$A
+                SS <- S - S %*% t(A) %*% solve(A %*% S %*% t(A)) %*% A %*% S
+                cc <- -sum(log(eigen(SS)$values[1:(nrow(Q)-1)]))
+                print(c(a, b, cc))
+            }
+
+            if (FALSE) {
+                ## do the parallel better
+                phi.ss <- c(0, phi.s)
+                d <- c(unlist(
+                    inla.mclapply(
+                        phi.ss,
+                        function(phi) {
+                        return (inla.sparse.det.bym(Q + phi / (1 - phi) * Diagonal(n),
+                                                    adjust.for.con.comp = adjust.for.con.comp,
+                                                    constr = res.constr$constr,
+                                                    rankdef = rankdef))
+                    })))
+                log.q1.det <- d[1]
+                d <- d[-1]
+                aa <- n * phi.s * f
+                bb <- (n * log((1.0 - phi.s) / phi.s) + d - (log.q1.det - n * log(phi.s)))
+                d <- sqrt(pmax(0, aa-bb))
+            } else {
+                browser()
+                ## do even better
+                phi.ss <- c(0, phi.s)
+                d <- inla.qlogdet(Q, d = phi.ss/(1.0 - phi.ss), constr = res.constr$constr)
+                log.q1.det <- d[1]
+                d <- d[-1]
+                aa <- n * phi.s * f
+                bb <- (n * log((1.0 - phi.s) / phi.s) + d - (log.q1.det - n * log(phi.s)))
+                d <- sqrt(pmax(0, aa-bb))
+            }
+        }
     }
     names(d) <- NULL
 
     ## remove phi's that failed, if any
-    remove <- is.na(d)
-    my.debug(paste(sum(remove), "out of", length(remove), "removed"))
-    d <- d[!remove]
-    phi.s <- phi.s[!remove]
-    remove <- 1:6
-    d <- d[-remove]
-    phi.s <- phi.s[-remove]
+    idx.keep <- which(d > 0.0)
+    d <- d[idx.keep]
+    phi.s <- phi.s[idx.keep]
+
     phi.intern <- log(phi.s / (1 - phi.s))
     ff.d <- splinefun(phi.intern, log(d))
     phi.intern <- seq(min(phi.intern) - 0, max(phi.intern), length.out = 10000)
