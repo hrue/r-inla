@@ -2158,7 +2158,7 @@
     ## write the list of environment variables set, so they can be reset if needed
     eenv <- Sys.getenv()
     eenv.n <- names(eenv)
-    idx <- grep("^(INLA_|(OPENBLAS|MKL|BLIS)_NUM_THREADS|OMP_|MIMALLOC_|MALLOC_CONF|TSAN_OPTIONS)", eenv.n)
+    idx <- grep("^(INLA_|(OPENBLAS|MKL|BLIS)_NUM_THREADS|OMP_|MIMALLOC_)", eenv.n)
     eenv.list <- eenv[idx]
     file.eenv <- paste0(inla.dir, "/environment")
     cat(file = file.eenv)
@@ -2755,8 +2755,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
         INLA_OS = inla.os.type(),
         INLA_VERSION = paste0("Version_", inla.version("version")), 
         INLA_RVERSION = R.Version()$version.string, 
-        INLA_RHOME = R.home(),
-        INLA_MALLOC_LIB = inla.getOption("malloc.lib")
+        INLA_RHOME = R.home()
     )
     do.call("Sys.setenv", vars)
     return (invisible())
@@ -2773,9 +2772,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
                   "MIMALLOC_PURGE_DECOMMITS",
                   "MIMALLOC_SHOW_STATS", 
                   "MIMALLOC_VERBOSE", 
-                  "MIMALLOC_SHOW_ERRORS", 
-                  "MALLOC_CONF",
-                  "TSAN_OPTIONS")
+                  "MIMALLOC_SHOW_ERRORS")
     ## save current values
     env.vars.value <- Sys.getenv(env.vars)
     ## unset and then set defaults
@@ -2786,9 +2783,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
         MIMALLOC_PURGE_DECOMMITS = 0,
         MIMALLOC_SHOW_STATS = 0, 
         MIMALLOC_VERBOSE = 0, 
-        MIMALLOC_SHOW_ERRORS = 0, 
-        MALLOC_CONF = "abort_conf:true,metadata_thp:always,dirty_decay_ms:-1,percpu_arena:percpu",
-        TSAN_OPTIONS = "ignore_noninstrumented_modules=1" 
+        MIMALLOC_SHOW_ERRORS = 0
     )
     return (list(vars = env.vars, values = env.vars.value))
 }
