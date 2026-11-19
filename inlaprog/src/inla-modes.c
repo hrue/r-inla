@@ -187,7 +187,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		Free(state);
 	}
 
-	int i, ns = 0;
+	int ns = 0;
 	GMRFLib_tabulate_Qfunc_tp *tab = NULL;
 	GMRFLib_graph_tp *graph = NULL;
 	GMRFLib_problem_tp *problem = NULL;
@@ -291,7 +291,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
-		for (i = 0; i < ns; i++) {
+		for (int i = 0; i < ns; i++) {
 			if (!S) {
 				GMRFLib_sample(problem);
 			} else {
@@ -316,8 +316,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	} else {
 		GMRFLib_problem_tp **problems = Calloc(GMRFLib_openmp->max_threads_outer, GMRFLib_problem_tp *);
 
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
-		for (i = 0; i < ns; i++) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+		for (int i = 0; i < ns; i++) {
 			int thread = omp_get_thread_num();
 
 			if (problems[thread] == NULL) {
@@ -377,6 +377,88 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 				 fprintf(stderr, "inla_qsample: total time %.2fs\n", GMRFLib_timer() - t_reff);
 		    );
 	}
+
+	return 0;
+}
+
+int inla_qlogdet(const char *filename, const char *dfile, const char *constrfile, const char *outfile)
+{
+	FILE *fp = NULL;
+	GMRFLib_tabulate_Qfunc_tp *tab = NULL;
+	GMRFLib_graph_tp *graph = NULL;
+	GMRFLib_problem_tp *problem = NULL;
+	GMRFLib_matrix_tp *constr_x = NULL, *dM;
+	GMRFLib_constr_tp *constr = NULL;
+
+	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL);
+	dM = GMRFLib_read_fmesher_file(dfile, 0L, SEEK_CUR);
+
+	int nd = dM->nrow;
+	if (0) {
+		for(int i = 0; i < nd; i++) {
+			fprintf(stderr, "d[%1d] = %g\n", i, GMRFLib_matrix_get(i, 0, dM));
+		}
+	}
+
+	fp = fopen(constrfile, "r");
+	if (fp) {
+		fclose(fp);
+		constr_x = GMRFLib_read_fmesher_file(constrfile, 0L, SEEK_CUR);
+		if (constr_x->A[0] > 0) {
+			constr = Calloc(1, GMRFLib_constr_tp);
+			constr->nc = (int) constr_x->A[0];
+			constr->a_matrix = &constr_x->A[1];
+			constr->e_vector = &constr_x->A[constr->nc * graph->n + 1];
+			GMRFLib_prepare_constr(constr, graph, 1);
+		}
+		GMRFLib_printf_constr(stderr, constr, graph);
+	}
+
+	if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
+		GMRFLib_reorder = GMRFLib_REORDER_BAND;
+	} else if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		GMRFLib_reorder = GMRFLib_REORDER_STILES;
+	} else {
+		GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
+		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
+	}
+
+
+	GMRFLib_openmp->max_threads_outer = GMRFLib_openmp->max_threads_nested[0] = 1;
+	GMRFLib_openmp->max_threads_inner = GMRFLib_openmp->max_threads_nested[1] = 8;
+
+	int thread_id = 0;
+	Assert(omp_get_thread_num() == 0);
+	GMRFLib_stiles_idx_tp *stiles_idx = NULL;
+	if (GMRFLib_smtp == GMRFLib_SMTP_STILES) {
+		stiles_idx = Calloc(1, GMRFLib_stiles_idx_tp);
+		stiles_idx->in_group = 0;
+		stiles_idx->within_group = 0;
+		GMRFLib_ptr_tp *graphs = NULL;
+
+		GMRFLib_ptr_add(&graphs, (void *) graph);
+		GMRFLib_stiles_setup_tp setup = { graphs, NULL };
+		GMRFLib_stiles_setup(&setup);
+		GMRFLib_stiles_bind(stiles_idx);
+	}
+
+	double *d = Calloc(nd, double);
+	double *c = Malloc(graph->n, double);
+	GMRFLib_store_tp *store = Calloc(1, GMRFLib_store_tp);
+
+#pragma omp parallel for num_threads(1)
+	for(int i = 0; i < nd; i++) {
+		GMRFLib_dfill(graph->n, GMRFLib_matrix_get(i, 0, dM), c);
+		GMRFLib_init_problem_store(thread_id, &problem, NULL, NULL, c, NULL, graph, tab->Qfunc, tab->Qfunc_arg, constr,
+					   store, stiles_idx, NULL);
+		d[i] = 2.0 * problem->log_normc + problem->logdet_aqat - problem->logdet_aat;
+	}
+	GMRFLib_matrix_tp *CM = Calloc(1, GMRFLib_matrix_tp);
+	CM->nrow = nd;
+	CM->ncol = 1;
+	CM->elems = CM->ncol * CM->nrow;
+	CM->A = d;
+	GMRFLib_write_fmesher_file(CM, outfile, (long int) 0, -1);
 
 	return 0;
 }

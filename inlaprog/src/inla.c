@@ -7536,6 +7536,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_QREORDERING;
 			} else if (!strncasecmp(optarg, "QSAMPLE", 7)) {
 				G.mode = INLA_MODE_QSAMPLE;
+			} else if (!strncasecmp(optarg, "QLOGDET", 7)) {
+				G.mode = INLA_MODE_QLOGDET;
 			} else if (!strncasecmp(optarg, "FINN", 4)) {
 				G.mode = INLA_MODE_FINN;
 			} else if (!strncasecmp(optarg, "GRAPH", 5)) {
@@ -7660,7 +7662,7 @@ int main(int argc, char **argv)
 
 		case 'z':
 		{
-			if (!(G.mode == INLA_MODE_FINN || G.mode == INLA_MODE_QSAMPLE || G.mode == INLA_MODE_TESTIT)) {
+			if (!(G.mode == INLA_MODE_FINN || G.mode == INLA_MODE_QSAMPLE || G.mode == INLA_MODE_QLOGDET || G.mode == INLA_MODE_TESTIT)) {
 				LOG_ERROR("Option `-z seed' only available in selected modes");
 				exit(EXIT_FAILURE);
 			} else {
@@ -7802,6 +7804,13 @@ int main(int argc, char **argv)
 	{
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8], argv[optind + 9], verbose);
+		exit(EXIT_SUCCESS);
+	}
+		break;
+
+	case INLA_MODE_QLOGDET:
+	{
+		inla_qlogdet(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
 		exit(EXIT_SUCCESS);
 	}
 		break;
