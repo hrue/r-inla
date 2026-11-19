@@ -38,6 +38,7 @@
 {
     t.dir <- inla.tempdir()
     smtp <- match.arg(inla.getOption("smtp"), c("stiles", "taucs", "band", "default"))
+    if (smtp == "stiles") smtp <- "taucs"
     if (is.null(num.threads)) {
         num.threads <- inla.getOption("num.threads")
     }

@@ -54,6 +54,7 @@
 {
     t.dir <- inla.tempdir()
     smtp <- match.arg(inla.getOption("smtp"), c("stiles", "taucs", "band", "default"))
+    if (smtp == "stiles") smtp <- "taucs"
     stopifnot(!missing(Q))
     stopifnot(n >= 1L)
 

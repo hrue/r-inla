@@ -41,6 +41,7 @@
 {
     t.dir <- inla.tempdir()
     smtp <- match.arg(inla.getOption("smtp"), c("stiles", "taucs", "band", "default"))
+    if (smtp == "stiles") smtp <- "taucs"
     Q <- inla.sparse.check(Q)
     if (is(Q, "dgTMatrix")) {
         Qfile <- inla.write.fmesher.file(Q, filename = inla.tempfile(tmpdir = t.dir))
