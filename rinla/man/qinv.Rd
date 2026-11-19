@@ -5,30 +5,27 @@
 \alias{inla.qinv}
 \title{Computes (parts of) the inverse of a SPD sparse matrix}
 \usage{
-inla.qinv(Q, constr = NULL, num.threads = NULL)
+inla.qinv(Q, constr, reordering = INLA::inla.reorderings(), num.threads = NULL)
 }
 \arguments{
 \item{Q}{A SPD matrix, either as a (dense) matrix or sparseMatrix.}
 
-\item{constr}{Optional linear constraints; see \code{?INLA::f} and argument
-\code{extraconstr}}
+\item{constr}{Optional linear constraints; see \code{?INLA::f} and argument \code{extraconstr}}
 
-\item{num.threads}{Number of threads to be used}
+\item{reordering}{The type of reordering algorithm to be used for \code{TAUCS}; either one of the
+names listed in \code{inla.reorderings()} or the output from \code{inla.qreordering(Q)}. The
+default is "auto" which try several reordering algorithm and use the best one for this
+particular matrix.}
 
-\item{reordering}{The type of reordering algorithm to be used for
-\code{TAUCS}; either one of the names listed in \code{inla.reorderings()} or
-the output from \code{inla.qreordering(Q)}.  The default is "auto" which try
-several reordering algorithm and use the best one for this particular
-matrix.}
+\item{num.threads}{Number of threads to use. If in format "A:B:C", then "A" is used.}
 }
 \value{
-\code{inla.qinv} returns a \code{sparseMatrix} of type
-\code{dgTMatrix} with the inverse of \code{Q},  where \code{Q} itself is non-zero.
+\code{inla.qinv} returns a \code{sparseMatrix} of type \code{dgTMatrix} with the inverse of \code{Q},
+where \code{Q} itself is non-zero.
 }
 \description{
-This routine use the GMRFLib implementation which compute parts of the
-inverse of a SPD sparse matrix.  The diagonal and values for the neighbours
-in the inverse, are provided.
+This routine use the GMRFLib implementation which compute parts of the inverse of a SPD
+sparse matrix. The diagonal and values for the neighbours in the inverse, are provided.
 }
 \examples{
 

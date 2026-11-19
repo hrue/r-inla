@@ -23,7 +23,7 @@ inla.qsample(
 )
 }
 \arguments{
-\item{n}{Number of samples. Only used if \code{missing(sample)}}
+\item{n}{Number of samples. Only used if \code{sample} is not \code{NULL}}
 
 \item{Q}{The precision matrix or a filename containing it.}
 
@@ -31,95 +31,37 @@ inla.qsample(
 
 \item{mu}{The mu term}
 
-\item{sample}{A matrix of optional samples where each column is a sample. If
-set, then evaluate the log-density for each sample only.}
+\item{sample}{A matrix of optional samples where each column is a sample. If set, then use
+this instead of generating new samples}
 
-\item{constr}{Optional linear constraints; see \code{?INLA::f} and argument
-\code{extraconstr}}
+\item{constr}{Optional linear constraints; see \code{?INLA::f} and argument \code{extraconstr}}
 
-\item{reordering}{The type of reordering algorithm to be used for
-\code{TAUCS}; either one of the names listed in \code{inla.reorderings()} or
-the output from \code{inla.qreordering(Q)}.  The default is "auto" which try
-several reordering algorithm and use the best one for this particular
-matrix.}
+\item{seed}{Seed for RNG, if non-zero, set seed using \code{\link[=set.seed]{set.seed()}}. If \code{seed !=0} then
+argument \code{num.threads} is set to 1. In that case, the results are almost surely
+reproducible.}
 
-\item{seed}{Control the RNG. If \code{seed=0L} then GMRFLib will set the
-seed intelligently/at 'random', and this is and should be the default
-behaviour.  If \code{seed < 0L} then the saved state of the RNG will be
-reused if possible, otherwise, GMRFLib will set the seed intelligently/at
-'random'.  If \code{seed > 0L} then this value is used as the seed for the
-RNG.
+\item{logdens}{If \code{TRUE}, compute also the log-density of each sample, and the (constrained)
+mean. Note that the output format then change.}
 
-PLEASE NOTE1: If \code{seed!=0} then the computations will run in serial
-mode, over-riding whatever is set in \code{num.threads} (a warning might be
-issued).}
+\item{num.threads}{Number of threads to use. If in format "A:B:C", then "A" is used.}
 
-\item{logdens}{If \code{TRUE}, compute also the log-density of each sample.
-Note that the output format then change.}
+\item{selection}{This argument is no longer in use and will be removed in the future. Will
+issue a warning if used}
 
-\item{compute.mean}{If \code{TRUE}, compute also the (constrained) mean.
-Note that the output format then change.}
+\item{verbose}{This argument is no longer in use and will be removed in the future.. Will
+issue a waring if used}
 
-\item{num.threads}{Maximum number of threads the \code{inla}-program will
-use, or as 'A:B' defining the number threads in the outer (A) and inner (B)
-layer for nested parallelism.  \code{seed!=0} requires serial comptuations.}
-
-\item{selection}{A vector of indices of each sample to return. \code{NULL}
-means return the whole sample.  (Note that the log-density retured, is for
-the whole sample.)  The use of \code{selection} cannot be combined with the
-use of \code{sample}.}
-
-\item{verbose}{Logical. Run in verbose mode or not.}
-
-\item{.debug}{Logical. Internal debug-mode.}
+\item{...}{Additional arguments no longer supported}
 }
 \value{
-The log-density has form -1/2(x-mu)^T Q (x-mu) + b^T x
-
-If \code{logdens} is \code{FALSE}, then \code{inla.qsample} returns the
-samples in a matrix, where each column is a sample.  If \code{logdens} or
-\code{compute.mean} is \code{TRUE}, then a list with names \code{sample},
-\code{logdens} and \code{mean} is returned. The samples are stored in the
-matrix \code{sample} where each column is a sample, and the log densities of
-each sample are stored as the vector \code{logdens}.  The mean (include
-corrections for the constraints, if any) is store in the vector \code{mean}.
+The log-density has form -1/2(x-mu)^T Q (x-mu) + b^T x. If \code{logdens} is \code{FALSE}. If
+\code{samples} are not \code{NULL}, then \code{samples} are used instead instead of generating new ones.
+\code{inla.qsample} returns the samples in a matrix if \code{logdens} is \code{FALSE}, where each column
+is a sample. If \code{logdens} is \code{TRUE}, then a list with names \code{sample}, \code{logdens} and
+\code{mean} is returned. The (constrained) mean is stored in the vector \code{mean}.
 }
 \description{
-This function generate samples from a GMRF using the GMRFLib implementation
-}
-\examples{
-
- g = system.file("demodata/germany.graph", package="INLA")
- Q = inla.graph2matrix(g)
- diag(Q) = dim(Q)[1L]
- x = inla.qsample(10, Q)
- \dontrun{matplot(x)}
- x = inla.qsample(10, Q, logdens=TRUE)
- \dontrun{matplot(x$sample)}
-
- n = 3
- Q = diag(n)
- ns = 2
-
- ## sample and evaluate a sample
- x = inla.qsample(n, Q=Q, logdens=TRUE)
- xx = inla.qsample(Q=Q,  sample = x$sample)
- print(x$logdens - xx$logdens)
-
- ## the use of a constraint
- constr = list(A = matrix(rep(1, n), 1, n), e = 0)
- x = inla.qsample(n, Q=Q, constr=constr)
- print(constr$A \%*\% x)
-
- ## control the RNG (require serial mode)
- x = inla.qsample(n, Q=Q, seed = 123, num.threads="1:1")
- ## restart from same seed,  only sample 1
- xx = inla.qsample(n=1, Q=Q, seed = 123, num.threads="1:1")
- ## continue from the save state, sample the remaining 2
- xxx = inla.qsample(n=n-1, Q=Q, seed = -1, num.threads="1:1")
- ## should be 0
- print(x - cbind(xx, xxx))
-
+This function generate samples, or evaluate the log-densities of samples, from a GMRF
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}
