@@ -411,7 +411,7 @@ int inla_qlogdet(const char *filename, const char *dfile, const char *constrfile
 			constr->e_vector = &constr_x->A[constr->nc * graph->n + 1];
 			GMRFLib_prepare_constr(constr, graph, 1);
 		}
-		GMRFLib_printf_constr(stderr, constr, graph);
+		// GMRFLib_printf_constr(stderr, constr, graph);
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
