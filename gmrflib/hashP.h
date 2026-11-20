@@ -168,7 +168,7 @@ Simple example:
 #ifndef _MAPKIT_GENERIC_
 #       define _MAPKIT_GENERIC_
 
-#       include <omp.h> 
+#       include <omp.h>
 #       include <time.h>
 #       include <strings.h>
 #       include <stdlib.h>
@@ -205,7 +205,7 @@ Simple example:
 #       endif
 
 #       if defined(__cplusplus)
-//extern "C" {
+extern "C" {
 #       endif
 
 	typedef enum {
@@ -5500,7 +5500,7 @@ extern "C" {
 	}
 
 #       if defined(__cplusplus)
-//}
+}
 #       endif
 
 #endif							       /* _MAPKIT_ */

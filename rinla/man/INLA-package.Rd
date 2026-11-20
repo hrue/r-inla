@@ -24,8 +24,8 @@ Authors:
 \itemize{
   \item Havard Rue \email{hrue@r-inla.org}
   \item Finn Lindgren \email{finn.lindgren@gmail.com}
-  \item Elias Teixeira Krainski \email{elias@r-inla.org}
   \item Esmail Abdul Fattah \email{esmail.abdulfattah@kaust.edu.sa}
+  \item Elias Teixeira Krainski \email{elias@r-inla.org}
   \item Sara Martino \email{saramartino0@gmail.com}
 }
 

@@ -909,7 +909,7 @@
 
 ##
 `inla.mclapply` <- function(..., mc.cores = NULL, parallel = TRUE) {
-    if (parallel && !inla.os("windows")) {
+    if (parallel && !(inla.os("windows") || (interactive() && Sys.getenv("POSITRON") == "1"))) {
         ## slightly different default 'mc.cores'
         if (is.null(mc.cores)) {
             mc.cores <- getOption("mc.cores", NULL)

@@ -2,6 +2,16 @@
 ## is set automatically, so that the corresponding binary can be run
 ## on the remote machine
 
+## set the remote user-name and host-name
 RemoteUser="rueh"
 RemoteHost="kw60890.kaust.edu.sa"
+
+## Set the path to the inla-binary. The default installation path,
+## depends on if the remote host runs Linux or MacOS. In most cases,
+## you can just uncomment the relevant one
+
+## remote host runs Linux:
 RemoteINLA="/home/$RemoteUser/.cache/R/INLA/$INLA_VERSION/bin/inla.run"
+
+## remote host runs MacOS:
+##RemoteINLA="/Users/$RemoteUser/Library/Caches/org.R-project.R/R/INLA/$INLA_VERSION/bin/inla.run"

@@ -225,27 +225,39 @@ int inla_parse_libR(inla_tp *mb, dictionary *ini, int sec)
 	/*
 	 * parse section = libR
 	 */
-	char *secname = NULL, *env = NULL;
 
 	if (mb->verbose) {
 		printf("\tinla_parse_libR...\n");
 	}
-	secname = Strdup(iniparser_getsecname(ini, sec));
+	char *secname = Strdup(iniparser_getsecname(ini, sec));
 	if (mb->verbose) {
 		printf("\t\tsection[%s]\n", secname);
 	}
 
-	mb->libR_R_HOME = Strdup(iniparser_getstring(ini, inla_string_join(secname, "R_HOME"), NULL));
-	inla_set_R_home(mb->libR_R_HOME);
-	if (mb->verbose) {
-		printf("\t\t\tR_HOME=[%s]\n", mb->libR_R_HOME);
+	char *R_HOME = Strdup(iniparser_getstring(ini, inla_string_join(secname, "R_HOME"), NULL));
+	char *INLA_R_HOME = Strdup(getenv("INLA_R_HOME"));
+
+	if (INLA_R_HOME) {
+		// overrides the argument set. need this for the remote option
+		mb->libR_R_HOME = INLA_R_HOME;
+	} else if (R_HOME && (my_dir_exists(R_HOME) == INLA_OK)) {
+		mb->libR_R_HOME = R_HOME;
+	} else {
+		// use environment variable R_HOME if set
+		char *env = Strdup(getenv("R_HOME"));
+		mb->libR_R_HOME = (env ? env : NULL);
 	}
 
 	if (mb->libR_R_HOME) {
-		// set the R_HOME variable
-		GMRFLib_sprintf(&env, "R_HOME=%s", mb->libR_R_HOME);
-		my_setenv(env, 0);
-		Free(env);
+		inla_set_R_home(mb->libR_R_HOME);
+	}
+
+	if (mb->verbose) {
+		if (mb->libR_R_HOME) {
+			printf("\t\t\tR_HOME=[%s]\n", mb->libR_R_HOME);
+		} else {
+			printf("\t\t\tR_HOME=[NULL] (either not set or invalid)\n");
+		}
 	}
 
 	return INLA_OK;

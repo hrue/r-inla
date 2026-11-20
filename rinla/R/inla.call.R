@@ -1,23 +1,25 @@
-`inla.remote.script` <- function(what = NULL) {
-    if (is.null(what)) {
+`inla.remote.script` <- function(cmd = NULL) {
+    if (is.null(cmd)) {
         return (NULL)
     }
-    ## no remote scripts on Windows: a path is used as given
+    if (nchar(cmd) == 0) {
+        return (cmd)
+    }
     if (inla.os("windows")) {
-        return (what)
+        return (cmd)
     }
 
-    f <- system.file(file.path("remote", paste0("inla.", what)), package = "INLA")
+    f <- system.file(file.path("remote", paste0("inla.", cmd)), package = "INLA")
     if (nzchar(f)) {
         return(f)
     } 
 
-    f <- system.file(file.path("remote", what), package = "INLA")
+    f <- system.file(file.path("remote", cmd), package = "INLA")
     if (nzchar(f)) {
         return(f)
     } 
 
-    return(what)
+    return(cmd)
 }
 
 `inla.call.no.remote` <- function() {

@@ -23,9 +23,9 @@ current values, otherwise, \code{option} must be one (or a vector of several) of
 \item{num.threads}{Character string with the number of threads to use as
 \code{A:B:C}, see \code{?inla}}
 
-\item{blas.num.threads}{If set to integer '> 0',  then this fix the number of threads for blas
-functions. If set to 0,  the the number of threads will be determined adapatively. This value
-is overrided if the value is set in 'control.expert',  hence 'blas.num.threads' provides the
+\item{blas.num.threads}{If set to integer '> 0', then this fix the number of threads for blas
+functions. If set to 0, the the number of threads will be determined adapatively. This value
+is overrided if the value is set in 'control.expert', hence 'blas.num.threads' provides the
 default value for 'control.expert$blas.num.threads'. }
 
 \item{smtp}{Sparse matrix library to use, one of \code{band}, \code{taucs}, \code{stiles}
@@ -72,13 +72,7 @@ a later stage.}
 \item{inla.mode}{Which mode to use in INLA? Default is \code{"compact"}. Other
 options are \code{"classic"} and \code{"twostage"}.}
 
-\item{malloc.lib}{Which malloc library to use: \code{"je"}, \code{"tc"}, \code{"mi"}, \code{"compiler"} or \code{"default"}.
-Option \code{"compiler"} use the compiler's implementation. The library
-is loaded using \code{LD_PRELOAD} and similar functionality. Loosely, \code{jemalloc} is from Facebook,
-\code{tcmalloc} is from Google and \code{mimalloc} is from Microsoft. This option is not available for
-Windows and not all options might be available for every arch.
-If \code{malloc.lib} is a complete path to an external library, that file will be used
-instead of one of the supported ones.}
+\item{malloc.lib}{This option is disabled and no longer in use.}
 
 \item{fmesher.evolution}{Control use of fmesher methods during the transition
 to a separate fmesher package. Only supported value is \code{2L}, for using the

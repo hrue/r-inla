@@ -170,6 +170,7 @@ Collate:
     'priors.used.R'
     'prune.R'
     'qinv.R'
+    'qlogdet.R'
     'qreordering.R'
     'qsample.R'
     'qsolve.R'

@@ -721,7 +721,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 				  fprintf(stderr, "\tThis binary does not know them and will IGNORE them.\n");
 				  fprintf(stderr, "\tUsually this means the R-package is newer than this binary [%s];\n",
 					  __GMRFLib_symbol_to_string(GITCOMMIT));
-				  fprintf(stderr, "\tPlease upgrade the binary with 'inla.stiles.install()'"););
+				  fprintf(stderr, "\tPlease upgrade the binary with 'inla.stiles.install()'");
+		    );
 	}
 
 	if (0) {
@@ -827,7 +828,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose)
 	if (need_link && !GMRFLib_gaussian_data) {
 		LOG_WARNING_WRAPPER(fprintf(stderr, "*** Warning *** You might want to consider to setting ``control.predictor=list(link=...)''\n");
 				    fprintf(stderr,
-					    "*** Warning *** otherwise the identity link will be used to compute the fitted values for NA data"););
+					    "*** Warning *** otherwise the identity link will be used to compute the fitted values for NA data");
+		    );
 	}
 
 	// register 'mb'
@@ -7534,6 +7536,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_QREORDERING;
 			} else if (!strncasecmp(optarg, "QSAMPLE", 7)) {
 				G.mode = INLA_MODE_QSAMPLE;
+			} else if (!strncasecmp(optarg, "QLOGDET", 7)) {
+				G.mode = INLA_MODE_QLOGDET;
 			} else if (!strncasecmp(optarg, "FINN", 4)) {
 				G.mode = INLA_MODE_FINN;
 			} else if (!strncasecmp(optarg, "GRAPH", 5)) {
@@ -7592,7 +7596,8 @@ int main(int argc, char **argv)
 								  fprintf(stderr, "*** ERROR *** Parse num.threads argument %1d: [%s]\n", ii + 1,
 									  token);
 								  fprintf(stderr, "              No 'muparser'-library in this build, so\n");
-								  fprintf(stderr, "              expressions cannot use 'P' or 'C'\n\n"););
+								  fprintf(stderr, "              expressions cannot use 'P' or 'C'\n\n");
+						    );
 						exit(1);
 					}
 				}
@@ -7657,7 +7662,7 @@ int main(int argc, char **argv)
 
 		case 'z':
 		{
-			if (!(G.mode == INLA_MODE_FINN || G.mode == INLA_MODE_QSAMPLE || G.mode == INLA_MODE_TESTIT)) {
+			if (!(G.mode == INLA_MODE_FINN || G.mode == INLA_MODE_QSAMPLE || G.mode == INLA_MODE_QLOGDET || G.mode == INLA_MODE_TESTIT)) {
 				LOG_ERROR("Option `-z seed' only available in selected modes");
 				exit(EXIT_FAILURE);
 			} else {
@@ -7799,6 +7804,13 @@ int main(int argc, char **argv)
 	{
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8], argv[optind + 9], verbose);
+		exit(EXIT_SUCCESS);
+	}
+		break;
+
+	case INLA_MODE_QLOGDET:
+	{
+		inla_qlogdet(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
 		exit(EXIT_SUCCESS);
 	}
 		break;

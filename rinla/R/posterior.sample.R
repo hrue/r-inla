@@ -520,32 +520,31 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
         ## In parallel mode, each thread needs it's own random sequence,
         ## so seed must be 0; seed != 0 is handled above to prevent parallel
         ## runs with nonzero seed.
-        xx.list <- parallel::mclapply(1:cs$nconfig,
-                             (function(k) {
-                                 if (n.idx[k] > 0) {
-                                     xx <- inla.qsample(
-                                         n = n.idx[k],
-                                         Q = cs$config[[k]]$Q,
-                                         mu = inla.ifelse(
-                                             use.improved.mean,
-                                             cs$config[[k]]$improved.mean,
-                                             cs$config[[k]]$mean
-                                         ),
-                                         constr = cs$constr,
-                                         logdens = TRUE,
-                                         seed = 0L,
-                                         num.threads = paste0(nt[2], ":1"),
-                                         selection = sel.map,
-                                         verbose = verbose
-                                     )
-                                     return(xx)
-                                 } else {
-                                     return(NA)
-                                 }
-                             }),
-                             mc.cores = nt[1],
-                             mc.preschedule = TRUE
-                             )
+        xx.list <- inla.mclapply(1:cs$nconfig,
+        (function(k) {
+            if (n.idx[k] > 0) {
+                xx <- inla.qsample(
+                    n = n.idx[k],
+                    Q = cs$config[[k]]$Q,
+                    mu = inla.ifelse(
+                        use.improved.mean,
+                        cs$config[[k]]$improved.mean,
+                        cs$config[[k]]$mean
+                    ),
+                    constr = cs$constr,
+                    logdens = TRUE,
+                    seed = 0L,
+                    num.threads = paste0(nt[2], ":1"),
+                    selection = sel.map,
+                    verbose = verbose
+                )
+                return(xx)
+            } else {
+                return(NA)
+            }
+        }),
+        mc.cores = nt[1]
+        )
     } else {
         xx.list <- NULL
     }
