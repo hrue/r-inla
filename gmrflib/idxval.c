@@ -959,6 +959,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		treff[k] /= (double) ntimes;
 	}
 
+	// disable this
+#if 0
 	for (k = 1; k < 2; k++) {
 		if (ABS(value[k] - value[0]) > 1000.0 * FLT_EPSILON * sqrt(h->n)) {
 			P(ABS(value[k] - value[0]));
@@ -988,7 +990,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			Assert(0 == 1);
 		}
 	}
-
+#endif
+	
 	int kmin = -1;
 	double tmin = GMRFLib_min_value(treff, 2, &kmin);
 
