@@ -3114,7 +3114,6 @@ int loglikelihood_0poisson(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 	LINK_INIT;
 
 	double prob_intern = 0.0;
-
 	for (int i = 0; i < ds->data_observations.poisson0_nbeta; i++) {
 		prob_intern += ds->data_observations.poisson0_beta[i][thread_id][0] * ds->data_observations.poisson0_x[i][idx];
 	}
@@ -3122,32 +3121,25 @@ int loglikelihood_0poisson(int thread_id, int *UNUSED(lcache_idx), double *RESTR
 
 	if (m > 0) {
 		double ylEmn = normc;
-
 		if (y > 0) {
 			double l1mp = LOG_1mp(prob);
-
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
-
 				logll[i] = l1mp + y * log(lambda) + ylEmn - E * lambda;
 			}
 		} else {
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
-
-				logll[i] = log(prob + (1.0 - prob) * exp(-lambda));
+				logll[i] = log(prob + (1.0 - prob) * exp(-E * lambda));
 			}
 		}
 	} else {
 		double *yy = (y_cdf ? y_cdf : &y);
-
 		for (int i = 0; i < -m; i++) {
 			double lambda = PREDICTOR_INVERSE_LINK(x[i], off);
-			double mean = E * lambda;
-
-			logll[i] = prob + (1.0 - prob) * gsl_cdf_poisson_P((unsigned int) *yy, mean);
+			logll[i] = prob + (1.0 - prob) * gsl_cdf_poisson_P((unsigned int) *yy, E * lambda);
 		}
 	}
 
@@ -3175,7 +3167,6 @@ int loglikelihood_0poissonS(int thread_id, int *UNUSED(lcache_idx), double *REST
 	LINK_INIT;
 
 	double log_lambda = 0.0;
-
 	for (int i = 0; i < ds->data_observations.poisson0_nbeta; i++) {
 		log_lambda += ds->data_observations.poisson0_beta[i][thread_id][0] * ds->data_observations.poisson0_x[i][idx];
 	}
@@ -3183,21 +3174,17 @@ int loglikelihood_0poissonS(int thread_id, int *UNUSED(lcache_idx), double *REST
 
 	if (m > 0) {
 		double lpois = y * log_lambda + normc - E * lambda;
-
 		if (y > 0) {
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double prob = PREDICTOR_INVERSE_LINK(x[i], off);
-
 				logll[i] = LOG_1mp(prob) + lpois;
 			}
 		} else {
 			double pois = exp(lpois);
-
 #pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double prob = PREDICTOR_INVERSE_LINK(x[i], off);
-
 				logll[i] = log(prob + (1.0 - prob) * pois);
 			}
 		}
@@ -3205,10 +3192,8 @@ int loglikelihood_0poissonS(int thread_id, int *UNUSED(lcache_idx), double *REST
 		double *yy = (y_cdf ? y_cdf : &y);
 		double mean = E * lambda;
 		double pois = gsl_cdf_poisson_P((unsigned int) *yy, mean);
-
 		for (int i = 0; i < -m; i++) {
 			double prob = PREDICTOR_INVERSE_LINK(x[i], off);
-
 			logll[i] = prob + (1.0 - prob) * pois;
 		}
 	}
