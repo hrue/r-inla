@@ -36,7 +36,7 @@ fi
 Rscript --vanilla -e '
     lib   <- Sys.getenv("R_LIBS_USER")
     repos <- strsplit(Sys.getenv("SMOKE_CRAN_REPOS"), " ")[[1]]
-    need  <- c("fmesher", "lifecycle", "rlang", "withr", "MatrixModels",
+    need  <- c("fmesher", "lifecycle", "rlang", "withr", "MatrixModels", "sTiles",
                "INLAspacetime")
     miss  <- setdiff(need, rownames(installed.packages()))
     if (length(miss))

@@ -114,7 +114,7 @@ jobs:
           set -e
           Rscript -e 'install.packages(c(
             "knitr","rmarkdown","formatR","tinytex",
-            "Matrix","fmesher","lifecycle","rlang","withr","MatrixModels","sp","sn","numDeriv",
+            "Matrix","fmesher","lifecycle","rlang","withr","MatrixModels","sTiles","sp","sn","numDeriv",
             "ggplot2","gridExtra","ggpubr","lattice","scales","dplyr","tidyr","DOYPAColors",
             "sf","s2","terra","tidyterra","deldir","fields","maps","spatstat","splancs",
             "rnaturalearth","ggOceanMaps","mvtnorm","evd","fastGHQuad","pracma","mgcv",
@@ -296,7 +296,7 @@ jobs:
 
           ## repos = NULL does no dependency resolution, so install them first.
           install.packages(c("Matrix", "fmesher", "lifecycle", "rlang",
-                             "withr", "MatrixModels"))
+                             "withr", "MatrixModels", "sTiles"))
           install.packages(tb, repos = NULL, type = "source")
 
           library(INLA)

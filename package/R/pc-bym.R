@@ -1,6 +1,7 @@
 ## NOT-YET-Export:
 
-inla.bym.constr.internal <- function(Q, adjust.for.con.comp = TRUE) {
+inla.bym.constr.internal <- function(Q, adjust.for.con.comp = TRUE)
+{
     ## return the rankdef and the constr for the BYM model given in Q
 
     n <- dim(Q)[1]
@@ -38,7 +39,8 @@ inla.sparse.det.bym <- function(Q,
                                 adjust.for.con.comp = TRUE,
                                 log = TRUE,
                                 constr = NULL,
-                                eps = 0.01 * sqrt(.Machine$double.eps)) {
+                                eps = 1.0 * sqrt(.Machine$double.eps))
+{
     ## compute the (log-)determinant. Assume a sum to zero constraint on each connected
     ## component >1. if 'constr' is given,  it is supposed to be the 'constr' that is
     ## constructed below.
@@ -50,30 +52,33 @@ inla.sparse.det.bym <- function(Q,
     res <- NULL
 
     if (is.null(constr)) {
-        res <- inla.bym.constr.internal(Q, adjust.for.con.comp = adjust.for.con.comp)
-        constr <- res$constr
+        constr <- inla.bym.constr.internal(Q, adjust.for.con.comp = adjust.for.con.comp)$constr
     }
-    if (missing(rankdef)) {
-        if (!is.null(constr)) {
-            rankdef <- nrow(constr$A)
-        } else {
-            rankdef <- 0
-        }
+    if (missing(rankdef) || is.null(rankdef)) {
+        rankdef <- nrow(constr$A)
     }
+    
+    num.threads <- inla.getOption("num.threads")
+    cores <- as.integer(max(1, strsplit(inla.parse.num.threads(num.threads), ":")[[1]][2]))
+
     d <- diag(Q)
     diag(Q) <- d + mean(d) * eps
-    res <- inla.qsample(n = 1, Q = Q, sample = matrix(0, n, 1), constr = constr)
+    res <- inla.qsample(n = 1, Q = Q, sample = matrix(0, n, 1), constr = constr,
+                        num.threads = as.character(cores))
     logdet <- 2.0 * (res$logdens + (n - rankdef) / 2.0 * log(2.0 * pi))
     return(if (log) logdet else exp(logdet))
 }
 
-inla.scale.model.bym <- function(Q, eps = sqrt(.Machine$double.eps), adjust.for.con.comp = TRUE) {
+inla.scale.model.bym <- function(Q, eps = 1.0 * sqrt(.Machine$double.eps), adjust.for.con.comp = TRUE)
+{
     ## the old version
     res <- inla.scale.model.bym.internal(Q = Q, adjust.for.con.comp = adjust.for.con.comp, eps = eps)
     return(res$Q)
 }
 
-inla.scale.model.bym.internal <- function(Q, eps = sqrt(.Machine$double.eps), adjust.for.con.comp = TRUE) {
+inla.scale.model.bym.internal <- function(Q, eps = 1.0 * sqrt(.Machine$double.eps),
+                                          adjust.for.con.comp = TRUE)
+{
     ## the new one which also return the (scaled) marginal variances
     n <- dim(Q)[1]
     constr <- list(A = matrix(1, nrow = 1, ncol = n), e = 0)
@@ -87,7 +92,15 @@ inla.scale.model.bym.internal <- function(Q, eps = sqrt(.Machine$double.eps), ad
         QQ <- inla.as.sparse(QQ)
         n <- dim(QQ)[1]
         constr <- list(A = matrix(1, nrow = 1, ncol = n), e = 0)
-        res <- inla.qinv(QQ + Diagonal(n) * mean(diag(QQ)) * eps, constr = constr)
+
+        num.threads <- inla.getOption("num.threads")
+        cores <- numeric(2)
+        cores[1] <- as.integer(max(1, strsplit(inla.parse.num.threads(num.threads), ":")[[1]][1]))
+        cores[2] <- as.integer(max(1, strsplit(inla.parse.num.threads(num.threads), ":")[[1]][2]))
+        cores <- prod(cores)
+
+        res <- inla.qinv(QQ + Diagonal(n) * mean(diag(QQ)) * eps, constr = constr,
+                         num.threads = as.character(cores))
         fac <- exp(mean(log(diag(res))))
         QQ <- fac * QQ
         Q[idx, idx] <- QQ
@@ -97,7 +110,8 @@ inla.scale.model.bym.internal <- function(Q, eps = sqrt(.Machine$double.eps), ad
     return(res)
 }
 
-inla.pc.bym.Q <- function(graph) {
+inla.pc.bym.Q <- function(graph)
+{
     Q <- -inla.graph2matrix(graph)
     diag(Q) <- 0
     diag(Q) <- -rowSums(Q)
@@ -117,8 +131,9 @@ inla.pc.bym.phi <- function(graph,
                             return.as.table = FALSE,
                             adjust.for.con.comp = TRUE,
                             ## where to switch to alternative strategy
-                            eps = sqrt(.Machine$double.eps),
-                            debug = FALSE) {
+                            eps = 1.0 * sqrt(.Machine$double.eps),
+                            debug = FALSE)
+{
     my.debug <- function(...) if (debug) cat("*** debug *** inla.pc.bym.phi: ", ..., "\n")
 
     scale.model <- as.logical(scale.model)
@@ -141,7 +156,7 @@ inla.pc.bym.phi <- function(graph,
             stop("Only one of <Q> and <graph> can be given.")
         }
 
-        res <- inla.bym.constr.internal(Q, adjust.for.con.comp = adjust.for.con.comp)
+        res.constr <- inla.bym.constr.internal(Q, adjust.for.con.comp = adjust.for.con.comp)
         if (missing(rankdef)) {
             rankdef <- res$rankdef
         }
@@ -177,39 +192,67 @@ inla.pc.bym.phi <- function(graph,
         }
     } else {
         ## alternative strategy for larger matrices
-        phi.s <- 1 / (1 + exp(-c(seq(-15, 0, length.out = 40), 1:12)))
-        d <- numeric(length(phi.s))
-        log.q1.det <- inla.sparse.det.bym(Q,
-            adjust.for.con.comp = adjust.for.con.comp,
-            constr = res$constr, rankdef = rankdef
-        )
-        d <- c(unlist(
-            inla.mclapply(
-                phi.s,
-                function(phi) {
+        phi.s <- 1 / (1 + exp(-c(seq(-15, 0, length.out = 16), 1:12)))
+        if (FALSE) {
+            ## old code
+            d <- numeric(length(phi.s))
+            log.q1.det <- inla.sparse.det.bym(
+                Q, adjust.for.con.comp = adjust.for.con.comp,
+                constr = res.constr$constr, rankdef = rankdef)
+            d <- c(unlist(
+                inla.mclapply(
+                    phi.s,
+                    function(phi) {
                     aa <- n * phi * f
                     bb <- (n * log((1.0 - phi) / phi) +
-                        inla.sparse.det.bym(Q + phi / (1 - phi) * Diagonal(n),
-                            adjust.for.con.comp = adjust.for.con.comp,
-                            constr = res$constr, rankdef = rankdef
-                        ) -
-                        (log.q1.det - n * log(phi)))
+                           inla.sparse.det.bym(Q + phi / (1 - phi) * Diagonal(n),
+                                               adjust.for.con.comp = adjust.for.con.comp,
+                                               constr = res.constr$constr, rankdef = rankdef
+                                               ) -
+                           (log.q1.det - n * log(phi)))
                     my.debug("aa=", aa, " bb=", bb, " sqrt(", aa - bb, ")")
                     return(if (aa >= bb) sqrt(aa - bb) else NA)
                 }
-            )
-        ))
+                )
+            ))
+        } else {
+            if (FALSE) {
+                ## do the parallel better
+                phi.ss <- c(0, phi.s)
+                d <- c(unlist(
+                    inla.mclapply(
+                        phi.ss,
+                        function(phi) {
+                        return (inla.sparse.det.bym(Q + phi / (1 - phi) * Diagonal(n),
+                                                    adjust.for.con.comp = adjust.for.con.comp,
+                                                    constr = res.constr$constr,
+                                                    rankdef = rankdef))
+                    })))
+                log.q1.det <- d[1]
+                d <- d[-1]
+                aa <- n * phi.s * f
+                bb <- (n * log((1.0 - phi.s) / phi.s) + d - (log.q1.det - n * log(phi.s)))
+                d <- sqrt(pmax(0, aa-bb))
+            }
+            if (TRUE) {
+                ## do even better
+                phi.ss <- c(0, phi.s)
+                d <- inla.qlogdet(Q, d = phi.ss/(1.0 - phi.ss), constr = res.constr$constr)
+                log.q1.det <- d[1]
+                d <- d[-1]
+                aa <- n * phi.s * f
+                bb <- (n * log((1.0 - phi.s) / phi.s) + d - (log.q1.det - n * log(phi.s)))
+                d <- sqrt(pmax(0, aa-bb))
+            }
+        }
     }
     names(d) <- NULL
 
     ## remove phi's that failed, if any
-    remove <- is.na(d)
-    my.debug(paste(sum(remove), "out of", length(remove), "removed"))
-    d <- d[!remove]
-    phi.s <- phi.s[!remove]
-    remove <- 1:6
-    d <- d[-remove]
-    phi.s <- phi.s[-remove]
+    idx.keep <- which(d > 0.0)
+    d <- d[idx.keep]
+    phi.s <- phi.s[idx.keep]
+
     phi.intern <- log(phi.s / (1 - phi.s))
     ff.d <- splinefun(phi.intern, log(d))
     phi.intern <- seq(min(phi.intern) - 0, max(phi.intern), length.out = 10000)
@@ -247,8 +290,7 @@ inla.pc.bym.phi <- function(graph,
         ## return this prior as a "table:" converted to the intern scale for phi.
         my.debug("return prior as a table on phi.intern")
         theta.prior.table <- paste(c("table:", cbind(phi.intern, log.prior)),
-            sep = "", collapse = " "
-        )
+                                   sep = "", collapse = " ")
         return(theta.prior.table)
     } else {
         ## return a function which evaluates the log-prior as a function of phi.
@@ -266,7 +308,8 @@ inla.pc.rw2diid.phi <- function(
                                 u = 1 / 2,
                                 lambda,
                                 return.as.table = FALSE,
-                                debug = FALSE) {
+                                debug = FALSE)
+{
     ## not all functions here are used, but...
     DFT2 <- function(x) {
         fft(x, inverse = FALSE) / sqrt(length(x))
@@ -293,14 +336,14 @@ inla.pc.rw2diid.phi <- function(
         outer(
             0:(n - 1), 0:(n - 1),
             function(i, j) {
-                two.pi <- 2 * pi
-                return(base[1, 1]
-                + base[2, 1] * cos(two.pi * i / n)
-                    + base[1, 2] * cos(two.pi * j / n)
-                    + base[n, n] * cos(two.pi * ((n - 1) * i / n + (n - 1) * j / n))
-                    + base[n, 1] * cos(two.pi * (n - 1) * i / n)
-                    + base[1, n] * cos(two.pi * (n - 1) * j / n))
-            }
+            two.pi <- 2 * pi
+            return(base[1, 1]
+                   + base[2, 1] * cos(two.pi * i / n)
+                   + base[1, 2] * cos(two.pi * j / n)
+                   + base[n, n] * cos(two.pi * ((n - 1) * i / n + (n - 1) * j / n))
+                   + base[n, 1] * cos(two.pi * (n - 1) * i / n)
+                   + base[1, n] * cos(two.pi * (n - 1) * j / n))
+        }
         )^2
     }
 
@@ -350,10 +393,10 @@ inla.pc.rw2diid.phi <- function(
         y[] <- 0
         idx <- 1:n
         r <- inla(y ~ -1 + f(idx, model = "rw2d", nrow = size[1], ncol = size[2], scale.model = TRUE, fixed = TRUE),
-            data = data.frame(y, idx),
-            family = "gaussian",
-            control.family = list(hyper = list(prec = list(initial = 8, fixed = TRUE)))
-        )
+                  data = data.frame(y, idx),
+                  family = "gaussian",
+                  control.family = list(hyper = list(prec = list(initial = 8, fixed = TRUE)))
+                  )
         return(r$logfile[grep(" prec_scale", r$logfile)])
     }
 

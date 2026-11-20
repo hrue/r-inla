@@ -17,10 +17,10 @@
 #' \item{num.threads}{Character string with the number of threads to use as
 #' `A:B:C`, see `?inla`}
 #' 
-#' \item{blas.num.threads}{If set to integer '> 0',  then this fix the number of threads for blas
-#' functions. If set to 0,  the the number of threads will be determined adapatively. This value
-#' is overrided if the value is set in 'control.expert',  hence 'blas.num.threads' provides the
-#' default value for 'control.expert$blas.num.threads'. } 
+#' \item{blas.num.threads}{If set to integer '> 0', then this fix the number of threads for blas
+#' functions. If set to 0, the the number of threads will be determined adapatively. This value
+#' is overrided if the value is set in 'control.expert', hence 'blas.num.threads' provides the
+#' default value for 'control.expert$blas.num.threads'. }
 #' 
 #' \item{smtp}{Sparse matrix library to use, one of `band`, `taucs`, `stiles`
 #' or `default`}
@@ -66,13 +66,7 @@
 #' \item{inla.mode}{Which mode to use in INLA? Default is `"compact"`. Other
 #' options are `"classic"` and `"twostage"`.}
 #' 
-#' \item{malloc.lib}{Which malloc library to use: `"je"`, `"tc"`, `"mi"`, `"compiler"` or `"default"`.
-#' Option `"compiler"` use the compiler's implementation. The library
-#' is loaded using `LD_PRELOAD` and similar functionality. Loosely, `jemalloc` is from Facebook,
-#' `tcmalloc` is from Google and `mimalloc` is from Microsoft. This option is not available for
-#' Windows and not all options might be available for every arch. 
-#' If `malloc.lib` is a complete path to an external library, that file will be used
-#' instead of one of the supported ones.}
+#' \item{malloc.lib}{This option is disabled and no longer in use.}
 #'
 #' \item{fmesher.evolution}{Control use of fmesher methods during the transition
 #' to a separate fmesher package. Only supported value is `2L`, for using the
@@ -308,37 +302,6 @@ NULL
         inla.setOption.core("inla.mode", "compact")
     }
 
-    arg <- inla.getOption("malloc.lib")
-    if (is.null(arg) || arg == "default") {
-        inla.setOption.core("malloc.lib", inla.getOption.default()$malloc.lib)
-    }
-    if (length(grep("^/", arg)) == 1 && !file.exists(arg)) {
-        warning(paste0("User-defined library for option 'malloc.lib, ", arg,
-                       ", does not exists. Use malloc.lib='default'"))
-        inla.setOption.core("malloc.lib", inla.getOption.default()$malloc.lib)
-    } else {
-        arg <- match.arg(arg, c("default", "compiler", "je", "tc", "mi"), several.ok = FALSE)
-        if (arg != "default" && arg != "compiler") {
-            ## The allocator variants live beside the binary, so with none
-            ## installed there is nothing to check against. Fall back to the
-            ## safe value instead of raising: this runs at the end of EVERY
-            ## inla.setOption() call, so raising here made setting any option
-            ## at all impossible on a fresh install. check = FALSE because the
-            ## binary must not be executed just to set an option.
-            base <- inla.binary.path(check = FALSE)
-            base <- if (length(base) != 1L || is.na(base)) NULL else dirname(base)
-            if (is.null(base)) {
-                inla.setOption.core("malloc.lib", "default")
-            } else {
-                avail <- dir(paste0(base, "/malloc"), full.names = TRUE)
-                idx <- grep(paste0("lib", arg, "malloc"), avail)
-                if (length(idx) == 0 || length(idx) > 1) {
-                    inla.setOption.core("malloc.lib", "default")
-                }
-            }
-        }
-    }
-    
     arg <- inla.getOption("working.directory")
     if (!is.null(arg) && inla.anyMultibyteUTF8Characters(arg)) {
         warning(paste0("*** working.directory=[", arg,

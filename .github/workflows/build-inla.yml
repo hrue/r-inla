@@ -602,7 +602,7 @@ jobs:
           ## the data, so install it from THIS checkout to match the binary.
           ## INLAspacetime supplies cgeneric model 102 and comes from CRAN;
           ## the public RSPM mirror serves it prebuilt, so nothing compiles.
-          Rscript -e "install.packages(c('Matrix','fmesher','lifecycle','rlang','withr','MatrixModels','INLAspacetime','sn','numDeriv'))"
+          Rscript -e "install.packages(c('Matrix','fmesher','lifecycle','rlang','withr','MatrixModels','sTiles','INLAspacetime','sn','numDeriv'))"
           R CMD INSTALL --no-docs --no-help --no-byte-compile rinla
           R CMD INSTALL --no-docs --no-help --no-byte-compile external-packages/fbesag/fbesag
           ## Both backends, as every other lane does.
@@ -962,7 +962,7 @@ jobs:
           done
           [ -n "$EXE" ] || { echo "inla.exe not found; skipping"; exit 0; }
           export INLA_EXE="$EXE"
-          Rscript -e "install.packages(c('Matrix','fmesher','lifecycle','rlang','withr','MatrixModels'), repos='https://cloud.r-project.org')" >/dev/null 2>&1
+          Rscript -e "install.packages(c('Matrix','fmesher','lifecycle','rlang','withr','MatrixModels','sTiles'), repos='https://cloud.r-project.org')" >/dev/null 2>&1
           ## From the checked-out sources, not from GitHub: install_github
           ## fails on Windows on the repository's symlinks, which is the very
           ## thing being worked around elsewhere.
@@ -1126,7 +1126,7 @@ jobs:
           ## fbesag is compiled INTO the binary; its R package only assembles
           ## the data, so install it from THIS checkout to match the binary.
           ## INLAspacetime supplies model 102 the same way and comes from CRAN.
-          Rscript -e "install.packages(c('Matrix','fmesher','lifecycle','rlang','withr','MatrixModels','INLAspacetime','sn','numDeriv'), repos='https://cloud.r-project.org')"
+          Rscript -e "install.packages(c('Matrix','fmesher','lifecycle','rlang','withr','MatrixModels','sTiles','INLAspacetime','sn','numDeriv'), repos='https://cloud.r-project.org')"
 
           ## external-packages/fbesag/fbesag is NOT tracked here; the build
           ## lanes get it by running the external-packages build first. Clone
@@ -1312,7 +1312,7 @@ jobs:
           set -e
           Rscript -e 'install.packages(c(
             "knitr","rmarkdown","formatR","tinytex",
-            "Matrix","fmesher","lifecycle","rlang","withr","MatrixModels","sp","sn","numDeriv",
+            "Matrix","fmesher","lifecycle","rlang","withr","MatrixModels","sTiles","sp","sn","numDeriv",
             "ggplot2","gridExtra","ggpubr","lattice","scales","dplyr","tidyr","DOYPAColors",
             "sf","s2","terra","tidyterra","deldir","fields","maps","spatstat","splancs",
             "rnaturalearth","ggOceanMaps","mvtnorm","evd","fastGHQuad","pracma","mgcv",
