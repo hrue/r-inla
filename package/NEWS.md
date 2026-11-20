@@ -1,3 +1,6 @@
+# INLA 26.11.20
+* New q-function routines and bug fixes
+
 # INLA 26.11.08
 * a fix for the mac code with sTiles
 
