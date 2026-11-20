@@ -135,7 +135,6 @@ inla.pc.bym.phi <- function(graph,
                             debug = FALSE)
 {
     my.debug <- function(...) if (debug) cat("*** debug *** inla.pc.bym.phi: ", ..., "\n")
-
     scale.model <- as.logical(scale.model)
     adjust.for.con.comp <- as.logical(adjust.for.con.comp)
 
@@ -237,7 +236,9 @@ inla.pc.bym.phi <- function(graph,
             if (TRUE) {
                 ## do even better
                 phi.ss <- c(0, phi.s)
-                d <- inla.qlogdet(Q, d = phi.ss/(1.0 - phi.ss), constr = res.constr$constr)
+                ## need to make sure its not singular
+                eps <- sqrt(.Machine$double.eps)
+                d <- inla.qlogdet(Q, d = eps + phi.ss/(1.0 - phi.ss), constr = res.constr$constr)
                 log.q1.det <- d[1]
                 d <- d[-1]
                 aa <- n * phi.s * f

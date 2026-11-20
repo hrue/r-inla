@@ -61,9 +61,7 @@ double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), in
 		// a check of the interpolation
 #pragma omp critical (Name_e578aec88a26ae580f841592d1651b595dac46e4)
 		{
-			double xx;
-
-			for (xx = -20; xx < 20; xx += .1)
+			for (double xx = -20; xx < 20; xx += .1)
 				printf("TABLE %g %g\n", xx, GMRFLib_spline_eval(xx, s));
 			exit(1);
 		}
