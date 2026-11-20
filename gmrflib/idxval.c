@@ -924,7 +924,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	int ntimes = 2;
 	double treff[2] = { 0.0, 0.0 };
-	double value[2] = { 0.0, 0.0 };
+	double POSSIBLY_UNUSED(value)[2] = { 0.0, 0.0 };
 
 	int simple = (ng == 1 && g_len[0] < 0 ? 1 : 0);	       /* this is the simple one, where its either a sum or dot (no sparse dot) */
 	double (*ddot_group)(GMRFLib_idxval_tp *, double *);
