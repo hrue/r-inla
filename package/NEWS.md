@@ -1,3 +1,6 @@
+# INLA 26.11.21
+* Fix for bym2 and sparse inner products
+
 # INLA 26.11.20
 * New q-function routines and bug fixes
 
