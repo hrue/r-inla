@@ -924,7 +924,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	int ntimes = 2;
 	double treff[2] = { 0.0, 0.0 };
-	double value[2] = { 0.0, 0.0 };
+	double POSSIBLY_UNUSED(value)[2] = { 0.0, 0.0 };
 
 	int simple = (ng == 1 && g_len[0] < 0 ? 1 : 0);	       /* this is the simple one, where its either a sum or dot (no sparse dot) */
 	double (*ddot_group)(GMRFLib_idxval_tp *, double *);
@@ -959,6 +959,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 		treff[k] /= (double) ntimes;
 	}
 
+	// disable this
+#if 0
 	for (k = 1; k < 2; k++) {
 		if (ABS(value[k] - value[0]) > 1000.0 * FLT_EPSILON * sqrt(h->n)) {
 			P(ABS(value[k] - value[0]));
@@ -988,7 +990,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 			Assert(0 == 1);
 		}
 	}
-
+#endif
+	
 	int kmin = -1;
 	double tmin = GMRFLib_min_value(treff, 2, &kmin);
 
